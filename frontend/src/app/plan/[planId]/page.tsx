@@ -1,11 +1,12 @@
 "use client";
 
 import { notFound } from "next/navigation";
-import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { useState } from "react";
 import { getCourseColor } from "@/lib/colors";
 import SettingsPanel from "@/components/SettingsPanel";
 import CourseCard from "@/components/CourseCard";
+import SearchBar from "@/components/SearchBar";
 
 // temporary in-memory fake plan data
 const mockPlans: Record<string, any> = {
@@ -74,6 +75,14 @@ export default function PlanPage({ params }: { params: { planId: string } }) {
     );
   }
 
+  const [searchQuery, setSearchQuery] = useState("");
+  const searchCourses = [
+    { subject: "CSCI", number: "3081", title: "Software Engineering", credits: 4 },
+    { subject: "CSCI", number: "2021", title: "Machine Architecture", credits: 4 },
+    { subject: "CSCI", number: "4707", title: "Database Systems", credits: 3 },
+    { subject: "CSCI", number: "5271", title: "Advanced OS", credits: 3 },
+  ];
+
   const [planState, setPlanState] = useState(plan);
   const [colorByDepartment, setColorByDepartment] = useState(true);
   const [colorByLevel, setColorByLevel] = useState(true);
@@ -82,18 +91,19 @@ export default function PlanPage({ params }: { params: { planId: string } }) {
     const { source, destination } = result;
     if (!destination) return;
 
-    const sourceSem = planState.semesters[source.droppableId];
-    const destSem = planState.semesters[destination.droppableId];
+    const updated = [...planState.semesters];
 
-    // Ensure courses array exists for destination semester
+    const destSem = updated[Number(destination.droppableId)];
     if (!destSem.courses) destSem.courses = [];
 
-    const [moved] = sourceSem.courses.splice(source.index, 1);
-    destSem.courses.splice(destination.index, 0, moved);
-
-    const updated = [...planState.semesters];
-    updated[source.droppableId] = { ...sourceSem };
-    updated[destination.droppableId] = { ...destSem };
+    if (source.droppableId === "search") {
+      const newCourse = { ...searchCourses[source.index], lock: "autofilled" };
+      destSem.courses.splice(destination.index, 0, newCourse);
+    } else {
+      const sourceSem = updated[Number(source.droppableId)];
+      const [moved] = sourceSem.courses.splice(source.index, 1);
+      destSem.courses.splice(destination.index, 0, moved);
+    }
 
     setPlanState({ ...planState, semesters: updated });
   };
@@ -105,6 +115,7 @@ export default function PlanPage({ params }: { params: { planId: string } }) {
         <p className="mb-6 text-gray-700">Major: {plan.major.join(", ")}</p>
 
         <DragDropContext onDragEnd={handleDragEnd}>
+          <SearchBar />
           <div className="flex flex-col gap-8">
             {(() => {
               const grouped: Record<string, any[]> = {};
