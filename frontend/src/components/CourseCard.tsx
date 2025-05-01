@@ -2,23 +2,50 @@
 
 import { Draggable } from "@hello-pangea/dnd";
 import { getCourseColor } from "@/lib/colors";
+import CourseCardPreview from "./CourseCardPreview";
 
 type Props = {
-  course: any;
-  index: number;
-  semName: string;
-  updateLock: () => void;
-  colorByDepartment: boolean;
-  colorByLevel: boolean;
+  course: {
+    subject: string;
+    number: string;
+    title: string;
+    credits: number;
+    lock?: string;
+  };
+  index?: number;
+  semName?: string;
+  updateLock?: () => void;
+  colorByDepartment?: boolean;
+  colorByLevel?: boolean;
+  isDraggable?: boolean;
+  showPreview?: boolean;
+  className?: string;
+  onClick?: () => void;
+  fixedWidth?: boolean;
+  fixedHeight?: boolean;
+  onPreviewCourse?: (course: {
+    subject: string;
+    number: string;
+    title: string;
+    credits: number;
+    lock?: string;
+  } | null) => void;
 };
 
 export default function CourseCard({
   course,
-  index,
-  semName,
+  index = 0,
+  semName = "",
   updateLock,
-  colorByDepartment,
-  colorByLevel,
+  colorByDepartment = false,
+  colorByLevel = false,
+  isDraggable = true,
+  showPreview = true,
+  className = "",
+  onClick,
+  fixedWidth = false,
+  fixedHeight = false,
+  onPreviewCourse,
 }: Props) {
   let borderStyle = "";
   let opacity = "opacity-100";
@@ -36,6 +63,26 @@ export default function CourseCard({
     ? getCourseColor(course)
     : "#607D8B";
 
+  const cardContent = (
+    <div
+      className={`relative group text-white rounded-md text-[10px] flex items-center justify-center px-1 text-center cursor-pointer ${borderStyle} ${opacity} ${filter} ${className} ${fixedWidth ? 'w-[110px]' : 'w-full'} ${fixedHeight ? 'h-[40px]' : ''}`}
+      style={{
+        backgroundColor: courseColor,
+        height: fixedHeight ? undefined : `${course.credits * 20}px`,
+      }}
+      onClick={onClick || updateLock}
+      onMouseEnter={() => onPreviewCourse?.(course)}
+      onMouseLeave={() => onPreviewCourse?.(null)}
+    >
+      {course.subject} {course.number}
+      {showPreview && <CourseCardPreview course={course} />}
+    </div>
+  );
+
+  if (!isDraggable) {
+    return cardContent;
+  }
+
   return (
     <Draggable draggableId={`${semName}-${index}`} index={index}>
       {(provided) => (
@@ -43,22 +90,9 @@ export default function CourseCard({
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
-          className={`relative group text-white rounded-md text-xs flex items-center justify-center px-2 text-center cursor-pointer ${borderStyle} ${opacity} ${filter}`}
-          style={{
-            backgroundColor: courseColor,
-            width: `100%`,
-            height: `${course.credits * 20}px`,
-            ...provided.draggableProps.style,
-          }}
-          onClick={updateLock}
+          style={provided.draggableProps.style}
         >
-          {course.subject} {course.number}
-          <div className="absolute z-50 hidden group-hover:block group-focus:block left-full ml-2 w-64 p-2 text-xs text-black bg-white border rounded shadow-lg transition-opacity duration-200 delay-500 group-hover:delay-500">
-            <strong>{course.title}</strong>
-            <div>Credits: {course.credits}</div>
-            <div className="italic text-gray-500 mt-1">Prereqs: TBD</div>
-            <div className="mt-1 text-xs font-semibold">Lock: {course.lock}</div>
-          </div>
+          {cardContent}
         </div>
       )}
     </Draggable>

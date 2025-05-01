@@ -2,9 +2,9 @@ import sqlite3
 import os
 
 SOURCE_DB_PATH = "../ProcessedData.db"
-TARGET_DB_PATH = "../CourseInfo.db"
+TARGET_DB_PATH = "../../frontend/public/CourseInfo.db"
 
-def get_csci_courses():
+def get_all_courses():
     # Connect to source database
     conn = sqlite3.connect(SOURCE_DB_PATH)
     cursor = conn.cursor()
@@ -12,8 +12,7 @@ def get_csci_courses():
     query = """
     SELECT dept_abbr, course_num, class_desc, cred_min, onestop_desc
     FROM classdistribution
-    WHERE dept_abbr = 'CSCI'
-    ORDER BY course_num;
+    ORDER BY dept_abbr, course_num;
     """
     cursor.execute(query)
     rows = cursor.fetchall()
@@ -27,7 +26,7 @@ def get_csci_courses():
     target_cursor = target_conn.cursor()
 
     target_cursor.execute("""
-    CREATE TABLE csci_courses (
+    CREATE TABLE courses (
         dept TEXT,
         number TEXT,
         title TEXT,
@@ -37,7 +36,7 @@ def get_csci_courses():
     """)
 
     target_cursor.executemany("""
-    INSERT INTO csci_courses (dept, number, title, credits, description)
+    INSERT INTO courses (dept, number, title, credits, description)
     VALUES (?, ?, ?, ?, ?);
     """, rows)
 
@@ -46,4 +45,4 @@ def get_csci_courses():
     print(f"Inserted {len(rows)} courses into CourseInfo.db")
 
 if __name__ == "__main__":
-    get_csci_courses()
+    get_all_courses()
