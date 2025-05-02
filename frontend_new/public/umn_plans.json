@@ -1,0 +1,255 @@
+{
+    "umn_csci_bs": {
+      "createdAt": "2026-04-30T22:03:01.000Z",
+      "major": ["Computer Science B.S."],
+      "semesters": [
+        {
+          "index": "1259",
+          "courses": [
+            { "subject": "MATH", "number": "1371" },
+            { "subject": "PHYS", "number": "1301W" },
+            { "subject": "WRIT", "number": "1301" },
+            { "subject": "CSE", "number": "1001" }
+          ]
+        },
+        {
+          "index": "1263",
+          "courses": [
+            { "subject": "MATH", "number": "1372" },
+            { "subject": "CSCI", "number": "1133" }
+          ]
+        },
+        {
+          "index": "1269",
+          "courses": [
+            { "subject": "STAT", "number": "3021" },
+            { "subject": "CSCI", "number": "2011" },
+            { "subject": "CSCI", "number": "1933" }
+          ]
+        },
+        {
+          "index": "1273",
+          "courses": [
+            { "subject": "CSCI", "number": "2021" },
+            { "subject": "CSCI", "number": "2033" },
+            { "subject": "CSCI", "number": "2041" }
+          ]
+        },
+        {
+          "index": "1279",
+          "courses": [
+            { "subject": "CSCI", "number": "3081W" },
+            { "subject": "CSCI", "number": "4041" },
+            { "subject": "CSCI", "number": "3923" }
+          ]
+        },
+        {
+          "index": "1283",
+          "courses": [
+            { "subject": "CSCI", "number": "4061" }
+          ]
+        },
+        {
+          "index": "1289",
+          "courses": []
+        },
+        {
+          "index": "1293",
+          "courses": []
+        }
+      ]
+    },
+    "umn_csci_ba": {
+      "createdAt": "2026-04-30T22:03:01.000Z",
+      "major": ["Computer Science B.A."],
+      "semesters": [
+        {
+          "index": "1259",
+          "courses": [
+            { "subject": "MATH", "number": "1271" },
+            { "subject": "WRIT", "number": "1301" },
+            { "subject": "CLA", "number": "1001" }
+          ]
+        },
+        {
+          "index": "1263",
+          "courses": [
+            { "subject": "MATH", "number": "1272" },
+            { "subject": "CSCI", "number": "1133" },
+            { "subject": "CLA", "number": "1002" }
+          ]
+        },
+        {
+          "index": "1269",
+          "courses": [
+            { "subject": "CSCI", "number": "1933" },
+            { "subject": "CSCI", "number": "2011" }
+          ]
+        },
+        {
+          "index": "1273",
+          "courses": [
+            { "subject": "CSCI", "number": "2021" },
+            { "subject": "CSCI", "number": "2041" },
+            { "subject": "CLA", "number": "3002" }
+          ]
+        },
+        {
+          "index": "1279",
+          "courses": [
+            { "subject": "CSCI", "number": "3081W" },
+            { "subject": "CSCI", "number": "4041" },
+            { "subject": "CSCI", "number": "3923" }
+          ]
+        },
+        {
+          "index": "1283",
+          "courses": [
+            { "subject": "CSCI", "number": "4061" },
+            { "subject": "CSCI", "number": "2033" }
+          ]
+        },
+        {
+          "index": "1289",
+          "courses": [
+            { "subject": "STAT", "number": "3021" }
+          ]
+        },
+        {
+          "index": "1293",
+          "courses": []
+        }
+      ]
+    },
+    "umn_csci_dsci_double": {
+      "createdAt": "2026-04-30T22:03:01.000Z",
+      "major": ["Computer Science B.S.", "Data Science B.S."],
+      "semesters": [
+        {
+          "index": "1259",
+          "courses": [
+            { "subject": "MATH", "number": "1371" },
+            { "subject": "PHYS", "number": "1301W" },
+            { "subject": "CSCI", "number": "1133" },
+            { "subject": "WRIT", "number": "1301" },
+            { "subject": "CSE", "number": "1001" }
+          ]
+        },
+        {
+          "index": "1263",
+          "courses": [
+            { "subject": "MATH", "number": "1372" },
+            { "subject": "CSCI", "number": "1933" }
+          ]
+        },
+        {
+          "index": "1269",
+          "courses": [
+            { "subject": "STAT", "number": "3021" },
+            { "subject": "MATH", "number": "2374" },
+            { "subject": "CSCI", "number": "2011" },
+            { "subject": "CSCI", "number": "2021" }
+          ]
+        },
+        {
+          "index": "1273",
+          "courses": [
+            { "subject": "STAT", "number": "3301" },
+            { "subject": "CSCI", "number": "2033" },
+            { "subject": "CSCI", "number": "2041" }
+          ]
+        },
+        {
+          "index": "1279",
+          "courses": [
+            { "subject": "IE", "number": "3013" },
+            { "subject": "CSCI", "number": "3081W" },
+            { "subject": "CSCI", "number": "4041" },
+            { "subject": "CSCI", "number": "3923" },
+            { "subject": "WRIT", "number": "3562W" }
+          ]
+        },
+        {
+          "index": "1283",
+          "courses": [
+            { "subject": "CSCI", "number": "4061" },
+            { "subject": "CSCI", "number": "4707" },
+            { "subject": "STAT", "number": "5101" },
+            { "subject": "CSCI", "number": "4521" }
+          ]
+        },
+        {
+          "index": "1289",
+          "courses": [
+            { "subject": "STAT", "number": "4051" },
+            { "subject": "STAT", "number": "5102" },
+            { "subject": "IE", "number": "5533" }
+          ]
+        },
+        {
+          "index": "1293",
+          "courses": []
+        }
+      ]
+    },
+    "umn_dsci_bs": {
+      "createdAt": "2026-04-30T22:03:01.000Z",
+      "major": ["Data Science B.S."],
+      "semesters": [
+        {
+          "index": "1259",
+          "courses": [
+            { "subject": "MATH", "number": "1371" },
+            { "subject": "PHYS", "number": "1301W" },
+            { "subject": "WRIT", "number": "1301" },
+            { "subject": "CSE", "number": "1001" }
+          ]
+        },
+        {
+          "index": "1263",
+          "courses": [
+            { "subject": "MATH", "number": "1372" },
+            { "subject": "CSCI", "number": "1133" }
+          ]
+        },
+        {
+          "index": "1269",
+          "courses": [
+            { "subject": "MATH", "number": "2374" },
+            { "subject": "STAT", "number": "3021" },
+            { "subject": "CSCI", "number": "2081" }
+          ]
+        },
+        {
+          "index": "1273",
+          "courses": [
+            { "subject": "CSCI", "number": "2033" },
+            { "subject": "CSCI", "number": "3041" },
+            { "subject": "CSCI", "number": "3061" },
+            { "subject": "STAT", "number": "3301" }
+          ]
+        },
+        {
+          "index": "1279",
+          "courses": [
+            { "subject": "IE", "number": "3013" },
+            { "subject": "CSCI", "number": "4707" },
+            { "subject": "CSCI", "number": "3923" },
+            { "subject": "WRIT", "number": "3562W" }
+          ]
+        },
+        {
+          "index": "1283",
+          "courses": []
+        },
+        {
+          "index": "1289",
+          "courses": []
+        },
+        {
+          "index": "1293",
+          "courses": []
+        }
+      ]
+    }
+  }
