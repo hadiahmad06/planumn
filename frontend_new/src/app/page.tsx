@@ -1,63 +1,80 @@
+"use client";
+
 import Link from "next/link";
+import { Box, Button, Container, Flex, Grid, Heading, Text, VStack } from "@chakra-ui/react";
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center">
-      <section className="w-full py-20 text-center">
-        <h1 className="text-5xl font-bold mb-6">
-          Plan Your Academic Journey with <span className="text-primary">Planumn</span>
-        </h1>
-        <p className="text-xl text-secondary max-w-2xl mx-auto mb-8">
-          A graduation planning tool built for UMN students. Plan your courses, stay on track, and graduate with clarity.
-        </p>
-        <Link
-          href="/plan"
-          className="inline-block px-8 py-4 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium shadow-sm"
-        >
-          Get Started
-        </Link>
-      </section>
-
-      <section className="w-full py-16 bg-white">
-        <div className="container">
-          <h2 className="text-3xl font-bold text-center mb-12">Why Choose Planumn?</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="p-6 rounded-lg bg-card border border-border shadow-sm hover:shadow-md transition-shadow">
-              <h3 className="text-xl font-semibold mb-3">Smart Course Planning</h3>
-              <p className="text-secondary">
-                Create and manage your academic plan with an intuitive interface designed for UMN students.
-              </p>
-            </div>
-            <div className="p-6 rounded-lg bg-card border border-border shadow-sm hover:shadow-md transition-shadow">
-              <h3 className="text-xl font-semibold mb-3">Stay On Track</h3>
-              <p className="text-secondary">
-                Visualize your progress and ensure you're meeting all graduation requirements.
-              </p>
-            </div>
-            <div className="p-6 rounded-lg bg-card border border-border shadow-sm hover:shadow-md transition-shadow">
-              <h3 className="text-xl font-semibold mb-3">Make Informed Decisions</h3>
-              <p className="text-secondary">
-                Access course information and make better choices for your academic future.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="w-full py-16 bg-white">
-        <div className="container text-center">
-          <h2 className="text-3xl font-bold mb-6">Ready to Start Planning?</h2>
-          <p className="text-xl text-secondary mb-8">
-            Join thousands of UMN students who have already planned their academic journey with Planumn.
-          </p>
-          <Link
-            href="/plan"
-            className="inline-block px-8 py-4 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium shadow-sm"
-          >
-            Create Your Plan
+    <Container maxW="container.xl">
+      <VStack align="stretch" gap={8}>
+        <Box as="section" py={12} textAlign="center">
+          <Heading as="h1" size="2xl" mb={6}>
+            Plan Your Academic Journey with <Text as="span" color="primary">Planumn</Text>
+          </Heading>
+          <Text fontSize="xl" color="secondary" maxW="2xl" mx="auto" mb={8}>
+            A graduation planning tool built for UMN students. Plan your courses, stay on track, and graduate with clarity.
+          </Text>
+          <Link href="/plan">
+            <Button
+              size="lg"
+              bg="primary"
+              color="white"
+              _hover={{ bg: "primary-dark" }}
+              px={8}
+              py={4}
+              shadow="sm"
+            >
+              Get Started
+            </Button>
           </Link>
-        </div>
-      </section>
-    </div>
+        </Box>
+
+        <Box as="section" py={12} bg="white">
+          <Heading as="h2" size="xl" textAlign="center" mb={12}>Why Choose Planumn?</Heading>
+          <Grid templateColumns={{ base: "1fr", md: "repeat(3, 1fr)" }} gap={8}>
+            <Box p={6} rounded="lg" bg="card" border="1px" borderColor="border" shadow="sm" _hover={{ shadow: "md" }}>
+              <Heading as="h3" size="md" mb={3}>Smart Course Planning</Heading>
+              <Text color="secondary">
+                Create and manage your academic plan with an intuitive interface designed for UMN students.
+              </Text>
+            </Box>
+            <Box p={6} rounded="lg" bg="card" border="1px" borderColor="border" shadow="sm" _hover={{ shadow: "md" }}>
+              <Heading as="h3" size="md" mb={3}>Stay On Track</Heading>
+              <Text color="secondary">
+                Visualize your progress and ensure you're meeting all graduation requirements.
+              </Text>
+            </Box>
+            <Box p={6} rounded="lg" bg="card" border="1px" borderColor="border" shadow="sm" _hover={{ shadow: "md" }}>
+              <Heading as="h3" size="md" mb={3}>Make Informed Decisions</Heading>
+              <Text color="secondary">
+                Access course information and make better choices for your academic future.
+              </Text>
+            </Box>
+          </Grid>
+        </Box>
+
+        <Box as="section" py={12} bg="white">
+          <Container textAlign="center">
+            <Heading as="h2" size="xl" mb={6}>Ready to Start Planning?</Heading>
+            <Text fontSize="xl" color="secondary" mb={8}>
+              Join thousands of UMN students who have already planned their academic journey with Planumn.
+            </Text>
+            <Link href="/plan">
+              <Button
+                size="lg"
+                bg="primary"
+                color="white"
+                _hover={{ bg: "primary-dark" }}
+                px={8}
+                py={4}
+                shadow="sm"
+              >
+                Create Your Plan
+              </Button>
+            </Link>
+          </Container>
+        </Box>
+      </VStack>
+    </Container>
   );
 }

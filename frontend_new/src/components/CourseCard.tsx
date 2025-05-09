@@ -3,6 +3,7 @@
 import { Draggable } from "@hello-pangea/dnd";
 import { getCourseColor } from "@/lib/colors";
 import CourseCardPreview from "./CourseCardPreview";
+import { Box, Flex } from "@chakra-ui/react";
 
 type Props = {
   course: {
@@ -47,16 +48,6 @@ export default function CourseCard({
   fixedHeight = false,
   onPreviewCourse,
 }: Props) {
-  let borderStyle = "";
-  let opacity = "opacity-100";
-  let filter = "";
-
-  if (course.lock === "unlocked") {
-    borderStyle = "border-2 border-dotted border-white";
-  } else if (course.lock === "autofilled") {
-    filter = "saturate-50";
-  }
-
   const courseColor = colorByDepartment
     ? getCourseColor(course)
     : colorByLevel
@@ -64,19 +55,32 @@ export default function CourseCard({
     : "#607D8B";
 
   const cardContent = (
-    <div
-      className={`relative group text-white rounded-md text-[10px] flex items-center justify-center px-1 text-center cursor-pointer ${borderStyle} ${opacity} ${filter} ${className} ${fixedWidth ? 'w-[110px]' : 'w-full'} ${fixedHeight ? 'h-[40px]' : ''}`}
-      style={{
-        backgroundColor: courseColor,
-        height: fixedHeight ? undefined : `${course.credits * 20}px`,
-      }}
+    <Box
+      position="relative"
+      color="white"
+      rounded="md"
+      fontSize="10px"
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      px={1}
+      textAlign="center"
+      cursor="pointer"
+      border={course.lock === "unlocked" ? "2px" : undefined}
+      borderStyle={course.lock === "unlocked" ? "dotted" : undefined}
+      borderColor={course.lock === "unlocked" ? "white" : undefined}
+      opacity={course.lock === "autofilled" ? 0.5 : 1}
+      width={fixedWidth ? "110px" : "full"}
+      height={fixedHeight ? "40px" : `${course.credits * 20}px`}
+      bg={courseColor}
       onClick={onClick || updateLock}
       onMouseEnter={() => onPreviewCourse?.(course)}
       onMouseLeave={() => onPreviewCourse?.(null)}
+      className={className}
     >
       {course.subject} {course.number}
       {showPreview && <CourseCardPreview course={course} />}
-    </div>
+    </Box>
   );
 
   if (!isDraggable) {
@@ -86,14 +90,14 @@ export default function CourseCard({
   return (
     <Draggable draggableId={`${semName}-${index}`} index={index}>
       {(provided) => (
-        <div
+        <Box
           ref={provided.innerRef}
           {...provided.draggableProps}
           {...provided.dragHandleProps}
           style={provided.draggableProps.style}
         >
           {cardContent}
-        </div>
+        </Box>
       )}
     </Draggable>
   );

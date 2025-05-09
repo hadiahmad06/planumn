@@ -1,3 +1,5 @@
+import { Box, Text } from "@chakra-ui/react";
+
 type Props = {
   course: {
     subject: string;
@@ -10,11 +12,32 @@ type Props = {
 
 export default function CourseCardPreview({ course }: Props) {
   return (
-    <div className="absolute z-50 hidden group-hover:block group-focus:block left-full ml-2 w-64 p-2 text-xs text-black bg-white border rounded shadow-lg transition-opacity duration-200 delay-500 group-hover:delay-500">
-      <strong>{course.title}</strong>
-      <div>Credits: {course.credits}</div>
-      <div className="italic text-gray-500 mt-1">Prereqs: TBD</div>
-      {course.lock && <div className="mt-1 text-xs font-semibold">Lock: {course.lock}</div>}
-    </div>
+    <Box
+      position="absolute"
+      zIndex={50}
+      display="none"
+      _groupHover={{ display: "block" }}
+      _groupFocus={{ display: "block" }}
+      left="full"
+      ml={2}
+      width={64}
+      p={2}
+      fontSize="xs"
+      color="black"
+      bg="white"
+      border="1px"
+      rounded="md"
+      shadow="lg"
+      transition="opacity 0.2s"
+      transitionDelay="500ms"
+      _groupHover={{ transitionDelay: "500ms" }}
+    >
+      <Text fontWeight="bold">{course.title}</Text>
+      <Text>Credits: {course.credits}</Text>
+      <Text fontStyle="italic" color="gray.500" mt={1}>Prereqs: TBD</Text>
+      {course.lock && (
+        <Text mt={1} fontSize="xs" fontWeight="semibold">Lock: {course.lock}</Text>
+      )}
+    </Box>
   );
 } 

@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import CourseCard from "./CourseCard";
+import { Box, Input, Text, Flex } from "@chakra-ui/react";
+import CoursePreview from './CoursePreview';
 
 type Course = {
   dept: string;
@@ -41,6 +43,7 @@ export default function SearchBar({
   const [results, setResults] = useState<Course[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [previewCourse, setPreviewCourse] = useState<Course | null>(null);
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -94,31 +97,81 @@ export default function SearchBar({
   );
 
   return (
-    <div ref={searchRef} className="relative w-full mb-6">
-      <input
-        type="text"
-        placeholder="Search by course name, department, or code..."
-        value={query}
-        onChange={(e) => {
-          setQuery(e.target.value);
-          setIsOpen(true);
-        }}
-        onFocus={() => setIsOpen(true)}
-        className="w-full px-4 py-2 border border-border rounded text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
-      />
-      {isOpen && results.length > 0 && (
-        <div 
-          className={`absolute z-50 w-full mt-1 border border-border rounded bg-white max-h-150 overflow-y-auto shadow-lg transition-opacity duration-200 ${isDragging ? 'opacity-50 pointer-events-none' : ''}`}
+    <Box
+      position="relative"
+      width="100%"
+      border="1px"
+      borderColor="gold.200"
+      borderRadius="lg"
+      boxShadow="0 2px 4px rgba(212, 175, 55, 0.2)"
+      bg="white"
+      display="flex"
+      flexDirection="column"
+    >
+      <Box position="relative">
+        <Text
+          position="absolute"
+          left={4}
+          top="50%"
+          transform="translateY(-50%)"
+          fontSize="lg"
+          color="gold.400"
+          zIndex={1}
         >
-          <table className="w-full">
+          🔍
+        </Text>
+        <Input
+          type="text"
+          placeholder="Search by course name, department, or code..."
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setIsOpen(true);
+          }}
+          onFocus={() => setIsOpen(true)}
+          width="100%"
+          pl={12}
+          py={3}
+          border="1px"
+          borderColor="gold.200"
+          rounded="md"
+          fontSize="md"
+          _focus={{
+            outline: "none",
+            ring: "2px",
+            ringColor: "gold.200",
+            borderColor: "gold.400"
+          }}
+        />
+      </Box>
+      {isOpen && results.length > 0 &&
+        <Box
+          position="absolute"
+          zIndex={50}
+          width="full"
+          mt={1}
+          border="1px"
+          borderColor="gold.200"
+          rounded="md"
+          bg="white"
+          maxH="80vh"
+          overflowY="auto"
+          boxShadow="0 4px 6px rgba(212, 175, 55, 0.2)"
+          transition="opacity 0.2s"
+          opacity={isDragging ? 0.5 : 1}
+          pointerEvents={isDragging ? "none" : "auto"}
+          top="100%"
+          left={0}
+        >
+          <table style={{ width: '100%' }}>
             <tbody>
               {sortedLevels.map((level) => (
-                <tr key={level} className="border-b border-border">
-                  <td className="px-4 py-2 bg-card font-semibold text-secondary w-24">
+                <tr key={level} style={{ borderBottom: '1px solid var(--border)' }}>
+                  <td style={{ padding: '0.5rem', backgroundColor: 'var(--card)', fontWeight: 'semibold', color: 'var(--secondary)', width: '96px' }}>
                     {level}
                   </td>
-                  <td className="px-4 py-2">
-                    <div className="flex flex-wrap gap-2">
+                  <td style={{ padding: '0.5rem' }}>
+                    <Flex flexWrap="wrap" gap={2}>
                       {groupedResults[level].map((course, index) => (
                         <Draggable
                           key={`search-${course.dept}-${course.number}`}
@@ -131,7 +184,7 @@ export default function SearchBar({
                           index={index}
                         >
                           {(provided) => (
-                            <div
+                            <Box
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
@@ -150,25 +203,25 @@ export default function SearchBar({
                                   title: course.title,
                                   credits: course.credits,
                                 }}
-                                isDraggable={false}
-                                fixedWidth={true}
-                                fixedHeight={true}
-                                className="shadow-sm"
                                 colorByDepartment={colorByDepartment}
                                 colorByLevel={colorByLevel}
+                                isDraggable={false}
+                                showPreview={false}
+                                fixedWidth={true}
+                                fixedHeight={true}
                               />
-                            </div>
+                            </Box>
                           )}
                         </Draggable>
                       ))}
-                    </div>
+                    </Flex>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
-      )}
-    </div>
+        </Box>
+      }
+    </Box>
   );
 }

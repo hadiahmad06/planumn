@@ -1,5 +1,7 @@
 "use client";
 
+import { Box, Button, Text } from "@chakra-ui/react";
+
 type Props = {
   colorByDepartment: boolean;
   colorByLevel: boolean;
@@ -15,62 +17,68 @@ export default function SettingsPanel({
   setColorByLevel,
   onAutofill,
 }: Props) {
+  const handleColorModeChange = (value: string) => {
+    if (value === "department") {
+      setColorByDepartment(true);
+      setColorByLevel(false);
+    } else if (value === "level") {
+      setColorByLevel(true);
+      setColorByDepartment(false);
+    } else {
+      setColorByDepartment(false);
+      setColorByLevel(false);
+    }
+  };
+
   return (
-    <div className="w-64 bg-white border border-border shadow-sm rounded-lg p-4 h-fit sticky top-8">
-      <h2 className="text-lg font-semibold mb-4 text-foreground">Settings</h2>
-      <div className="text-sm text-secondary">
-        <p className="mb-2 font-medium">Color Coding:</p>
-        <div className="flex flex-col gap-2">
-          <label className="inline-flex items-center cursor-pointer">
-            <input
-              type="radio"
-              name="colorMode"
-              checked={!colorByDepartment && !colorByLevel}
-              onChange={() => {
-                setColorByDepartment(false);
-                setColorByLevel(false);
-              }}
-              className="form-radio text-primary focus:ring-primary"
-            />
-            <span className="ml-2">None</span>
-          </label>
-          <label className="inline-flex items-center cursor-pointer">
-            <input
-              type="radio"
-              name="colorMode"
-              checked={colorByDepartment}
-              onChange={() => {
-                setColorByDepartment(true);
-                setColorByLevel(false);
-              }}
-              className="form-radio text-primary focus:ring-primary"
-            />
-            <span className="ml-2">By Department</span>
-          </label>
-          <label className="inline-flex items-center cursor-pointer">
-            <input
-              type="radio"
-              name="colorMode"
-              checked={colorByLevel}
-              onChange={() => {
-                setColorByLevel(true);
-                setColorByDepartment(false);
-              }}
-              className="form-radio text-primary focus:ring-primary"
-            />
-            <span className="ml-2">By Course Level</span>
-          </label>
-        </div>
-        <div className="mt-6">
-          <button
-            onClick={onAutofill}
-            className="w-full mt-4 bg-primary hover:bg-primary-dark text-white text-sm py-2 px-4 rounded shadow-sm"
-          >
-            Autofill Plan
-          </button>
-        </div>
-      </div>
-    </div>
+    <Box
+      width={64}
+      bg="white"
+      border="1px"
+      borderColor="border"
+      shadow="sm"
+      rounded="lg"
+      p={4}
+      height="fit-content"
+      position="sticky"
+      top={8}
+    >
+      <Text fontSize="lg" fontWeight="semibold" mb={4} color="foreground">Settings</Text>
+      <Box fontSize="sm" color="secondary">
+        <Text mb={2} fontWeight="medium">Color Coding:</Text>
+        <select
+          value={colorByDepartment ? "department" : colorByLevel ? "level" : "none"}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleColorModeChange(e.target.value)}
+          style={{
+            width: '100%',
+            padding: '0.5rem',
+            marginBottom: '1.5rem',
+            borderRadius: '0.375rem',
+            border: '1px solid var(--border)',
+            backgroundColor: 'white',
+            fontSize: '0.875rem',
+          }}
+        >
+          <option value="none">None</option>
+          <option value="department">By Department</option>
+          <option value="level">By Course Level</option>
+        </select>
+        <Button
+          onClick={onAutofill}
+          width="full"
+          bg="primary"
+          _hover={{ bg: "primary-dark" }}
+          color="white"
+          fontSize="sm"
+          py={2}
+          px={4}
+          rounded="md"
+          shadow="sm"
+        >
+          Autofill Plan
+        </Button>
+      </Box>
+    </Box>
   );
 }
 

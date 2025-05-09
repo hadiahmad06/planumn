@@ -1,54 +1,89 @@
 "use client";
 
-import { DragDropContext, Droppable } from "@hello-pangea/dnd";
+import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
+import { Box, Flex, VStack } from "@chakra-ui/react";
 import SearchBar from "./SearchBar";
-import { useState } from "react";
+import SettingsPanel from "./SettingsPanel";
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 
 interface GlobalSearchLayoutProps {
   children: React.ReactNode;
-  onDragEnd?: (result: any) => void;
-  colorByDepartment?: boolean;
-  colorByLevel?: boolean;
-  onPreviewCourse?: (course: any) => void;
-  currentPlanCourses?: any[];
 }
 
-export default function GlobalSearchLayout({ 
-  children, 
-  onDragEnd,
-  colorByDepartment = true,
-  colorByLevel = false,
-  onPreviewCourse = () => {},
-  currentPlanCourses = []
-}: GlobalSearchLayoutProps) {
+export default function GlobalSearchLayout({ children }: GlobalSearchLayoutProps) {
+  const [colorByDepartment, setColorByDepartment] = useState(true);
+  const [colorByLevel, setColorByLevel] = useState(false);
+  const [currentPlanCourses, setCurrentPlanCourses] = useState<any[]>([]);
+  const pathname = usePathname();
+
+  // Listen for messages from the plan page
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'PLAN_COURSES_UPDATE') {
+        setCurrentPlanCourses(event.data.courses);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  const handleDragEnd = (result: DropResult) => {
+    // Forward the drag end event to the plan page if we're on a plan page
+    if (pathname.startsWith('/plan/')) {
+      window.postMessage({ type: 'DRAG_END', result }, '*');
+    }
+  };
+
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
-      <div className="min-h-screen bg-background flex">
-        {/* Left Side - Search Bar */}
-        <div className="w-2/3 border-r border-border p-8">
-          <div className="sticky top-8">
-            <h2 className="text-lg font-semibold mb-4 text-foreground">Search Courses</h2>
-            <Droppable droppableId="search">
-              {(provided) => (
-                <div ref={provided.innerRef} {...provided.droppableProps}>
+    <DragDropContext onDragEnd={handleDragEnd}>
+      <Flex minH="100vh" bg="white">
+        {/* Left side - Search Bar */}
+        <Box w="1/2" borderRight="1px" borderColor="gray.200" bg="white">
+          <Droppable droppableId="search">
+            {(provided) => (
+              <Box 
+                ref={provided.innerRef} 
+                {...provided.droppableProps}
+                h="100%"
+                p={8}
+                display="flex"
+                flexDirection="column"
+              >
+                <Box flex="1" display="flex" flexDirection="column">
                   <SearchBar 
                     colorByDepartment={colorByDepartment}
                     colorByLevel={colorByLevel}
-                    onPreviewCourse={onPreviewCourse}
+                    onPreviewCourse={() => {}}
                     currentPlanCourses={currentPlanCourses}
                   />
-                  {provided.placeholder}
-                </div>
-              )}
-            </Droppable>
-          </div>
-        </div>
+                  <Box mt={4}>
+                    <SettingsPanel
+                      colorByDepartment={colorByDepartment}
+                      colorByLevel={colorByLevel}
+                      setColorByDepartment={setColorByDepartment}
+                      setColorByLevel={setColorByLevel}
+                      onAutofill={() => {
+                        // Forward autofill event to plan page if we're on a plan page
+                        if (pathname.startsWith('/plan/')) {
+                          window.postMessage({ type: 'AUTOFILL' }, '*');
+                        }
+                      }}
+                    />
+                  </Box>
+                </Box>
+                {provided.placeholder}
+              </Box>
+            )}
+          </Droppable>
+        </Box>
 
-        {/* Right Side - Content */}
-        <div className="w-1/3 p-8">
+        {/* Right side - Content */}
+        <Box w="1/2" overflowY="auto" bg="white">
           {children}
-        </div>
-      </div>
+        </Box>
+      </Flex>
     </DragDropContext>
   );
 } 
