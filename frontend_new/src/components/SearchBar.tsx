@@ -154,7 +154,7 @@ export default function SearchBar({
           borderColor="gold.200"
           rounded="md"
           bg="white"
-          maxH="80vh"
+          maxH="60vh"
           overflowY="auto"
           boxShadow="0 4px 6px rgba(212, 175, 55, 0.2)"
           transition="opacity 0.2s"

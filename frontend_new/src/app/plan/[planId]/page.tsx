@@ -8,6 +8,7 @@ import SettingsPanel from "@/components/SettingsPanel";
 import CourseCard from "@/components/CourseCard";
 import SearchBar from "@/components/SearchBar";
 import CourseCardPreview from "@/components/CourseCardPreview";
+import CoursePreviewPanel from "@/components/CoursePreviewPanel";
 import { NextResponse } from "next/server";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
@@ -22,43 +23,82 @@ const mockPlans: Record<string, any> = {
     major: ["Computer Science B.S."],
     semesters: [
       {
-        index: "1179", // Fall 2017
+        index: "1249", // Fall 2024
         courses: [
           { subject: "WRIT", number: "1301" },
           { subject: "MATH", number: "1271" },
         ],
       },
       {
-        index: "1183", // Spring 2018
+        index: "1253", // Spring 2025
         courses: [
           { subject: "CSCI", number: "1133" },
           { subject: "MATH", number: "1272" },
         ],
       },
       {
-        index: "1185", // Summer 2018
+        index: "1255", // Summer 2025
+        courses: [
+          { subject: "CSCI", number: "1133" },
+          { subject: "MATH", number: "1272" },
+        ],
+      },
+      {
+        index: "1259", // Fall 2026
+        courses: [
+          { subject: "WRIT", number: "1301" },
+          { subject: "MATH", number: "1271" },
+        ],
+      },
+      {
+        index: "1263", // Spring 2026
+        courses: [
+          { subject: "CSCI", number: "1133" },
+          { subject: "MATH", number: "1272" },
+        ],
+      },
+      {
+        index: "1265", // Summer 2026
         courses: [
           { subject: "CSCI", number: "2041" },
           { subject: "MATH", number: "2243" },
         ],
       },
       {
-        index: "1199", // Fall 2019
+        index: "1269", // Fall 2026
         courses: [
           { subject: "CSCI", number: "4061" },
           { subject: "STAT", number: "3021" },
         ],
       },
       {
-        index: "1203", // Spring 2020
+        index: "1273", // Spring 2027
         courses: [
           { subject: "CSCI", number: "4041" },
         ],
       },
       {
-        index: "1205", // Summer 2020
+        index: "1275", // Summer 2027
         courses: [
           { subject: "CSCI", number: "5461" },
+        ],
+      },
+      {
+        index: "1279", // Fall 2027
+        courses: [
+          { subject: "CSCI", number: "4041" },
+        ],
+      },
+      {
+        index: "1283", // Spring 2028
+        courses: [
+          { subject: "CSCI", number: "5461" },
+        ],
+      },
+      {
+        index: "1285", // Summer 2028
+        courses: [
+          { subject: "CSCI", number: "4041" },
         ],
       },
     ],
@@ -93,13 +133,6 @@ export default function PlanPage({ params }: { params: { planId: string } }) {
   const [planState, setPlanState] = useState(plan);
   const [colorByDepartment, setColorByDepartment] = useState(true);
   const [colorByLevel, setColorByLevel] = useState(false);
-  const [previewCourse, setPreviewCourse] = useState<{
-    subject: string;
-    number: string;
-    title: string;
-    credits: number;
-    lock?: string;
-  } | null>(null);
   const [courseDetails, setCourseDetails] = useState<Record<string, any>>({});
 
   useEffect(() => {
@@ -160,7 +193,7 @@ export default function PlanPage({ params }: { params: { planId: string } }) {
           const courseData = JSON.parse(event.data.result.draggableId);
           destSem.courses.splice(destination.index, 0, {
             ...courseData,
-            lock: "autofilled"
+            lock: "unlocked"
           });
         } else {
           const sourceSem = updated[Number(source.droppableId)];
@@ -190,8 +223,12 @@ export default function PlanPage({ params }: { params: { planId: string } }) {
     return () => window.removeEventListener('message', handleMessage);
   }, [planState]);
 
+  const handlePreviewCourse = (course: any) => {
+    window.postMessage({ type: 'PREVIEW_COURSE', course }, '*');
+  };
+
   return (
-    <Box bg="white" h="100%" p={8}>
+    <Box bg="white" h="100%" p={8} position="relative">
       <Box textAlign="right">
         <Heading size="2xl" mb={4}>Your Graduation Plan</Heading>
         <Text mb={6} color="gray.500">Major: {plan.major.join(", ")}</Text>
@@ -219,7 +256,8 @@ export default function PlanPage({ params }: { params: { planId: string } }) {
             <Flex key={rowIndex} gap={6} justify="flex-end">
               {row.map((sem) => {
                 const season = sem.index.endsWith('9') ? 'Fall' : 
-                             sem.index.endsWith('3') ? 'Spring' : 'Summer';
+                             sem.index.endsWith('3') ? 'Spring' : 
+                             sem.index.endsWith('5') ? 'Summer' : 'Unknown';
                 return (
                   <Droppable droppableId={String(planState.semesters.indexOf(sem))} key={sem.index}>
                     {(provided) => (
@@ -242,14 +280,14 @@ export default function PlanPage({ params }: { params: { planId: string } }) {
                         </Text>
                         <Flex w="full" gap={2}>
                           <Flex direction="column" alignItems="flex-end" pr={1}>
-                            <Text fontSize="xs" color="gray.500">
-                              {[...Array(sem?.courses?.reduce((sum: number, c: any) => {
-                                const key = `${c.subject}-${c.number}`;
-                                return sum + (courseDetails[key]?.credits || 0);
-                              }, 0) || 0)].map((_, i) => (
-                                <Box key={i} h="20px">{i + 1}</Box>
-                              ))}
-                            </Text>
+                            {[...Array(sem?.courses?.reduce((sum: number, c: any) => {
+                              const key = `${c.subject}-${c.number}`;
+                              return sum + (courseDetails[key]?.credits || 0);
+                            }, 0) || 0)].map((_, i) => (
+                              <Text key={i} fontSize="xs" color="gray.500" h="20px">
+                                {i + 1}
+                              </Text>
+                            ))}
                           </Flex>
                           <Flex direction="column" gap={2} w="full" alignItems="center">
                             {sem?.courses?.map((course: { subject: string; number: string }, j: number) => {
@@ -276,6 +314,7 @@ export default function PlanPage({ params }: { params: { planId: string } }) {
                                   colorByDepartment={colorByDepartment}
                                   colorByLevel={colorByLevel}
                                   fixedWidth={true}
+                                  onPreviewCourse={handlePreviewCourse}
                                 />
                               );
                             })}

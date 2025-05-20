@@ -35,7 +35,7 @@ export async function GET(req: Request) {
   const numberPattern = partialNumber ? `%${partialNumber}%` : `%${q}%`;
 
   const results = await db.all(
-    `SELECT dept, number, title, credits, 
+    `SELECT DISTINCT dept, number, title, credits, 
       CASE 
         WHEN LOWER(dept || number) = LOWER(?) THEN 1
         WHEN LOWER(dept || number) = LOWER(?) THEN 2
@@ -57,6 +57,7 @@ export async function GET(req: Request) {
        OR LOWER(title) LIKE ?
      )
      AND (dept, number) NOT IN (${excludePlaceholders || "(NULL, NULL)"})
+     GROUP BY dept, number
      ORDER BY priority, dept, number
      LIMIT 100`,
     [

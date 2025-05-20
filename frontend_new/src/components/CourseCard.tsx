@@ -2,8 +2,7 @@
 
 import { Draggable } from "@hello-pangea/dnd";
 import { getCourseColor } from "@/lib/colors";
-import CourseCardPreview from "./CourseCardPreview";
-import { Box, Flex } from "@chakra-ui/react";
+import { Box } from "@chakra-ui/react";
 
 type Props = {
   course: {
@@ -19,7 +18,6 @@ type Props = {
   colorByDepartment?: boolean;
   colorByLevel?: boolean;
   isDraggable?: boolean;
-  showPreview?: boolean;
   className?: string;
   onClick?: () => void;
   fixedWidth?: boolean;
@@ -41,7 +39,6 @@ export default function CourseCard({
   colorByDepartment = false,
   colorByLevel = false,
   isDraggable = true,
-  showPreview = true,
   className = "",
   onClick,
   fixedWidth = false,
@@ -79,7 +76,6 @@ export default function CourseCard({
       className={className}
     >
       {course.subject} {course.number}
-      {showPreview && <CourseCardPreview course={course} />}
     </Box>
   );
 
