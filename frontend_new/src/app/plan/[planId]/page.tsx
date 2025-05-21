@@ -1,20 +1,15 @@
 "use client";
 
 import { notFound } from "next/navigation";
-import { Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
 import { useState, useEffect } from "react";
-// import { getCourseColor } from "@/lib/colors";
 import SettingsPanel from "@/components/SettingsPanel";
-import CourseCard from "@/components/CourseCard";
 import SearchBar from "@/components/SearchBar";
-import CourseCardPreview from "@/components/CourseCardPreview";
 import CoursePreviewPanel from "@/components/CoursePreviewPanel";
-import { NextResponse } from "next/server";
-import sqlite3 from "sqlite3";
-import { open } from "sqlite";
-import path from "path";
 import { Box, Flex, Text, VStack, Heading } from "@chakra-ui/react";
 import GlobalSearchLayout from "@/components/GlobalSearchLayout";
+import PlanDisplay from "@/components/PlanDisplay";
+import { Course, CourseCardCourse, Plan, Semester } from "@/types/plan";
+import { handleUpdateLock, handlePreviewCourse } from "@/handlers/planHandlers";
 
 // temporary in-memory fake plan data
 const mockPlans: Record<string, any> = {
@@ -223,113 +218,17 @@ export default function PlanPage({ params }: { params: { planId: string } }) {
     return () => window.removeEventListener('message', handleMessage);
   }, [planState]);
 
-  const handlePreviewCourse = (course: any) => {
-    window.postMessage({ type: 'PREVIEW_COURSE', course }, '*');
-  };
+  const updateLock = handleUpdateLock(planState, setPlanState);
+  const previewCourse = handlePreviewCourse();
 
   return (
-    <Box bg="white" h="100%" p={8} position="relative">
-      <Box textAlign="right">
-        <Heading size="2xl" mb={4}>Your Graduation Plan</Heading>
-        <Text mb={6} color="gray.500">Major: {plan.major.join(", ")}</Text>
-      </Box>
-
-      <Flex direction="column" gap={8}>
-        {(() => {
-          const sortedSemesters = [...planState.semesters].sort((a, b) => a.index.localeCompare(b.index));
-          const rows: any[][] = [];
-          let currentRow: any[] = [];
-          
-          sortedSemesters.forEach(sem => {
-            currentRow.push(sem);
-            if (sem.index.endsWith('5')) {
-              rows.push(currentRow);
-              currentRow = [];
-            }
-          });
-          
-          if (currentRow.length > 0) {
-            rows.push(currentRow);
-          }
-
-          return rows.map((row, rowIndex) => (
-            <Flex key={rowIndex} gap={6} justify="flex-end">
-              {row.map((sem) => {
-                const season = sem.index.endsWith('9') ? 'Fall' : 
-                             sem.index.endsWith('3') ? 'Spring' : 
-                             sem.index.endsWith('5') ? 'Summer' : 'Unknown';
-                return (
-                  <Droppable droppableId={String(planState.semesters.indexOf(sem))} key={sem.index}>
-                    {(provided) => (
-                      <Box
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
-                        bg="white"
-                        border="1px"
-                        borderColor="gray.200"
-                        borderRadius="lg"
-                        p={3}
-                        w="160px"
-                        minH="160px"
-                        display="flex"
-                        flexDirection="column"
-                        alignItems="center"
-                      >
-                        <Text fontSize="18px" fontWeight="medium" mb={1}>
-                          {season} 20{sem.index.slice(1, 3)}
-                        </Text>
-                        <Flex w="full" gap={2}>
-                          <Flex direction="column" alignItems="flex-end" pr={1}>
-                            {[...Array(sem?.courses?.reduce((sum: number, c: any) => {
-                              const key = `${c.subject}-${c.number}`;
-                              return sum + (courseDetails[key]?.credits || 0);
-                            }, 0) || 0)].map((_, i) => (
-                              <Text key={i} fontSize="xs" color="gray.500" h="20px">
-                                {i + 1}
-                              </Text>
-                            ))}
-                          </Flex>
-                          <Flex direction="column" gap={2} w="full" alignItems="center">
-                            {sem?.courses?.map((course: { subject: string; number: string }, j: number) => {
-                              const key = `${course.subject}-${course.number}`;
-                              const fullCourse = courseDetails[key] || course;
-                              return (
-                                <CourseCard
-                                  key={`${sem.index}-${j}`}
-                                  course={fullCourse}
-                                  index={j}
-                                  semName={sem.index}
-                                  updateLock={() => {
-                                    const updated = [...planState.semesters];
-                                    const semIdx = updated.findIndex(s => s.index === sem.index);
-                                    const courseIdx = updated[semIdx].courses.findIndex((c: { subject: string; number: string }) =>
-                                      c.subject === course.subject &&
-                                      c.number === course.number
-                                    );
-                                    const currentLock = updated[semIdx].courses[courseIdx].lock;
-                                    updated[semIdx].courses[courseIdx].lock =
-                                      currentLock === "locked" ? "unlocked" : "locked";
-                                    setPlanState({ ...planState, semesters: updated });
-                                  }}
-                                  colorByDepartment={colorByDepartment}
-                                  colorByLevel={colorByLevel}
-                                  fixedWidth={true}
-                                  onPreviewCourse={handlePreviewCourse}
-                                />
-                              );
-                            })}
-                            {provided.placeholder}
-                          </Flex>
-                        </Flex>
-                      </Box>
-                    )}
-                  </Droppable>
-                );
-              })}
-            </Flex>
-          ));
-        })()}
-      </Flex>
-    </Box>
+    <PlanDisplay
+      plan={planState}
+      courseDetails={courseDetails}
+      colorByDepartment={colorByDepartment}
+      colorByLevel={colorByLevel}
+      onUpdateLock={updateLock}
+      onPreviewCourse={previewCourse}
+    />
   );
 }

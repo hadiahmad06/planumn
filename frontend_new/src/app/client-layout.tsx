@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Provider } from "@/components/ui/provider"
 import { Box, Container, Flex, Text } from "@chakra-ui/react";
 import GlobalSearch from "@/components/GlobalSearch";
+import GlobalSearchLayout from "@/components/GlobalSearchLayout";
 
 export default function ClientLayout({
   children,
@@ -12,9 +13,9 @@ export default function ClientLayout({
 }) {
   return (
     <Provider>
-      <GlobalSearch>
+      <GlobalSearchLayout>
         {children}
-      </GlobalSearch>
+      </GlobalSearchLayout>
       <Box as="footer" bg="white" borderTop="1px" borderColor="gold.200" py={8}>
         <Container maxW="1200px">
           <Flex 

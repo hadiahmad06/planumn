@@ -1,8 +1,15 @@
 "use client";
 
 import { Draggable } from "@hello-pangea/dnd";
-import { getCourseColor } from "@/lib/colors";
+import { getCourseColorByDepartment, getCourseColorByLevel } from "@/lib/colors";
 import { Box } from "@chakra-ui/react";
+
+// Sizing
+const CARD_PADDING = 1;
+const CARD_FIXED_FONT_SIZE = "14px";
+const CARD_FIXED_WIDTH = "110px";
+const CARD_FIXED_HEIGHT = "40px";
+const CARD_HEIGHT_MULTIPLIER = 20; // credits * this value = height
 
 type Props = {
   course: {
@@ -22,6 +29,7 @@ type Props = {
   onClick?: () => void;
   fixedWidth?: boolean;
   fixedHeight?: boolean;
+  fontSize?: string;
   onPreviewCourse?: (course: {
     subject: string;
     number: string;
@@ -43,12 +51,13 @@ export default function CourseCard({
   onClick,
   fixedWidth = false,
   fixedHeight = false,
+  fontSize = CARD_FIXED_FONT_SIZE,
   onPreviewCourse,
 }: Props) {
   const courseColor = colorByDepartment
-    ? getCourseColor(course)
+    ? getCourseColorByDepartment(course)
     : colorByLevel
-    ? getCourseColor(course)
+    ? getCourseColorByLevel(course)
     : "#607D8B";
 
   const cardContent = (
@@ -56,24 +65,26 @@ export default function CourseCard({
       position="relative"
       color="white"
       rounded="md"
-      fontSize="10px"
+      fontSize={fontSize}
       display="flex"
       alignItems="center"
       justifyContent="center"
-      px={1}
+      px={CARD_PADDING}
       textAlign="center"
       cursor="pointer"
       border={course.lock === "unlocked" ? "2px" : undefined}
       borderStyle={course.lock === "unlocked" ? "dotted" : undefined}
       borderColor={course.lock === "unlocked" ? "white" : undefined}
       opacity={course.lock === "autofilled" ? 0.5 : 1}
-      width={fixedWidth ? "110px" : "full"}
-      height={fixedHeight ? "40px" : `${course.credits * 20}px`}
+      width={fixedWidth ? CARD_FIXED_WIDTH : "full"}
+      height={fixedHeight ? CARD_FIXED_HEIGHT : `${course.credits * CARD_HEIGHT_MULTIPLIER}px`}
       bg={courseColor}
       onClick={onClick || updateLock}
       onMouseEnter={() => onPreviewCourse?.(course)}
       onMouseLeave={() => onPreviewCourse?.(null)}
       className={className}
+      transition="transform 0.2s"
+      _hover={{ transform: "scale(1.05)" }}
     >
       {course.subject} {course.number}
     </Box>

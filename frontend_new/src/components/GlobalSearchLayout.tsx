@@ -1,7 +1,7 @@
 "use client";
 
 import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
-import { Box, Flex, VStack } from "@chakra-ui/react";
+import { Box, Flex, VStack, Heading, Text } from "@chakra-ui/react";
 import SearchBar from "./SearchBar";
 import SettingsPanel from "./SettingsPanel";
 import CoursePreviewPanel from "./CoursePreviewPanel";
@@ -11,6 +11,19 @@ import { usePathname } from "next/navigation";
 interface GlobalSearchLayoutProps {
   children: React.ReactNode;
 }
+
+// Layout
+const CONTAINER_PADDING = 4;
+const CONTENT_GAP = 4;
+const SEARCH_MARGIN = 4;
+
+// Typography
+const HEADING_SIZE = "lg";
+const RESULT_TEXT_SIZE = "sm";
+
+// Colors
+const CONTAINER_BG = "white";
+const CONTAINER_BORDER = "gray.200";
 
 export default function GlobalSearchLayout({ children }: GlobalSearchLayoutProps) {
   const [colorByDepartment, setColorByDepartment] = useState(true);
@@ -53,17 +66,24 @@ export default function GlobalSearchLayout({ children }: GlobalSearchLayoutProps
                 ref={provided.innerRef} 
                 {...provided.droppableProps}
                 h="100%"
-                p={8}
+                p={CONTAINER_PADDING}
                 display="flex"
                 flexDirection="column"
+                bg={CONTAINER_BG}
+                border="1px"
+                borderColor={CONTAINER_BORDER}
+                borderRadius="lg"
               >
                 <Box flex="1" display="flex" flexDirection="column">
-                  <SearchBar 
-                    colorByDepartment={colorByDepartment}
-                    colorByLevel={colorByLevel}
-                    onPreviewCourse={setPreviewCourse}
-                    currentPlanCourses={currentPlanCourses}
-                  />
+                  <Heading size={HEADING_SIZE}>Search Courses</Heading>
+                  <Box mb={SEARCH_MARGIN}>
+                    <SearchBar 
+                      colorByDepartment={colorByDepartment}
+                      colorByLevel={colorByLevel}
+                      onPreviewCourse={setPreviewCourse}
+                      currentPlanCourses={currentPlanCourses}
+                    />
+                  </Box>
                   <Box mt={4}>
                     <SettingsPanel
                       colorByDepartment={colorByDepartment}
