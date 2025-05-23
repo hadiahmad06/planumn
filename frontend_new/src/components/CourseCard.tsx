@@ -1,8 +1,9 @@
 "use client";
 
 import { Draggable } from "@hello-pangea/dnd";
-import { getCourseColorByDepartment, getCourseColorByLevel } from "@/lib/colors";
+import { getCourseColor } from "@/lib/colors";
 import { Box } from "@chakra-ui/react";
+import { ColorKey } from "@/types/plan"; // Updated import for ColorKey
 
 // Sizing
 const CARD_PADDING = 1;
@@ -10,6 +11,7 @@ const CARD_FIXED_FONT_SIZE = "14px";
 const CARD_FIXED_WIDTH = "110px";
 const CARD_FIXED_HEIGHT = "40px";
 const CARD_HEIGHT_MULTIPLIER = 20; // credits * this value = height
+
 
 type Props = {
   course: {
@@ -22,8 +24,7 @@ type Props = {
   index?: number;
   semName?: string;
   updateLock?: () => void;
-  colorByDepartment?: boolean;
-  colorByLevel?: boolean;
+  colorKey?: ColorKey; // Updated to use ColorKey
   isDraggable?: boolean;
   className?: string;
   onClick?: () => void;
@@ -44,8 +45,7 @@ export default function CourseCard({
   index = 0,
   semName = "",
   updateLock,
-  colorByDepartment = false,
-  colorByLevel = false,
+  colorKey = 'none', // Updated default value to match ColorKey
   isDraggable = true,
   className = "",
   onClick,
@@ -54,11 +54,11 @@ export default function CourseCard({
   fontSize = CARD_FIXED_FONT_SIZE,
   onPreviewCourse,
 }: Props) {
-  const courseColor = colorByDepartment
-    ? getCourseColorByDepartment(course)
-    : colorByLevel
-    ? getCourseColorByLevel(course)
-    : "#607D8B";
+  const courseColor = colorKey === 'department'
+    ? getCourseColor(course, 'department')
+    : colorKey === 'level'
+    ? getCourseColor(course, 'level')
+    : "#607D8B"; // Default color for 'none'
 
   const cardContent = (
     <Box

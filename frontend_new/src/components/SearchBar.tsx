@@ -16,9 +16,10 @@ type Course = {
   termsOffered: string[];
 };
 
+export type ColorKey = 'department' | 'level' | 'none';
+
 type Props = {
-  colorByDepartment?: boolean;
-  colorByLevel?: boolean;
+  colorKey?: ColorKey; // Updated to use ColorKey
   onPreviewCourse?: (course: {
     subject: string;
     number: string;
@@ -34,8 +35,7 @@ type Props = {
 };
 
 export default function SearchBar({ 
-  colorByDepartment = true, 
-  colorByLevel = false,
+  colorKey = 'none', // Updated default value to match ColorKey
   onPreviewCourse,
   currentPlanCourses = []
 }: Props) {
@@ -43,7 +43,7 @@ export default function SearchBar({
   const [results, setResults] = useState<Course[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [previewCourse, setPreviewCourse] = useState<Course | null>(null);
+  const [isFocused, setIsFocused] = useState(false); // Added state to track focus
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -80,20 +80,24 @@ export default function SearchBar({
     return () => clearTimeout(delayDebounce);
   }, [query, onPreviewCourse, currentPlanCourses]);
 
-  // Group courses by level (1xxx, 2xxx, etc.)
+  // Group courses based on colorKey
   const groupedResults = results.reduce((acc, course) => {
-    const level = Math.floor(parseInt(course.number) / 1000);
-    const levelKey = `${level}xxx`;
-    if (!acc[levelKey]) {
-      acc[levelKey] = [];
+    const key = colorKey === 'level' 
+      ? course.dept // Group by department when colorKey is level
+      : `${Math.floor(parseInt(course.number) / 1000)}xxx` // Group by level when colorKey is department
+
+    if (!acc[key]) {
+      acc[key] = [];
     }
-    acc[levelKey].push(course);
+    acc[key].push(course);
     return acc;
   }, {} as Record<string, Course[]>);
 
-  // Sort levels in ascending order
-  const sortedLevels = Object.keys(groupedResults).sort((a, b) => 
-    parseInt(a) - parseInt(b)
+  // Sort keys based on colorKey
+  const sortedKeys = Object.keys(groupedResults).sort((a, b) => 
+    colorKey === 'department' 
+      ? parseInt(a) - parseInt(b) // Sort levels numerically
+      : a.localeCompare(b) // Sort departments alphabetically
   );
 
   return (
@@ -128,7 +132,13 @@ export default function SearchBar({
             setQuery(e.target.value);
             setIsOpen(true);
           }}
-          onFocus={() => setIsOpen(true)}
+          onFocus={() => {
+            setIsOpen(true);
+            setIsFocused(true); // Set focus state to true
+          }}
+          onBlur={() => {
+            setIsFocused(false); // Set focus state to false
+          }}
           width="100%"
           pl={12}
           py={3}
@@ -144,7 +154,7 @@ export default function SearchBar({
           }}
         />
       </Box>
-      {isOpen && results.length > 0 &&
+      {isOpen && isFocused && results.length > 0 && ( // Added isFocused condition
         <Box
           position="absolute"
           zIndex={50}
@@ -165,14 +175,14 @@ export default function SearchBar({
         >
           <table style={{ width: '100%' }}>
             <tbody>
-              {sortedLevels.map((level) => (
-                <tr key={level} style={{ borderBottom: '1px solid var(--border)' }}>
+              {sortedKeys.map((key) => (
+                <tr key={key} style={{ borderBottom: '1px solid var(--border)' }}>
                   <td style={{ padding: '0.5rem', backgroundColor: 'var(--card)', fontWeight: 'semibold', color: 'var(--secondary)', width: '96px' }}>
-                    {level}
+                    {key}
                   </td>
                   <td style={{ padding: '0.5rem' }}>
                     <Flex flexWrap="wrap" gap={2}>
-                      {groupedResults[level].map((course, index) => (
+                      {groupedResults[key].map((course, index) => (
                         <Draggable
                           key={`search-${course.dept}-${course.number}`}
                           draggableId={JSON.stringify({
@@ -203,10 +213,8 @@ export default function SearchBar({
                                   title: course.title,
                                   credits: course.credits,
                                 }}
-                                colorByDepartment={colorByDepartment}
-                                colorByLevel={colorByLevel}
+                                colorKey={colorKey} // Pass colorKey directly to CourseCard
                                 isDraggable={false}
-                                showPreview={false}
                                 fixedWidth={true}
                                 fixedHeight={true}
                               />
@@ -221,7 +229,7 @@ export default function SearchBar({
             </tbody>
           </table>
         </Box>
-      }
+      )}
     </Box>
   );
 }

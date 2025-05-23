@@ -3,7 +3,8 @@
 import { Droppable } from "@hello-pangea/dnd";
 import { Box, Flex, Text, Heading } from "@chakra-ui/react";
 import CourseCard from "./CourseCard";
-import { Course, CourseCardCourse, Plan, Semester } from "@/types/plan";
+import { ColorKey, Course, CourseCardCourse, Plan, Semester } from "@/types/plan";
+import { useEffect, useState } from "react";
 
 const ALWAYS_VISIBLE_CREDITS = 4;
 const COURSE_VERTICAL_GAP = 0;
@@ -40,8 +41,7 @@ const SEMESTER_TITLE_MARGIN = 1;
 interface PlanDisplayProps {
   plan: Plan;
   courseDetails: Record<string, Course>;
-  colorByDepartment: boolean;
-  colorByLevel: boolean;
+  colorKey: ColorKey
   onUpdateLock: (semIndex: string, course: Course) => void;
   onPreviewCourse: (course: CourseCardCourse | null) => void;
 }
@@ -49,11 +49,33 @@ interface PlanDisplayProps {
 export default function PlanDisplay({
   plan,
   courseDetails,
-  colorByDepartment,
-  colorByLevel,
+  colorKey: initialColorKey = "department",
   onUpdateLock,
   onPreviewCourse,
 }: PlanDisplayProps) {
+  const [colorKey, setColorKey] = useState<ColorKey>(initialColorKey);
+
+  useEffect(() => {
+    // Fetch the initial colorKey value from GlobalSearchLayout
+    const fetchInitialColorKey = () => {
+      const initialColorKey = window.localStorage.getItem('colorKey'); // Assuming GlobalSearchLayout stores it in localStorage
+      if (initialColorKey) {
+        setColorKey(initialColorKey as ColorKey);
+      }
+    };
+
+    fetchInitialColorKey();
+
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'COLOR_KEY_UPDATE') {
+        setColorKey(event.data.colorKey as ColorKey); // Update colorKey based on the message
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []); // Add listener for colorKey updates and fetch initial value
+
   return (
     <Box bg="white" h="100%" p={CONTAINER_PADDING} position="relative">
       <Box textAlign="right">
@@ -130,8 +152,7 @@ export default function PlanDisplay({
                                   index={j}
                                   semName={sem.index}
                                   updateLock={() => onUpdateLock(sem.index, course)}
-                                  colorByDepartment={colorByDepartment}
-                                  colorByLevel={colorByLevel}
+                                  colorKey={colorKey}
                                   fixedWidth={true}
                                   fontSize={'15px'}
                                   onPreviewCourse={onPreviewCourse}
@@ -152,4 +173,4 @@ export default function PlanDisplay({
       </Flex>
     </Box>
   );
-} 
+}

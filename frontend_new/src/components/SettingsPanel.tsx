@@ -1,34 +1,19 @@
 "use client";
 
+import { ColorKey } from "@/types/plan";
 import { Box, Button, Text } from "@chakra-ui/react";
 
 type Props = {
-  colorByDepartment: boolean;
-  colorByLevel: boolean;
-  setColorByDepartment: (b: boolean) => void;
-  setColorByLevel: (b: boolean) => void;
+  colorKey: ColorKey;
+  setColorKey: (key: ColorKey) => void; // Updated to use ColorKey type
   onAutofill: () => void;
 };
 
 export default function SettingsPanel({
-  colorByDepartment,
-  colorByLevel,
-  setColorByDepartment,
-  setColorByLevel,
+  colorKey,
+  setColorKey,
   onAutofill,
 }: Props) {
-  const handleColorModeChange = (value: string) => {
-    if (value === "department") {
-      setColorByDepartment(true);
-      setColorByLevel(false);
-    } else if (value === "level") {
-      setColorByLevel(true);
-      setColorByDepartment(false);
-    } else {
-      setColorByDepartment(false);
-      setColorByLevel(false);
-    }
-  };
 
   return (
     <Box
@@ -47,8 +32,8 @@ export default function SettingsPanel({
       <Box fontSize="sm" color="secondary">
         <Text mb={2} fontWeight="medium">Color Coding:</Text>
         <select
-          value={colorByDepartment ? "department" : colorByLevel ? "level" : "none"}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleColorModeChange(e.target.value)}
+          value={colorKey}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setColorKey(e.target.value as ColorKey)}
           style={{
             width: '100%',
             padding: '0.5rem',

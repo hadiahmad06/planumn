@@ -7,8 +7,8 @@ import CoursePreviewPanel from "@/components/CoursePreviewPanel";
 import { Box, Flex, Text, VStack, Heading } from "@chakra-ui/react";
 import GlobalSearchLayout from "@/components/GlobalSearchLayout";
 import PlanDisplay from "@/components/PlanDisplay";
-import { Course, CourseCardCourse, Plan, Semester } from "@/types/plan";
-import { handleUpdateLock, handlePreviewCourse } from "@/handlers/planHandlers";
+import { ColorKey, Course, CourseCardCourse, Plan, Semester } from "@/types/plan";
+import { getUpdateLockHandler, getPreviewCourseHandler, usePlanMessageHandlers } from "@/handlers/planHandlers";
 
 // Create a new empty plan
 const createEmptyPlan = (): Plan => {
@@ -35,8 +35,7 @@ const createEmptyPlan = (): Plan => {
 
 export default function NewPlanPage() {
   const [planState, setPlanState] = useState<Plan>(createEmptyPlan());
-  const [colorByDepartment, setColorByDepartment] = useState(true);
-  const [colorByLevel, setColorByLevel] = useState(false);
+  const [colorKey, setColorKey] = useState<ColorKey>('department');
   const [courseDetails, setCourseDetails] = useState<Record<string, Course>>({});
 
   // Update GlobalSearchLayout with current courses
@@ -45,61 +44,17 @@ export default function NewPlanPage() {
     window.postMessage({ type: 'PLAN_COURSES_UPDATE', courses }, '*');
   }, [planState.semesters]);
 
-  // Listen for messages from GlobalSearchLayout
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data.type === 'DRAG_END') {
-        const { source, destination } = event.data.result;
-        if (!destination) return;
+  // Custom hook to handle plan message events
+  usePlanMessageHandlers(planState, setPlanState);
 
-        const updated = [...planState.semesters];
-
-        const destSem = updated[Number(destination.droppableId)];
-        if (!destSem.courses) destSem.courses = [];
-
-        if (source.droppableId === "search") {
-          const courseData = JSON.parse(event.data.result.draggableId) as Course;
-          destSem.courses.splice(destination.index, 0, {
-            ...courseData,
-            lock: "unlocked"
-          });
-        } else {
-          const sourceSem = updated[Number(source.droppableId)];
-          const [moved] = sourceSem.courses.splice(source.index, 1);
-          destSem.courses.splice(destination.index, 0, moved);
-        }
-
-        setPlanState({ ...planState, semesters: updated });
-      } else if (event.data.type === 'AUTOFILL') {
-        const updated = [...planState.semesters];
-        let moved = false;
-        for (const sem of updated) {
-          if (moved) break;
-          for (const c of sem.courses) {
-            if (c.lock === "unlocked") {
-              c.lock = "autofilled";
-              moved = true;
-              break;
-            }
-          }
-        }
-        setPlanState({ ...planState, semesters: updated });
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, [planState]);
-
-  const updateLock = handleUpdateLock(planState, setPlanState);
-  const previewCourse = handlePreviewCourse();
+  const updateLock = getUpdateLockHandler(planState, setPlanState);
+  const previewCourse = getPreviewCourseHandler();
 
   return (
     <PlanDisplay
       plan={planState}
       courseDetails={courseDetails}
-      colorByDepartment={colorByDepartment}
-      colorByLevel={colorByLevel}
+      colorKey={colorKey}
       onUpdateLock={updateLock}
       onPreviewCourse={previewCourse}
     />

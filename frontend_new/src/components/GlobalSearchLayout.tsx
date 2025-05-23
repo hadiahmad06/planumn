@@ -7,6 +7,7 @@ import SettingsPanel from "./SettingsPanel";
 import CoursePreviewPanel from "./CoursePreviewPanel";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
+import { ColorKey } from "@/types/plan"; // Added import for ColorKey
 
 interface GlobalSearchLayoutProps {
   children: React.ReactNode;
@@ -26,8 +27,7 @@ const CONTAINER_BG = "white";
 const CONTAINER_BORDER = "gray.200";
 
 export default function GlobalSearchLayout({ children }: GlobalSearchLayoutProps) {
-  const [colorByDepartment, setColorByDepartment] = useState(true);
-  const [colorByLevel, setColorByLevel] = useState(false);
+  const [colorKey, setColorKey] = useState<ColorKey>('department'); // Updated to use ColorKey
   const [previewCourse, setPreviewCourse] = useState<any>(null);
   const [currentPlanCourses, setCurrentPlanCourses] = useState<any[]>([]);
   const pathname = usePathname();
@@ -45,6 +45,21 @@ export default function GlobalSearchLayout({ children }: GlobalSearchLayoutProps
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
   }, []);
+
+  useEffect(() => {
+    // Load initial colorKey from localStorage
+    const storedColorKey = window.localStorage.getItem('colorKey');
+    if (storedColorKey) {
+      setColorKey(storedColorKey as ColorKey);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Save colorKey to localStorage whenever it changes
+    window.localStorage.setItem('colorKey', colorKey);
+    // Notify PlanDisplay of colorKey changes
+    window.postMessage({ type: 'COLOR_KEY_UPDATE', colorKey }, '*');
+  }, [colorKey]); // Trigger effect whenever colorKey changes
 
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination) return;
@@ -78,18 +93,15 @@ export default function GlobalSearchLayout({ children }: GlobalSearchLayoutProps
                   <Heading size={HEADING_SIZE}>Search Courses</Heading>
                   <Box mb={SEARCH_MARGIN}>
                     <SearchBar 
-                      colorByDepartment={colorByDepartment}
-                      colorByLevel={colorByLevel}
+                      colorKey={colorKey} // Updated to pass colorKey
                       onPreviewCourse={setPreviewCourse}
                       currentPlanCourses={currentPlanCourses}
                     />
                   </Box>
                   <Box mt={4}>
                     <SettingsPanel
-                      colorByDepartment={colorByDepartment}
-                      colorByLevel={colorByLevel}
-                      setColorByDepartment={setColorByDepartment}
-                      setColorByLevel={setColorByLevel}
+                      colorKey={colorKey} // Updated to pass colorKey
+                      setColorKey={setColorKey} // Updated to pass setColorKey
                       onAutofill={() => {
                         // Forward autofill event to plan page if we're on a plan page
                         if (pathname.startsWith('/plan/')) {
@@ -115,4 +127,4 @@ export default function GlobalSearchLayout({ children }: GlobalSearchLayoutProps
       </Flex>
     </DragDropContext>
   );
-} 
+}
