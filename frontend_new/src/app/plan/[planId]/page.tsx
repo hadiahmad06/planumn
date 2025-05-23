@@ -2,14 +2,9 @@
 
 import { notFound } from "next/navigation";
 import { useState, useEffect } from "react";
-import SettingsPanel from "@/components/SettingsPanel";
-import SearchBar from "@/components/SearchBar";
-import CoursePreviewPanel from "@/components/CoursePreviewPanel";
 import { Box, Flex, Text, VStack, Heading } from "@chakra-ui/react";
-import GlobalSearchLayout from "@/components/GlobalSearchLayout";
 import PlanDisplay from "@/components/PlanDisplay";
-import { ColorKey, Course, CourseCardCourse, Plan, Semester } from "@/types/plan";
-import { getUpdateLockHandler, getPreviewCourseHandler, usePlanMessageHandlers } from "@/handlers/planHandlers";
+// import { getUpdateLockHandler, getPreviewCourseHandler, usePlanMessageHandlers } from "@/handlers/planHandlers";
 
 // temporary in-memory fake plan data
 const mockPlans: Record<string, any> = {
@@ -100,14 +95,6 @@ const mockPlans: Record<string, any> = {
   },
 };
 
-async function getCourseDetails(subject: string, number: string) {
-  const response = await fetch(`/api/courses?subject=${subject}&number=${number}`);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch course details: ${response.statusText}`);
-  }
-  return response.json();
-}
-
 export default function PlanPage({ params }: { params: { planId: string } }) {
   const plan = mockPlans[params.planId];
 
@@ -126,63 +113,24 @@ export default function PlanPage({ params }: { params: { planId: string } }) {
   }
 
   const [planState, setPlanState] = useState(plan);
-  const [colorKey, setColorKey] = useState<ColorKey>('department');
-  const [courseDetails, setCourseDetails] = useState<Record<string, any>>({});
+  // const [colorKey, setColorKey] = useState<ColorKey>('department');
+  // const [courseDetails, setCourseDetails] = useState<Record<string, any>>({});
 
-  useEffect(() => {
-    const fetchCourseDetails = async () => {
-      const details: Record<string, any> = {};
-      for (const semester of planState.semesters) {
-        for (const course of semester.courses) {
-          const key = `${course.subject}-${course.number}`;
-          if (!details[key]) {
-            try {
-              const courseInfo = await getCourseDetails(course.subject, course.number);
-              if (courseInfo) {
-                details[key] = {
-                  ...course,
-                  title: courseInfo.title,
-                  credits: courseInfo.credits,
-                  lock: course.lock || "unlocked"
-                };
-              }
-            } catch (error) {
-              console.error(`Error fetching details for ${course.subject} ${course.number}:`, error);
-              // Fall back to basic course info if fetch fails
-              details[key] = {
-                ...course,
-                title: `${course.subject} ${course.number}`,
-                credits: 0,
-                lock: course.lock || "unlocked"
-              };
-            }
-          }
-        }
-      }
-      setCourseDetails(details);
-    };
+  
 
-    fetchCourseDetails();
-  }, [planState]);
+  // usePlanMessageHandlers(planState, setPlanState);
 
-  // Update GlobalSearchLayout with current courses
-  useEffect(() => {
-    const courses = planState.semesters.flatMap((sem: { courses: any[] }) => sem.courses);
-    window.postMessage({ type: 'PLAN_COURSES_UPDATE', courses }, '*');
-  }, [planState.semesters]);
-
-  usePlanMessageHandlers(planState, setPlanState);
-
-  const updateLock = getUpdateLockHandler(planState, setPlanState);
-  const previewCourse = getPreviewCourseHandler();
+  // const updateLock = getUpdateLockHandler(planState, setPlanState);
+  // const previewCourse = getPreviewCourseHandler();
 
   return (
     <PlanDisplay
       plan={planState}
-      courseDetails={courseDetails}
-      colorKey={colorKey} // Updated to use colorKey
-      onUpdateLock={updateLock}
-      onPreviewCourse={previewCourse}
+      setPlan={setPlanState}
+      // courseDetails={courseDetails}
+      // colorKey={colorKey} // Updated to use colorKey
+      // onUpdateLock={updateLock}
+      // onPreviewCourse={previewCourse}
     />
   );
 }

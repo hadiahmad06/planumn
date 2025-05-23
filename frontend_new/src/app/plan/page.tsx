@@ -7,8 +7,8 @@ import CoursePreviewPanel from "@/components/CoursePreviewPanel";
 import { Box, Flex, Text, VStack, Heading } from "@chakra-ui/react";
 import GlobalSearchLayout from "@/components/GlobalSearchLayout";
 import PlanDisplay from "@/components/PlanDisplay";
-import { ColorKey, Course, CourseCardCourse, Plan, Semester } from "@/types/plan";
-import { getUpdateLockHandler, getPreviewCourseHandler, usePlanMessageHandlers } from "@/handlers/planHandlers";
+import { Course, CourseCardCourse, Plan, Semester } from "@/types/plan";
+// import { handleUpdateLock, handlePreviewCourse } from "@/handlers/planHandlers";
 
 // Create a new empty plan
 const createEmptyPlan = (): Plan => {
@@ -35,28 +35,16 @@ const createEmptyPlan = (): Plan => {
 
 export default function NewPlanPage() {
   const [planState, setPlanState] = useState<Plan>(createEmptyPlan());
-  const [colorKey, setColorKey] = useState<ColorKey>('department');
-  const [courseDetails, setCourseDetails] = useState<Record<string, Course>>({});
-
-  // Update GlobalSearchLayout with current courses
-  useEffect(() => {
-    const courses = planState.semesters.flatMap(sem => sem.courses);
-    window.postMessage({ type: 'PLAN_COURSES_UPDATE', courses }, '*');
-  }, [planState.semesters]);
-
-  // Custom hook to handle plan message events
-  usePlanMessageHandlers(planState, setPlanState);
-
-  const updateLock = getUpdateLockHandler(planState, setPlanState);
-  const previewCourse = getPreviewCourseHandler();
-
+  
   return (
     <PlanDisplay
       plan={planState}
-      courseDetails={courseDetails}
-      colorKey={colorKey}
-      onUpdateLock={updateLock}
-      onPreviewCourse={previewCourse}
+      setPlan={setPlanState}
+      // courseDetails={courseDetails}
+      // colorByDepartment={colorByDepartment}
+      // colorByLevel={colorByLevel}
+      // onUpdateLock={updateLock}
+      // onPreviewCourse={previewCourse}
     />
   );
 }

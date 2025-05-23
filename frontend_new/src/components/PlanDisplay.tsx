@@ -3,8 +3,9 @@
 import { Droppable } from "@hello-pangea/dnd";
 import { Box, Flex, Text, Heading } from "@chakra-ui/react";
 import CourseCard from "./CourseCard";
-import { ColorKey, Course, CourseCardCourse, Plan, Semester } from "@/types/plan";
+import { ColorKey, Course, Plan, Semester } from "@/types/plan";
 import { useEffect, useState } from "react";
+import { usePlanMessageHandlers, getCourseDetails, updateLock, previewCourse } from "@/handlers/planHandlers";
 
 const ALWAYS_VISIBLE_CREDITS = 4;
 const COURSE_VERTICAL_GAP = 0;
@@ -40,20 +41,22 @@ const SEMESTER_TITLE_MARGIN = 1;
 
 interface PlanDisplayProps {
   plan: Plan;
-  courseDetails: Record<string, Course>;
-  colorKey: ColorKey
-  onUpdateLock: (semIndex: string, course: Course) => void;
-  onPreviewCourse: (course: CourseCardCourse | null) => void;
+  setPlan: (plan: Plan) => void;
+  // courseDetails: Record<string, Course>;
+  // colorKey: ColorKey
+  // onUpdateLock: (semIndex: string, course: Course) => void;
+  // onPreviewCourse: (course: CourseCardCourse | null) => void;
 }
 
 export default function PlanDisplay({
   plan,
-  courseDetails,
-  colorKey: initialColorKey = "department",
-  onUpdateLock,
-  onPreviewCourse,
+  setPlan,
+  // onUpdateLock,
+  // onPreviewCourse,
 }: PlanDisplayProps) {
-  const [colorKey, setColorKey] = useState<ColorKey>(initialColorKey);
+
+  const [colorKey, setColorKey] = useState<ColorKey>('department');
+  const [courseDetails, setCourseDetails] = useState<Record<string, Course>>({});
 
   useEffect(() => {
     // Fetch the initial colorKey value from GlobalSearchLayout
@@ -65,6 +68,7 @@ export default function PlanDisplay({
     };
 
     fetchInitialColorKey();
+    usePlanMessageHandlers(plan, setPlan); // Custom hook to handle plan updates
 
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === 'COLOR_KEY_UPDATE') {
@@ -75,6 +79,93 @@ export default function PlanDisplay({
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
   }, []); // Add listener for colorKey updates and fetch initial value
+
+  useEffect(() => {
+    const fetchCourseDetails = async () => {
+      const details: Record<string, any> = {};
+      for (const semester of plan.semesters) {
+        for (const course of semester.courses) {
+          const key = `${course.subject}-${course.number}`;
+          if (!details[key]) {
+            try {
+              const courseInfo = await getCourseDetails(course.subject, course.number);
+              if (courseInfo) {
+                details[key] = {
+                  ...course,
+                  title: courseInfo.title,
+                  credits: courseInfo.credits,
+                  lock: course.lock || "unlocked"
+                };
+              }
+            } catch (error) {
+              console.error(`Error fetching details for ${course.subject} ${course.number}:`, error);
+              // Fall back to basic course info if fetch fails
+              details[key] = {
+                ...course,
+                title: `${course.subject} ${course.number}`,
+                credits: 0,
+                lock: course.lock || "unlocked"
+              };
+            }
+          }
+        }
+      }
+      setCourseDetails(details);
+    };
+
+    fetchCourseDetails();
+  }, [plan]);
+
+  // Update GlobalSearchLayout with current courses
+  useEffect(() => {
+    const courses = plan.semesters.flatMap((sem: { courses: any[] }) => sem.courses);
+    window.postMessage({ type: 'PLAN_COURSES_UPDATE', courses }, '*');
+  }, [plan.semesters]);
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'DRAG_END') {
+        const { source, destination } = event.data.result;
+        if (!destination) return;
+
+        const updated = [...plan.semesters];
+
+        const destSem = updated[Number(destination.droppableId)];
+        if (!destSem.courses) destSem.courses = [];
+
+        if (source.droppableId === "search") {
+          const courseData = JSON.parse(event.data.result.draggableId) as Course;
+          destSem.courses.splice(destination.index, 0, {
+            ...courseData,
+            lock: "unlocked"
+          });
+        } else {
+          const sourceSem = updated[Number(source.droppableId)];
+          const [moved] = sourceSem.courses.splice(source.index, 1);
+          destSem.courses.splice(destination.index, 0, moved);
+        }
+
+        setPlan({ ...plan, semesters: updated });
+      } else if (event.data.type === 'AUTOFILL') {
+        const updated = [...plan.semesters];
+        let moved = false;
+        for (const sem of updated) {
+          if (moved) break;
+          for (const c of sem.courses) {
+            if (c.lock === "unlocked") {
+              c.lock = "autofilled";
+              moved = true;
+              break;
+            }
+          }
+        }
+        setPlan({ ...plan, semesters: updated });
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [plan]);
 
   return (
     <Box bg="white" h="100%" p={CONTAINER_PADDING} position="relative">
@@ -151,11 +242,11 @@ export default function PlanDisplay({
                                   course={fullCourse}
                                   index={j}
                                   semName={sem.index}
-                                  updateLock={() => onUpdateLock(sem.index, course)}
+                                  updateLock={() => updateLock(plan, setPlan)(sem.index, course)}
                                   colorKey={colorKey}
                                   fixedWidth={true}
                                   fontSize={'15px'}
-                                  onPreviewCourse={onPreviewCourse}
+                                  onPreviewCourse={previewCourse}
                                 />
                               );
                             })}
