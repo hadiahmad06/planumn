@@ -27,10 +27,8 @@ export function updateLock(
   };
 }
 
-export function previewCourse() {
-  return (course: CourseCardCourse | null) => {
-    window.postMessage({ type: 'PREVIEW_COURSE', course }, '*');
-  };
+export function previewCourse(course: CourseCardCourse | null) {
+  return window.postMessage({ type: 'PREVIEW_COURSE', course }, '*');
 }
 
 // export function getUpdateLockHandler(planState: Plan, setPlanState: (plan: Plan) => void) {

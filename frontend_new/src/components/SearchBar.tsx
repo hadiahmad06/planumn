@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import CourseCard from "./CourseCard";
 import { Box, Input, Text, Flex } from "@chakra-ui/react";
-import CoursePreview from './CoursePreview';
+// import CoursePreview from './CoursePreview';
 
 type Course = {
   dept: string;
