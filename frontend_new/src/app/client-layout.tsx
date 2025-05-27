@@ -3,19 +3,24 @@
 import Link from "next/link";
 import { Provider } from "@/components/ui/provider"
 import { Box, Container, Flex, Text } from "@chakra-ui/react";
-import GlobalSearch from "@/components/GlobalSearch";
 import GlobalSearchLayout from "@/components/GlobalSearchLayout";
+import { usePathname } from "next/navigation";
 
 export default function ClientLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
   return (
     <Provider>
-      <GlobalSearchLayout>
-        {children}
-      </GlobalSearchLayout>
+      {(pathname === "/" || pathname.startsWith("/plan")) && (
+        <GlobalSearchLayout>
+          {children}
+        </GlobalSearchLayout>
+      )}
+      {pathname.startsWith("/info") && children}
       <Box as="footer" bg="white" borderTop="1px" borderColor="gold.200" py={8}>
         <Container maxW="1200px">
           <Flex 
@@ -28,14 +33,14 @@ export default function ClientLayout({
               © {new Date().getFullYear()} Planumn. All rights reserved.
             </Text>
             <Flex gap={4}>
-              <Link href="/privacy">
+              <Link href="/info/privacy">
                 <Text fontSize="sm" color="maroon.500" _hover={{ color: "maroon.600" }} transition="color 0.2s">
                   Privacy Policy
                 </Text>
               </Link>
-              <Link href="/terms">
+              <Link href="/info/contact">
                 <Text fontSize="sm" color="maroon.500" _hover={{ color: "maroon.600" }} transition="color 0.2s">
-                  Terms of Service
+                  Contact Us
                 </Text>
               </Link>
             </Flex>
@@ -44,4 +49,4 @@ export default function ClientLayout({
       </Box>
     </Provider>
   );
-} 
+}
