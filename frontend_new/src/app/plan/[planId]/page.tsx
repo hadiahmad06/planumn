@@ -1,105 +1,27 @@
 "use client";
 
-import { notFound } from "next/navigation";
+import { useParams, notFound } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Box, Flex, Text, VStack, Heading } from "@chakra-ui/react";
 import PlanDisplay from "@/components/PlanDisplay";
+import mockPlans from "./mockPlans.json";
+
 // import { getUpdateLockHandler, getPreviewCourseHandler, usePlanMessageHandlers } from "@/handlers/planHandlers";
 
 // temporary in-memory fake plan data
-const mockPlans: Record<string, any> = {
-  "abc123": {
-    createdAt: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
-    major: ["Computer Science B.S."],
-    semesters: [
-      {
-        index: "1249", // Fall 2024
-        courses: [
-          { subject: "WRIT", number: "1301" },
-          { subject: "MATH", number: "1271" },
-        ],
-      },
-      {
-        index: "1253", // Spring 2025
-        courses: [
-          { subject: "CSCI", number: "1133" },
-          { subject: "MATH", number: "1272" },
-        ],
-      },
-      {
-        index: "1255", // Summer 2025
-        courses: [
-          { subject: "CSCI", number: "1133" },
-          { subject: "MATH", number: "1272" },
-        ],
-      },
-      {
-        index: "1259", // Fall 2026
-        courses: [
-          { subject: "WRIT", number: "1301" },
-          { subject: "MATH", number: "1271" },
-        ],
-      },
-      {
-        index: "1263", // Spring 2026
-        courses: [
-          { subject: "CSCI", number: "1133" },
-          { subject: "MATH", number: "1272" },
-        ],
-      },
-      {
-        index: "1265", // Summer 2026
-        courses: [
-          { subject: "CSCI", number: "2041" },
-          { subject: "MATH", number: "2243" },
-        ],
-      },
-      {
-        index: "1269", // Fall 2026
-        courses: [
-          { subject: "CSCI", number: "4061" },
-          { subject: "STAT", number: "3021" },
-        ],
-      },
-      {
-        index: "1273", // Spring 2027
-        courses: [
-          { subject: "CSCI", number: "4041" },
-        ],
-      },
-      {
-        index: "1275", // Summer 2027
-        courses: [
-          { subject: "CSCI", number: "5461" },
-        ],
-      },
-      {
-        index: "1279", // Fall 2027
-        courses: [
-          { subject: "CSCI", number: "4041" },
-        ],
-      },
-      {
-        index: "1283", // Spring 2028
-        courses: [
-          { subject: "CSCI", number: "5461" },
-        ],
-      },
-      {
-        index: "1285", // Summer 2028
-        courses: [
-          { subject: "CSCI", number: "4041" },
-        ],
-      },
-    ],
-  },
-};
+const plans: Record<string, any> = mockPlans;
 
-export default function PlanPage({ params }: { params: { planId: string } }) {
-  const plan = mockPlans[params.planId];
+export default function PlanPage() {
+  const params = useParams();
+  const planId = Array.isArray(params?.planId) ? params.planId[0] : params?.planId; 
+  
+  if (!planId || !plans[planId]) {
+    return notFound();
+  }
+  
+  const plan = plans[planId];
 
-  if (!plan) return notFound();
-
+  plan.createdAt = new Date(plan.createdAt);
   const expired = Date.now() - plan.createdAt.getTime() > 1000 * 60 * 60 * 48;
   if (expired) {
     return (
