@@ -6,6 +6,7 @@ import { Box, Container, Flex, Text } from "@chakra-ui/react";
 import GlobalSearchLayout from "@/components/GlobalSearchLayout";
 import { usePathname } from "next/navigation";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { Analytics } from "@vercel/analytics/next";
 
 export default function ClientLayout({
   children,
@@ -16,7 +17,6 @@ export default function ClientLayout({
 
   return (
     <Provider>
-      <SpeedInsights/>
       <Box
         backgroundImage="url('/your-image.jpg')"
         backgroundSize="cover"
@@ -41,6 +41,8 @@ export default function ClientLayout({
         )}
         {pathname === "/" || pathname.startsWith("/info") ? children : null}
       </Box>
+      <SpeedInsights/>
+      <Analytics/>
     </Provider>
   );
 }
