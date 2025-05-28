@@ -2,6 +2,7 @@
 
 import { ColorKey } from "@/types/plan";
 import { Box, Button, Text } from "@chakra-ui/react";
+import theme from "@/styles/theme";
 
 type Props = {
   colorKey: ColorKey;
@@ -17,20 +18,20 @@ export default function SettingsPanel({
 
   return (
     <Box
-      width={64}
-      bg="white"
+      width={theme.globalSearchLayoutStyles.heading.size /* 64 */}
+      bg={theme.globalSearchLayoutStyles.container.bg /* "white" */}
       border="1px"
-      borderColor="border"
+      borderColor={theme.globalSearchLayoutStyles.container.borderColor /* "border" */}
       shadow="sm"
       rounded="lg"
-      p={4}
+      p={theme.globalSearchLayoutStyles.container.padding /* 4 */}
       height="fit-content"
       position="sticky"
-      top={8}
+      top={theme.globalSearchLayoutStyles.heading.size /* 8 */}
     >
-      <Text fontSize="lg" fontWeight="semibold" mb={4} color="foreground">Settings</Text>
+      <Text fontSize={theme.globalSearchLayoutStyles.heading.size as "lg" /* "lg" */} fontWeight="semibold" mb={theme.globalSearchLayoutStyles.heading.margin /* 4 */} color="foreground">Settings</Text>
       <Box fontSize="sm" color="secondary">
-        <Text mb={2} fontWeight="medium">Color Coding:</Text>
+        <Text mb={theme.globalSearchLayoutStyles.heading.margin /* 2 */} fontWeight="medium">Color Coding:</Text>
         <select
           value={colorKey}
           onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setColorKey(e.target.value as ColorKey)}

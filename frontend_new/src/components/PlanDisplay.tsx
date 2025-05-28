@@ -6,6 +6,7 @@ import CourseCard from "./CourseCard";
 import { ColorKey, Course, Plan, Semester } from "@/types/plan";
 import { useEffect, useState } from "react";
 import { usePlanMessageHandlers, getCourseDetails, updateLock, previewCourse } from "@/handlers/planHandlers";
+import theme from "@/styles/theme";
 
 const ALWAYS_VISIBLE_CREDITS = 4;
 const COURSE_VERTICAL_GAP = 0;
@@ -168,18 +169,18 @@ export default function PlanDisplay({
   }, [plan]);
 
   return (
-    <Box bg="white" h="100%" p={CONTAINER_PADDING} position="relative">
+    <Box bg={theme.planDisplayStyles.container.bg /* "white" */} h="100%" p={theme.planDisplayStyles.container.padding /* 8 */} position="relative">
       <Box textAlign="right">
-        <Heading size={HEADING_SIZE} mb={HEADING_MARGIN}>Your Graduation Plan</Heading>
-        <Text mb={MAJOR_TEXT_MARGIN} color={SECONDARY_TEXT_COLOR}>Major: {plan.major.join(", ")}</Text>
+        <Heading size={theme.planDisplayStyles.heading.size as "2xl" /* "2xl" */} mb={theme.planDisplayStyles.heading.margin /* 4 */}>Your Graduation Plan</Heading>
+        <Text mb={theme.planDisplayStyles.majorText.margin /* 6 */} color={theme.planDisplayStyles.majorText.color /* "gray.500" */}>Major: {plan.major.join(", ")}</Text>
       </Box>
 
-      <Flex direction="column" gap={ROW_GAP}>
+      <Flex direction="column" gap={theme.planDisplayStyles.container.gap /* 8 */}>
         {(() => {
           const sortedSemesters = [...plan.semesters].sort((a, b) => a.index.localeCompare(b.index));
           const rows: Semester[][] = [];
           let currentRow: Semester[] = [];
-          
+
           sortedSemesters.forEach(sem => {
             currentRow.push(sem);
             if (sem.index.endsWith('5')) {
@@ -187,13 +188,13 @@ export default function PlanDisplay({
               currentRow = [];
             }
           });
-          
+
           if (currentRow.length > 0) {
             rows.push(currentRow);
           }
 
           return rows.map((row, rowIndex) => (
-            <Flex key={rowIndex} gap={SEMESTER_GAP} justify="flex-end">
+            <Flex key={rowIndex} gap={theme.planDisplayStyles.container.gap /* 6 */} justify="flex-end">
               {row.map((sem) => {
                 const season = sem.index.endsWith('9') ? 'Fall' : 
                              sem.index.endsWith('3') ? 'Spring' : 

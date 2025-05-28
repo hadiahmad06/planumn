@@ -15,37 +15,29 @@ export default function ClientLayout({
 
   return (
     <Provider>
-      {(pathname === "/" || pathname.startsWith("/plan")) && (
-        <GlobalSearchLayout>
-          {children}
-        </GlobalSearchLayout>
-      )}
-      {pathname.startsWith("/info") && children}
-      <Box as="footer" bg="white" borderTop="1px" borderColor="gold.200" py={8}>
-        <Container maxW="1200px">
-          <Flex 
-            flexDirection={{ base: "column", md: "row" }} 
-            justifyContent="space-between" 
-            alignItems="center" 
-            gap={4}
-          >
-            <Text fontSize="sm" color="maroon.500">
-              © {new Date().getFullYear()} Planumn. All rights reserved.
-            </Text>
-            <Flex gap={4}>
-              <Link href="/info/privacy">
-                <Text fontSize="sm" color="maroon.500" _hover={{ color: "maroon.600" }} transition="color 0.2s">
-                  Privacy Policy
-                </Text>
-              </Link>
-              <Link href="/info/contact">
-                <Text fontSize="sm" color="maroon.500" _hover={{ color: "maroon.600" }} transition="color 0.2s">
-                  Contact Us
-                </Text>
-              </Link>
-            </Flex>
-          </Flex>
-        </Container>
+      <Box
+        backgroundImage="url('/your-image.jpg')"
+        backgroundSize="cover"
+        backgroundPosition="center"
+        position="relative"
+        _before={{
+          content: '""',
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          bg: "rgba(169, 0, 0, 0.5)", // dark overlay
+          backdropFilter: "blur(4px)",
+          zIndex: -1,
+        }}
+      >
+        {(pathname.startsWith("/plan")) && (
+          <GlobalSearchLayout>
+            {children}
+          </GlobalSearchLayout>
+        )}
+        {pathname === "/" || pathname.startsWith("/info") ? children : null}
       </Box>
     </Provider>
   );

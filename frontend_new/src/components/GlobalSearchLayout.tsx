@@ -8,13 +8,14 @@ import CoursePreviewPanel from "./CoursePreviewPanel";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { ColorKey } from "@/types/plan"; // Added import for ColorKey
+import theme from "@/styles/theme";
 
 interface GlobalSearchLayoutProps {
   children: React.ReactNode;
 }
 
 // Layout
-const CONTAINER_PADDING = 4;
+const CONTAINER_PADDING = 12;
 const CONTENT_GAP = 4;
 const SEARCH_MARGIN = 4;
 
@@ -72,26 +73,32 @@ export default function GlobalSearchLayout({ children }: GlobalSearchLayoutProps
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <Flex minH="100vh" bg="white">
+      <Flex minH="100vh" bg={theme.globalSearchLayoutStyles.container.bg /* "white" */}>
         {/* Left side - Search Bar */}
-        <Box w="1/2" borderRight="1px" borderColor="gray.200" bg="white" position="relative">
+        <Box
+          w="1/2"
+          borderRight="1px"
+          borderColor={theme.globalSearchLayoutStyles.container.borderColor /* "gray.200" */}
+          bg={theme.globalSearchLayoutStyles.container.bg /* "white" */}
+          position="relative"
+        >
           <Droppable droppableId="search">
             {(provided) => (
-              <Box 
-                ref={provided.innerRef} 
+              <Box
+                ref={provided.innerRef}
                 {...provided.droppableProps}
                 h="100%"
-                p={CONTAINER_PADDING}
+                p={theme.globalSearchLayoutStyles.container.padding /* 12 */}
                 display="flex"
                 flexDirection="column"
-                bg={CONTAINER_BG}
+                bg={theme.globalSearchLayoutStyles.container.bg /* "white" */}
                 border="1px"
-                borderColor={CONTAINER_BORDER}
-                borderRadius="lg"
+                borderColor={theme.globalSearchLayoutStyles.container.borderColor /* "gray.200" */}
+                borderRadius={theme.globalSearchLayoutStyles.container.borderRadius /* "lg" */}
               >
                 <Box flex="1" display="flex" flexDirection="column">
-                  <Heading size={HEADING_SIZE}>Search Courses</Heading>
-                  <Box mb={SEARCH_MARGIN}>
+                  <Heading size={theme.globalSearchLayoutStyles.heading.size as "lg" /* "lg" */}>PlanUMN</Heading>
+                  <Box mb={theme.globalSearchLayoutStyles.searchMargin /* 4 */}>
                     <SearchBar 
                       colorKey={colorKey} // Updated to pass colorKey
                       onPreviewCourse={setPreviewCourse}
@@ -121,7 +128,7 @@ export default function GlobalSearchLayout({ children }: GlobalSearchLayoutProps
         </Box>
 
         {/* Right side - Content */}
-        <Box w="1/2" overflowY="auto" bg="white">
+        <Box w="1/2" overflowY="auto" bg={theme.globalSearchLayoutStyles.container.bg /* "white" */}>
           {children}
         </Box>
       </Flex>
