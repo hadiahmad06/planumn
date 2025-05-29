@@ -1,63 +1,178 @@
-import Link from "next/link";
+"use client";
+
+import "@/styles/global.css"; // make sure this path is correct
+import {
+  Box,
+  Button,
+  Container,
+  Heading,
+  Stack,
+  Text,
+  VStack,
+  HStack,
+} from "@chakra-ui/react";
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center">
-      <section className="w-full py-20 text-center">
-        <h1 className="text-5xl font-bold mb-6">
-          Plan Your Academic Journey with <span className="text-primary">Planumn</span>
-        </h1>
-        <p className="text-xl text-secondary max-w-2xl mx-auto mb-8">
-          A graduation planning tool built for UMN students. Plan your courses, stay on track, and graduate with clarity.
-        </p>
-        <Link
-          href="/plan"
-          className="inline-block px-8 py-4 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium shadow-sm"
-        >
-          Get Started
-        </Link>
-      </section>
+    <Box
+      position="relative"
+      minH="100vh"
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      // bgGradient="linear(to-br, #f8fafc, white, #eff6ff)"
+      overflow="hidden"
+    >
+      {/* Background decorations */}
+      <Box
+        position="absolute"
+        inset="0"
+        zIndex={-1}
+        // bg="gray.100"
+        // style={{
+        //   maskImage: "linear-gradient(0deg, white, rgba(255,255,255,0.6))",
+        //   WebkitMaskImage: "linear-gradient(0deg, white, rgba(255,255,255,0.6))",
+        // }}
+      />
+      <Box
+        position="absolute"
+        top="5rem"
+        left="2.5rem"
+        w="18rem"
+        h="18rem"
+        bg="#fddede"
+        borderRadius="full"
+        opacity={0.2}
+        filter="blur(80px)"
+        animation="float 6s ease-in-out infinite"
+        zIndex={-1}
+      />
+      <Box
+        position="absolute"
+        bottom="5rem"
+        right="2.5rem"
+        w="24rem"
+        h="24rem"
+        bg="#fff7cc"
+        borderRadius="full"
+        opacity={0.2}
+        filter="blur(80px)"
+        animation="float 6s ease-in-out infinite"
+        zIndex={-1}
+        style={{ animationDelay: "1s" }}
+      />
 
-      <section className="w-full py-16 bg-white">
-        <div className="container">
-          <h2 className="text-3xl font-bold text-center mb-12">Why Choose Planumn?</h2>
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="p-6 rounded-lg bg-card border border-border shadow-sm hover:shadow-md transition-shadow">
-              <h3 className="text-xl font-semibold mb-3">Smart Course Planning</h3>
-              <p className="text-secondary">
-                Create and manage your academic plan with an intuitive interface designed for UMN students.
-              </p>
-            </div>
-            <div className="p-6 rounded-lg bg-card border border-border shadow-sm hover:shadow-md transition-shadow">
-              <h3 className="text-xl font-semibold mb-3">Stay On Track</h3>
-              <p className="text-secondary">
-                Visualize your progress and ensure you're meeting all graduation requirements.
-              </p>
-            </div>
-            <div className="p-6 rounded-lg bg-card border border-border shadow-sm hover:shadow-md transition-shadow">
-              <h3 className="text-xl font-semibold mb-3">Make Informed Decisions</h3>
-              <p className="text-secondary">
-                Access course information and make better choices for your academic future.
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
+      <Container maxW="4xl" textAlign="center" zIndex="1" px={4}>
+        <VStack gap={6}>
+          <Box>
+            <Heading
+              as="h1"
+              fontSize={["4xl", "6xl"]}
+              fontWeight="bold"
+              color="#0f172a"
+              mb={2}
+            >
+              <Box
+                as="span"
+                fontFamily="mono"
+                color="#811331"
+                display="inline-flex"
+                alignItems="center"
+                className="animate-typing"
+                whiteSpace="nowrap"
+                overflow="hidden"
+              >
+                planu.mn
+                <Box
+                  as="span"
+                  className="blinking-cursor"
+                  ml="1"
+                  w="1px"
+                  h="1.2em"
+                  bg="#811331"
+                />
+              </Box>
+            </Heading>
+            <Text
+              fontSize={["lg", "2xl"]}
+              color="#334155"
+              fontWeight="light"
+              mt={2}
+            >
+              plan your graduation
+            </Text>
+          </Box>
 
-      <section className="w-full py-16 bg-white">
-        <div className="container text-center">
-          <h2 className="text-3xl font-bold mb-6">Ready to Start Planning?</h2>
-          <p className="text-xl text-secondary mb-8">
-            Join thousands of UMN students who have already planned their academic journey with Planumn.
-          </p>
-          <Link
-            href="/plan"
-            className="inline-block px-8 py-4 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors font-medium shadow-sm"
+          <Text fontSize="xl" maxW="2xl" color="#475569">
+            The fast, visual graduation planner built by UMN students, for UMN students.
+            Replace the clunky official Grad Planner with drag-and-drop course planning.
+          </Text>
+
+          <Stack
+            direction={["column", "row"]}
+            gap={4}
+            justify="center"
+            align="center"
+            pt={4}
           >
-            Create Your Plan
-          </Link>
-        </div>
-      </section>
-    </div>
+            <Button
+              size="lg"
+              bg="#811331"
+              _hover={{ bg: "#600f28" }}
+              color="white"
+              px={8}
+              py={6}
+              fontSize="lg"
+              fontWeight="semibold"
+              borderRadius="xl"
+              boxShadow="lg"
+              onClick={() => (window.location.href = "/plan/hadi2025")}
+            >
+              Try Live Demo →
+            </Button>
+            <Button
+              variant="outline"
+              size="lg"
+              px={8}
+              py={6}
+              fontSize="lg"
+              borderRadius="xl"
+              border="2px solid"
+              bg="white"
+              borderColor="gray.500"
+              
+              _hover={{
+                bg: "gray.200",
+              }}
+            >
+              <Text as="span" fontSize="lg" fontWeight="semibold" color="gray.700">
+                ▶ Watch Demo
+              </Text>
+            </Button>
+          </Stack>
+
+          <HStack
+            gap={8}
+            color="#64748b"
+            fontSize="sm"
+            pt={8}
+            className="animate-fade-in-up"
+          >
+            <HStack>
+              <Box w={2} h={2} bg="green.500" borderRadius="full" className="animate-pulse" />
+              <Text>Live course data</Text>
+            </HStack>
+            <HStack>
+              <Box w={2} h={2} bg="blue.500" borderRadius="full" className="animate-pulse" />
+              <Text>SRT scores included</Text>
+            </HStack>
+            <HStack>
+              <Box w={2} h={2} bg="#811331" borderRadius="full" className="animate-pulse" />
+              <Text>Built by students</Text>
+            </HStack>
+          </HStack>
+        </VStack>
+      </Container>
+    </Box>
   );
 }
