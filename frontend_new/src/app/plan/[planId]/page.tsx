@@ -23,16 +23,19 @@ export default function PlanPage() {
 
   plan.createdAt = new Date(plan.createdAt);
   const expired = Date.now() - plan.createdAt.getTime() > 1000 * 60 * 60 * 48;
-  if (expired) {
-    return (
-      <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" textAlign="center" p={8}>
-        <Box>
-          <Heading size="2xl" mb={2}>Plan Expired</Heading>
-          <Text color="gray.500">This graduation plan is no longer available. Create a new one to get started.</Text>
-        </Box>
-      </Box>
-    );
-  }
+
+  // Keep this commented out for now, as we are not handling expired plans yet
+  // Uncomment this block when you want to handle expired plans
+  // if (expired) {
+  //   return (
+  //     <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" textAlign="center" p={8}>
+  //       <Box>
+  //         <Heading size="2xl" mb={2}>Plan Expired</Heading>
+  //         <Text color="gray.500">This graduation plan is no longer available. Create a new one to get started.</Text>
+  //       </Box>
+  //     </Box>
+  //   );
+  // }
 
   const [planState, setPlanState] = useState(plan);
   // const [colorKey, setColorKey] = useState<ColorKey>('department');
