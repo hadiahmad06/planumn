@@ -11,6 +11,7 @@ import {
   VStack,
   HStack,
 } from "@chakra-ui/react";
+import Link from "next/link";
 
 const HeroSection = () => {
   return (
@@ -173,6 +174,34 @@ const HeroSection = () => {
           </HStack>
         </VStack>
       </Container>
+      {/* Bottom bar with privacy/contact and images/names */}
+      <Box
+        position="absolute"
+        bottom={0}
+        left={0}
+        width="100%"
+        py={4}
+        px={8}
+        bg="rgba(255, 255, 255, 0.95)"
+        borderTop="1px solid #e2e8f0"
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        zIndex={2}
+      >
+        <HStack justify="center" gap={8} mb={2}>
+          <Link href="/info/privacy" passHref legacyBehavior>
+          <Button as="a" color="#811331" fontWeight="bold" textAlign="center">
+              Privacy
+            </Button>
+          </Link>
+          <Link href="/info/contact" passHref legacyBehavior>
+            <Button as="a" color="#811331" fontWeight="bold" textAlign="center">
+              Contact
+            </Button>
+          </Link>
+        </HStack>
+      </Box>
     </Box>
   );
 };
