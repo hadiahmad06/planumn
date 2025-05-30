@@ -1,8 +1,33 @@
-import { Course, CourseCardCourse, Plan, Semester } from "@/types/plan";
+import { Course, CourseDetails, Plan, PlanDetails, Semester, SemesterDetails } from "@/types/plan";
 import { useEffect } from "react";
 
-export async function getCourseDetails(subject: string, number: string) {
-  const response = await fetch(`/api/courses?subject=${subject}&number=${number}`);
+export async function getPlanDetails(plan: Plan): Promise<PlanDetails> {
+  const semesters = await Promise.all(
+    plan.semesters.map(async (semester: Semester) => {
+      const courses = await Promise.all(
+        semester.courses.map(async (course: Course) => {
+          const courseDetails = await getCourseDetails(String(course.id));
+          return {
+            ...courseDetails,
+            lock: course.lock || "unlocked", // Ensure lock has a default value
+          } as CourseDetails;
+        })
+      );
+      return {
+        ...semester,
+        courses,
+      } as SemesterDetails;
+    })
+  );
+
+  return {
+    ...plan,
+    semesters,
+  } as PlanDetails;
+}
+
+export async function getCourseDetails(id:string) {
+  const response = await fetch(`/api/courses?id=${id}`);
   if (!response.ok) {
     throw new Error(`Failed to fetch course details: ${response.statusText}`);
   }
@@ -10,16 +35,14 @@ export async function getCourseDetails(subject: string, number: string) {
 }
 
 export function updateLock(
-  planState: Plan,
-  setPlanState: (plan: Plan) => void
+  planState: PlanDetails,
+  setPlanState: (plan: PlanDetails) => void
 ) {
   return (semIndex: string, course: Course) => {
     const updated = [...planState.semesters];
     const semIdx = updated.findIndex(s => s.index === semIndex);
-    const courseIdx = updated[semIdx].courses.findIndex(c =>
-      c.subject === course.subject &&
-      c.number === course.number
-    );
+    const courseIdx = updated[semIdx].courses.findIndex(c => c.id === course.id);
+
     const currentLock = updated[semIdx].courses[courseIdx].lock;
     updated[semIdx].courses[courseIdx].lock =
       currentLock === "locked" ? "unlocked" : "locked";
@@ -27,18 +50,6 @@ export function updateLock(
   };
 }
 
-export function previewCourse(course: CourseCardCourse | null) {
+export function previewCourse(course: CourseDetails | null) {
   return window.postMessage({ type: 'PREVIEW_COURSE', course }, '*');
-}
-
-// export function getUpdateLockHandler(planState: Plan, setPlanState: (plan: Plan) => void) {
-//   return handleUpdateLock(planState, setPlanState);
-// }
-
-// export function getPreviewCourseHandler() {
-//   return handlePreviewCourse();
-// }
-
-export function usePlanMessageHandlers(planState: Plan, setPlanState: (plan: Plan) => void) {
-  
 }

@@ -4,34 +4,15 @@ import { useState, useEffect, useRef } from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import CourseCard from "./CourseCard";
 import { Box, Input, Text, Flex } from "@chakra-ui/react";
+import { Course, CourseDetails } from "@/types/plan";
 // import CoursePreview from './CoursePreview';
-
-type Course = {
-  dept: string;
-  number: string;
-  title: string;
-  credits: number;
-  description: string;
-  prerequisites: string;
-  termsOffered: string[];
-};
 
 export type ColorKey = 'department' | 'level' | 'none';
 
 type Props = {
   colorKey?: ColorKey; // Updated to use ColorKey
-  onPreviewCourse?: (course: {
-    subject: string;
-    number: string;
-    title: string;
-    credits: number;
-  } | null) => void;
-  currentPlanCourses?: {
-    subject: string;
-    number: string;
-    title: string;
-    credits: number;
-  }[];
+  onPreviewCourse?: (course: CourseDetails | null) => void;
+  currentPlanCourses?: number[];
 };
 
 export default function SearchBar({ 
@@ -40,7 +21,7 @@ export default function SearchBar({
   currentPlanCourses = []
 }: Props) {
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<Course[]>([]);
+  const [results, setResults] = useState<CourseDetails[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isFocused, setIsFocused] = useState(false); // Added state to track focus
@@ -83,15 +64,15 @@ export default function SearchBar({
   // Group courses based on colorKey
   const groupedResults = results.reduce((acc, course) => {
     const key = colorKey === 'level' 
-      ? course.dept // Group by department when colorKey is level
-      : `${Math.floor(parseInt(course.number) / 1000)}xxx` // Group by level when colorKey is department
+      ? course.dept_abbr // Group by department when colorKey is level
+      : `${Math.floor(parseInt(course.course_num) / 1000)}xxx` // Group by level when colorKey is department
 
     if (!acc[key]) {
       acc[key] = [];
     }
     acc[key].push(course);
     return acc;
-  }, {} as Record<string, Course[]>);
+  }, {} as Record<string, CourseDetails[]>);
 
   // Sort keys based on colorKey
   const sortedKeys = Object.keys(groupedResults).sort((a, b) => 
@@ -184,13 +165,8 @@ export default function SearchBar({
                     <Flex flexWrap="wrap" gap={2}>
                       {groupedResults[key].map((course, index) => (
                         <Draggable
-                          key={`search-${course.dept}-${course.number}`}
-                          draggableId={JSON.stringify({
-                            subject: course.dept,
-                            number: course.number,
-                            title: course.title,
-                            credits: course.credits
-                          })}
+                          key={`search-${course.dept_abbr}-${course.course_num}`}
+                          draggableId={JSON.stringify(course)}
                           index={index}
                         >
                           {(provided) => (
@@ -198,21 +174,11 @@ export default function SearchBar({
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              onMouseEnter={() => onPreviewCourse?.({
-                                subject: course.dept,
-                                number: course.number,
-                                title: course.title,
-                                credits: course.credits,
-                              })}
+                              onMouseEnter={() => onPreviewCourse?.(course)}
                               onMouseLeave={() => onPreviewCourse?.(null)}
                             >
                               <CourseCard
-                                course={{
-                                  subject: course.dept,
-                                  number: course.number,
-                                  title: course.title,
-                                  credits: course.credits,
-                                }}
+                                course={course}
                                 colorKey={colorKey} // Pass colorKey directly to CourseCard
                                 isDraggable={false}
                                 fixedWidth={true}

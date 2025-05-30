@@ -5,27 +5,26 @@ import path from "path";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
-  const subject = searchParams.get("subject");
-  const number = searchParams.get("number");
+  const id = searchParams.get("id");
 
-  if (!subject || !number) {
+  if (!id) {
     return NextResponse.json(
-      { error: "Subject and number are required" },
+      { error: "Id is required" },
       { status: 400 }
     );
   }
 
   try {
     const db = await open({
-      filename: path.join(process.cwd(), "public", "CourseInfo.db"),
+      filename: path.join(process.cwd(), "public", "ProcessedData.db"),
       driver: sqlite3.Database,
     });
 
     const course = await db.get(
-      `SELECT dept, number, title, credits
-       FROM courses
-       WHERE dept = ? AND number = ?`,
-      [subject, number]
+      `SELECT id, campus, dept_abbr, course_num, class_desc, total_students, total_grades, onestop, onestop_desc, cred_min, cred_max, srt_vals
+       FROM classdistribution
+       WHERE id = ?`,
+      [id]
     );
 
     await db.close();

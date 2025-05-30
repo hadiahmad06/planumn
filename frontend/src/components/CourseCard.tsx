@@ -3,7 +3,7 @@
 import { Draggable } from "@hello-pangea/dnd";
 import { getCourseColor } from "@/lib/colors";
 import { Box } from "@chakra-ui/react";
-import { ColorKey } from "@/types/plan"; // Updated import for ColorKey
+import { ColorKey, CourseDetails } from "@/types/plan"; // Updated import for ColorKey
 
 // Sizing
 const CARD_PADDING = 1;
@@ -14,13 +14,7 @@ const CARD_HEIGHT_MULTIPLIER = 20; // credits * this value = height
 
 
 type Props = {
-  course: {
-    subject: string;
-    number: string;
-    title: string;
-    credits: number;
-    lock?: string;
-  };
+  course: CourseDetails;
   index?: number;
   semName?: string;
   updateLock?: () => void;
@@ -31,13 +25,7 @@ type Props = {
   fixedWidth?: boolean;
   fixedHeight?: boolean;
   fontSize?: string;
-  onPreviewCourse?: (course: {
-    subject: string;
-    number: string;
-    title: string;
-    credits: number;
-    lock?: string;
-  } | null) => void;
+  onPreviewCourse?: (course: CourseDetails | null) => void;
 };
 
 export default function CourseCard({
@@ -59,6 +47,7 @@ export default function CourseCard({
     : colorKey === 'level'
     ? getCourseColor(course, 'level')
     : "#607D8B"; // Default color for 'none'
+  // console.log(course);
 
   const cardContent = (
     <Box
@@ -77,7 +66,7 @@ export default function CourseCard({
       borderColor={course.lock === "unlocked" ? "white" : undefined}
       opacity={course.lock === "autofilled" ? 0.5 : 1}
       width={fixedWidth ? CARD_FIXED_WIDTH : "full"}
-      height={fixedHeight ? CARD_FIXED_HEIGHT : `${course.credits * CARD_HEIGHT_MULTIPLIER}px`}
+      height={fixedHeight ? CARD_FIXED_HEIGHT : `${course.cred_min * CARD_HEIGHT_MULTIPLIER}px`}
       bg={courseColor}
       onClick={onClick || updateLock}
       onMouseEnter={() => onPreviewCourse?.(course)}
@@ -86,7 +75,7 @@ export default function CourseCard({
       transition="transform 0.2s"
       _hover={{ transform: "scale(1.05)" }}
     >
-      {course.subject} {course.number}
+      {course.dept_abbr} {course.course_num}
     </Box>
   );
 

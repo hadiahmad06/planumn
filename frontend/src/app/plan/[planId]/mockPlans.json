@@ -1,31 +1,24 @@
 {
-  "hadi2025": {
-    "createdAt": "2025-05-26T23:00:00.000Z",
+  "id-example": {
+    "createdAt": "2025-05-28T23:00:00.000Z",
     "major": ["Computer Science B.S."],
     "semesters": [
       {
-        "index": "0",
-        "courses": [
-          { "subject": "MATH", "number": "1271" },
-          { "subject": "MATH", "number": "1272" },
-          { "subject": "CHEM", "number": "1061" },
-          { "subject": "CHEM", "number": "1065" },
-          { "subject": "CHEM", "number": "1062" },
-          { "subject": "CHEM", "number": "1066" },
-          { "subject": "GEOG", "number": "1301W" },
-          { "subject": "ECON", "number": "1102" }
-        ]
-      },
-      {
         "index": "1229",
         "courses": [
-          { "subject": "CSCI", "number": "1133" }
+          { "id": 1, "lock": "locked" },
+          { "id": 2, "lock": "locked" },
+          { "id": 3, "lock": "locked" },
+          { "id": 4, "lock": "locked" }
         ]
       },
       {
         "index": "1233",
         "courses": [
-          { "subject": "CSCI", "number": "1933" }
+          { "id": 5, "lock": "locked" },
+          { "id": 6, "lock": "locked" },
+          { "id": 7, "lock": "locked" },
+          { "id": 8, "lock": "locked" }
         ]
       },
       {
@@ -35,14 +28,19 @@
       {
         "index": "1239",
         "courses": [
-          { "subject": "CSCI", "number": "2011" }
+          { "id": 9, "lock": "locked" },
+          { "id": 10, "lock": "locked" },
+          { "id": 11, "lock": "locked" },
+          { "id": 12, "lock": "locked" }
         ]
       },
       {
         "index": "1243",
         "courses": [
-          { "subject": "CSCI", "number": "2041" },
-          { "subject": "CSCL", "number": "3122" }
+          { "id": 13, "lock": "locked" },
+          { "id": 14, "lock": "locked" },
+          { "id": 15, "lock": "locked" },
+          { "id": 16, "lock": "locked" }
         ]
       },
       {
@@ -52,22 +50,19 @@
       {
         "index": "1249",
         "courses": [
-          { "subject": "CSCI", "number": "2021" },
-          { "subject": "CSCI", "number": "4041" },
-          { "subject": "PHYS", "number": "1401V" },
-          { "subject": "WRIT", "number": "1301" },
-          { "subject": "CSE", "number": "1001" }
+          { "id": 17, "lock": "locked" },
+          { "id": 18, "lock": "locked" },
+          { "id": 19, "lock": "locked" },
+          { "id": 20, "lock": "locked" }
         ]
       },
       {
         "index": "1253",
         "courses": [
-          { "subject": "CSCI", "number": "4061" },
-          { "subject": "CSCI", "number": "3901H" },
-          { "subject": "CSCI", "number": "5461" },
-          { "subject": "CSCI", "number": "2033" },
-          { "subject": "STAT", "number": "3021" },
-          { "subject": "CNRC", "number": "1042H" }
+          { "id": 21, "lock": "locked" },
+          { "id": 22, "lock": "locked" },
+          { "id": 23, "lock": "locked" },
+          { "id": 24, "lock": "locked" }
         ]
       },
       {
@@ -77,106 +72,24 @@
       {
         "index": "1259",
         "courses": [
-          { "subject": "CSCI", "number": "3081W" },
-          { "subject": "CSCI", "number": "3921W" },
-          { "subject": "CSCI", "number": "4131" },
-          { "subject": "CSCI", "number": "4203" },
-          { "subject": "CSCI", "number": "4511W" },
-          { "subject": "EE", "number": "3101" }
-        ]
-      },
-      {
-        "index": "1263",
-        "courses": []
-      },
-      {
-        "index": "1265",
-        "courses": []
-      }
-    ]
-  },
-  "abc123": {
-    "createdAt": "2025-05-26T23:00:00.000Z",
-    "major": ["Computer Science B.S."],
-    "semesters": [
-      {
-        "index": "1249",
-        "courses": [
-          { "subject": "WRIT", "number": "1301" },
-          { "subject": "MATH", "number": "1271" }
-        ]
-      },
-      {
-        "index": "1253",
-        "courses": [
-          { "subject": "CSCI", "number": "1133" },
-          { "subject": "MATH", "number": "1272" }
-        ]
-      },
-      {
-        "index": "1255",
-        "courses": [
-          { "subject": "CSCI", "number": "1133" },
-          { "subject": "MATH", "number": "1272" }
-        ]
-      },
-      {
-        "index": "1259",
-        "courses": [
-          { "subject": "WRIT", "number": "1301" },
-          { "subject": "MATH", "number": "1271" }
+          { "id": 25, "lock": "locked" },
+          { "id": 26, "lock": "locked" },
+          { "id": 27, "lock": "locked" },
+          { "id": 28, "lock": "locked" }
         ]
       },
       {
         "index": "1263",
         "courses": [
-          { "subject": "CSCI", "number": "1133" },
-          { "subject": "MATH", "number": "1272" }
+          { "id": 29, "lock": "locked" },
+          { "id": 30, "lock": "locked" },
+          { "id": 31, "lock": "locked" },
+          { "id": 32, "lock": "locked" }
         ]
       },
       {
         "index": "1265",
-        "courses": [
-          { "subject": "CSCI", "number": "2041" },
-          { "subject": "MATH", "number": "2243" }
-        ]
-      },
-      {
-        "index": "1269",
-        "courses": [
-          { "subject": "CSCI", "number": "4061" },
-          { "subject": "STAT", "number": "3021" }
-        ]
-      },
-      {
-        "index": "1273",
-        "courses": [
-          { "subject": "CSCI", "number": "4041" }
-        ]
-      },
-      {
-        "index": "1275",
-        "courses": [
-          { "subject": "CSCI", "number": "5461" }
-        ]
-      },
-      {
-        "index": "1279",
-        "courses": [
-          { "subject": "CSCI", "number": "4041" }
-        ]
-      },
-      {
-        "index": "1283",
-        "courses": [
-          { "subject": "CSCI", "number": "5461" }
-        ]
-      },
-      {
-        "index": "1285",
-        "courses": [
-          { "subject": "CSCI", "number": "4041" }
-        ]
+        "courses": []
       }
     ]
   }

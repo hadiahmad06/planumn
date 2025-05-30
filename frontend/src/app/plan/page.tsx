@@ -7,13 +7,13 @@ import CoursePreviewPanel from "@/components/CoursePreviewPanel";
 import { Box, Flex, Text, VStack, Heading } from "@chakra-ui/react";
 import GlobalSearchLayout from "@/components/GlobalSearchLayout";
 import PlanDisplay from "@/components/PlanDisplay";
-import { Course, CourseCardCourse, Plan, Semester } from "@/types/plan";
+import { Course, CourseDetails, Plan, PlanDetails, Semester, SemesterDetails } from "@/types/plan";
 // import { handleUpdateLock, handlePreviewCourse } from "@/handlers/planHandlers";
 
 // Create a new empty plan
-const createEmptyPlan = (): Plan => {
+const createEmptyPlan = (): PlanDetails => {
   const currentYear = new Date().getFullYear();
-  const semesters: Semester[] = [];
+  const semesters: SemesterDetails[] = [];
   
   // Create 12 semesters (4 years)
   for (let i = 0; i < 12; i++) {
@@ -34,7 +34,7 @@ const createEmptyPlan = (): Plan => {
 };
 
 export default function NewPlanPage() {
-  const [planState, setPlanState] = useState<Plan>(createEmptyPlan());
+  const [planState, setPlanState] = useState<PlanDetails>(createEmptyPlan());
   
   return (
     <PlanDisplay

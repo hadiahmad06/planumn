@@ -3,9 +3,9 @@
 import { Droppable } from "@hello-pangea/dnd";
 import { Box, Flex, Text, Heading } from "@chakra-ui/react";
 import CourseCard from "./CourseCard";
-import { ColorKey, Course, Plan, Semester } from "@/types/plan";
+import { ColorKey, Course, CourseDetails, Plan, PlanDetails, Semester, SemesterDetails } from "@/types/plan";
 import { useEffect, useState } from "react";
-import { usePlanMessageHandlers, getCourseDetails, updateLock, previewCourse } from "@/handlers/planHandlers";
+import { getCourseDetails, updateLock, previewCourse } from "@/handlers/planHandlers";
 import theme from "@/styles/theme";
 
 const ALWAYS_VISIBLE_CREDITS = 4;
@@ -41,8 +41,8 @@ const MAJOR_TEXT_MARGIN = 6;
 const SEMESTER_TITLE_MARGIN = 1;
 
 interface PlanDisplayProps {
-  plan: Plan;
-  setPlan: (plan: Plan) => void;
+  plan: PlanDetails;
+  setPlan: (plan: PlanDetails) => void;
   // courseDetails: Record<string, Course>;
   // colorKey: ColorKey
   // onUpdateLock: (semIndex: string, course: Course) => void;
@@ -57,7 +57,7 @@ export default function PlanDisplay({
 }: PlanDisplayProps) {
 
   const [colorKey, setColorKey] = useState<ColorKey>('department');
-  const [courseDetails, setCourseDetails] = useState<Record<string, Course>>({});
+  const [courseDetails, setCourseDetails] = useState<Record<number, CourseDetails>>({});
 
   useEffect(() => {
     // Fetch the initial colorKey value from GlobalSearchLayout
@@ -69,7 +69,6 @@ export default function PlanDisplay({
     };
 
     fetchInitialColorKey();
-    usePlanMessageHandlers(plan, setPlan); // Custom hook to handle plan updates
 
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === 'COLOR_KEY_UPDATE') {
@@ -83,28 +82,27 @@ export default function PlanDisplay({
 
   useEffect(() => {
     const fetchCourseDetails = async () => {
-      const details: Record<string, any> = {};
+      const details: Record<number, CourseDetails> = {};
       for (const semester of plan.semesters) {
         for (const course of semester.courses) {
-          const key = `${course.subject}-${course.number}`;
+          const key = course.id;
           if (!details[key]) {
             try {
-              const courseInfo = await getCourseDetails(course.subject, course.number);
+              const courseInfo = await getCourseDetails(course.id.toString());
               if (courseInfo) {
                 details[key] = {
                   ...course,
-                  title: courseInfo.title,
-                  credits: courseInfo.credits,
-                  lock: course.lock || "unlocked"
+                  lock: course.lock || "locked"
                 };
               }
             } catch (error) {
-              console.error(`Error fetching details for ${course.subject} ${course.number}:`, error);
+              console.error(`Error fetching details for ${course.id}:`, error);
               // Fall back to basic course info if fetch fails
               details[key] = {
                 ...course,
-                title: `${course.subject} ${course.number}`,
-                credits: 0,
+                class_desc: `unknown`,
+                cred_min: 1,
+                cred_max: 1,
                 lock: course.lock || "unlocked"
               };
             }
@@ -119,8 +117,8 @@ export default function PlanDisplay({
 
   // Update GlobalSearchLayout with current courses
   useEffect(() => {
-    const courses = plan.semesters.flatMap((sem: { courses: any[] }) => sem.courses);
-    window.postMessage({ type: 'PLAN_COURSES_UPDATE', courses }, '*');
+    const courseIds = plan.semesters.flatMap((sem: { courses: CourseDetails[] }) => sem.courses.map(course => course.id));
+    window.postMessage({ type: 'PLAN_COURSES_UPDATE', courseIds }, '*');
   }, [plan.semesters]);
 
   useEffect(() => {
@@ -135,10 +133,10 @@ export default function PlanDisplay({
         if (!destSem.courses) destSem.courses = [];
 
         if (source.droppableId === "search") {
-          const courseData = JSON.parse(event.data.result.draggableId) as Course;
+          const courseData = JSON.parse(event.data.result.draggableId) as CourseDetails;
           destSem.courses.splice(destination.index, 0, {
             ...courseData,
-            lock: "unlocked"
+            lock: courseData.lock || "unlocked"
           });
         } else {
           const sourceSem = updated[Number(source.droppableId)];
@@ -178,8 +176,8 @@ export default function PlanDisplay({
       <Flex direction="column" gap={theme.planDisplayStyles.container.gap /* 8 */}>
         {(() => {
           const sortedSemesters = [...plan.semesters].sort((a, b) => a.index.localeCompare(b.index));
-          const rows: Semester[][] = [];
-          let currentRow: Semester[] = [];
+          const rows: SemesterDetails[][] = [];
+          let currentRow: SemesterDetails[] = [];
 
           sortedSemesters.forEach(sem => {
             currentRow.push(sem);
@@ -221,21 +219,26 @@ export default function PlanDisplay({
                         </Text>
                         <Flex w="full" gap={CREDIT_LINE_GAP}>
                           <Flex direction="column" alignItems="flex-end" pr={CREDIT_NUMBER_PADDING}>
-                            {[...Array(Math.max(
+                            {Array.from({ length: Math.max(
                               ALWAYS_VISIBLE_CREDITS,
                               sem?.courses?.reduce((sum: number, c: Course) => {
-                                const key = `${c.subject}-${c.number}`;
-                                return sum + (courseDetails[key]?.credits || 0);
+                                const key = c.id;
+                                return sum + (courseDetails[key]?.cred_min || 0);
                               }, 0) || 0
-                            ))].map((_, i) => (
-                              <Text key={i} fontSize={CREDIT_NUMBER_SIZE} color={SECONDARY_TEXT_COLOR} h={CREDIT_LINE_HEIGHT}>
+                            ) }).map((_, i) => (
+                              <Text
+                                key={i}
+                                fontSize={CREDIT_NUMBER_SIZE}
+                                color={SECONDARY_TEXT_COLOR}
+                                h={CREDIT_LINE_HEIGHT}
+                              >
                                 {i + 1}
                               </Text>
                             ))}
                           </Flex>
                           <Flex direction="column" gap={COURSE_VERTICAL_GAP} w="full" alignItems="center">
-                            {sem?.courses?.map((course: Course, j: number) => {
-                              const key = `${course.subject}-${course.number}`;
+                            {sem?.courses?.map((course: CourseDetails, j: number) => {
+                              const key = course.id;
                               const fullCourse = courseDetails[key] || course;
                               return (
                                 <CourseCard
@@ -243,7 +246,7 @@ export default function PlanDisplay({
                                   course={fullCourse}
                                   index={j}
                                   semName={sem.index}
-                                  updateLock={() => updateLock(plan, setPlan)(sem.index, course)}
+                                  updateLock={() => updateLock(plan, setPlan)(sem.index, fullCourse)}
                                   colorKey={colorKey}
                                   fixedWidth={true}
                                   fontSize={'15px'}

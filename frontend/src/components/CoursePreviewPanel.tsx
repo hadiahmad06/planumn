@@ -1,36 +1,22 @@
+import { Course, CourseDetails } from '@/types/plan';
 import { Box, Text, VStack, Spinner } from '@chakra-ui/react';
 import { useState, useEffect } from 'react';
 
 type CoursePreviewProps = {
-  course: {
-    subject: string;
-    number: string;
-    title: string;
-    credits: number;
-  } | null;
+  course: CourseDetails | null;
 };
 
 export default function CoursePreviewPanel({ course }: CoursePreviewProps) {
-  const [previewData, setPreviewData] = useState<any>(null);
+
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchPreviewData = async () => {
       if (!course) {
-        setPreviewData(null);
         return;
       }
 
       setLoading(true);
-      try {
-        const response = await fetch(`/api/courses?subject=${course.subject}&number=${course.number}`);
-        const data = await response.json();
-        setPreviewData(data);
-      } catch (error) {
-        console.error('Error fetching course preview:', error);
-      } finally {
-        setLoading(false);
-      }
     };
 
     fetchPreviewData();
@@ -50,38 +36,21 @@ export default function CoursePreviewPanel({ course }: CoursePreviewProps) {
     >
       <VStack align="start" gap={3}>
         <Text fontSize="xl" fontWeight="bold" color="maroon.500">
-          {course.subject} {course.number}
+          {course.dept_abbr} {course.course_num}
         </Text>
         <Text fontSize="lg" fontWeight="medium">
-          {course.title}
+          {course.class_desc}
         </Text>
         <Box w="100%" h="1px" bg="gray.200" />
         <Text>
-          <strong>Credits:</strong> {course.credits}
+          <strong>Credits:</strong> {course.cred_min === course.cred_max ? course.cred_min : `${course.cred_min} - ${course.cred_max}`}
         </Text>
-        {loading ? (
-          <Box w="100%" textAlign="center" py={4}>
-            <Spinner color="gold.400" />
-          </Box>
-        ) : previewData ? (
-          <>
-            {previewData.description && (
-              <Text>
-                <strong>Description:</strong> {previewData.description}
-              </Text>
-            )}
-            {previewData.prerequisites && (
-              <Text>
-                <strong>Prerequisites:</strong> {previewData.prerequisites}
-              </Text>
-            )}
-            {previewData.termsOffered && previewData.termsOffered.length > 0 && (
-              <Text>
-                <strong>Terms Offered:</strong> {previewData.termsOffered.join(', ')}
-              </Text>
-            )}
-          </>
-        ) : null}
+        <Text>
+          <strong>Description:</strong> {course.onestop_desc}
+        </Text>
+        <Text>
+          <strong>Total # of Students:</strong> {course.total_students}
+        </Text>
       </VStack>
     </Box>
   );

@@ -7,7 +7,7 @@ import SettingsPanel from "./SettingsPanel";
 import CoursePreviewPanel from "./CoursePreviewPanel";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { ColorKey } from "@/types/plan"; // Added import for ColorKey
+import { ColorKey, Course, CourseDetails } from "@/types/plan"; // Added import for ColorKey
 import theme from "@/styles/theme";
 
 interface GlobalSearchLayoutProps {
@@ -29,15 +29,15 @@ const CONTAINER_BORDER = "gray.200";
 
 export default function GlobalSearchLayout({ children }: GlobalSearchLayoutProps) {
   const [colorKey, setColorKey] = useState<ColorKey>('department'); // Updated to use ColorKey
-  const [previewCourse, setPreviewCourse] = useState<any>(null);
-  const [currentPlanCourses, setCurrentPlanCourses] = useState<any[]>([]);
+  const [previewCourse, setPreviewCourse] = useState<CourseDetails | null>(null);
+  const [currentPlanCourses, setCurrentPlanCourses] = useState<number[]>([]);
   const pathname = usePathname();
 
   // Listen for messages from the plan page
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === 'PLAN_COURSES_UPDATE') {
-        setCurrentPlanCourses(event.data.courses);
+        setCurrentPlanCourses(event.data.courseIds);
       } else if (event.data.type === 'PREVIEW_COURSE') {
         setPreviewCourse(event.data.course);
       }
