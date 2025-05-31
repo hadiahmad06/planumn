@@ -127,7 +127,7 @@ export default function Home() {
               fontWeight="semibold"
               borderRadius="xl"
               boxShadow="lg"
-              onClick={() => (window.location.href = "/plan/hadi2025")}
+              onClick={() => (window.location.href = "/plan/id-example")}
             >
               Try Live Demo →
             </Button>
