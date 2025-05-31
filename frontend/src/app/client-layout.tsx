@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Provider } from "@/components/ui/provider"
 import { Box, Container, Flex, Text } from "@chakra-ui/react";
-import GlobalSearchLayout from "@/components/GlobalSearchLayout";
+import GlobalSearchLayout from "@/components/organisms/GlobalSearchLayout";
 import { usePathname } from "next/navigation";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
@@ -29,7 +29,7 @@ export default function ClientLayout({
           left: 0,
           right: 0,
           bottom: 0,
-          bg: "rgba(169, 0, 0, 0.5)", // dark overlay
+          bg: "rgba(168, 5, 5, 0.5)", // dark overlay
           backdropFilter: "blur(4px)",
           zIndex: -1,
         }}

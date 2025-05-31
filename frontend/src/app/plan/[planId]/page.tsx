@@ -3,10 +3,10 @@
 import { useParams, notFound } from "next/navigation";
 import { useState, useEffect } from "react";
 import { Box, Flex, Text, VStack, Heading } from "@chakra-ui/react";
-import PlanDisplay from "@/components/PlanDisplay";
+import PlanDisplay from "@/components/organisms/PlanDisplay";
 import mockPlans from "./mockPlans.json";
 import { LockType, Plan, PlanDetails, Semester } from "@/types/plan";
-import { getPlanDetails } from "@/handlers/planHandlers";
+import { getPlanDetails } from "@/types/planHandlers";
 
 // import { getUpdateLockHandler, getPreviewCourseHandler, usePlanMessageHandlers } from "@/handlers/planHandlers";
 
@@ -81,10 +81,6 @@ export default function PlanPage() {
     <PlanDisplay
       plan={planState}
       setPlan={setPlanState}
-      // courseDetails={courseDetails}
-      // colorKey={colorKey} // Updated to use colorKey
-      // onUpdateLock={updateLock}
-      // onPreviewCourse={previewCourse}
     />
   );
 }

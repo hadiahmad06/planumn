@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import SettingsPanel from "@/components/SettingsPanel";
-import SearchBar from "@/components/SearchBar";
-import CoursePreviewPanel from "@/components/CoursePreviewPanel";
+import SettingsPanel from "@/components/molecules/SettingsPanel";
+import SearchBar from "@/components/molecules/SearchBar";
+import CoursePreviewPanel from "@/components/organisms/CoursePreviewPanel";
 import { Box, Flex, Text, VStack, Heading } from "@chakra-ui/react";
-import GlobalSearchLayout from "@/components/GlobalSearchLayout";
-import PlanDisplay from "@/components/PlanDisplay";
+import GlobalSearchLayout from "@/components/organisms/GlobalSearchLayout";
+import PlanDisplay from "@/components/organisms/PlanDisplay";
 import { Course, CourseDetails, Plan, PlanDetails, Semester, SemesterDetails } from "@/types/plan";
 // import { handleUpdateLock, handlePreviewCourse } from "@/handlers/planHandlers";
 
@@ -40,11 +40,6 @@ export default function NewPlanPage() {
     <PlanDisplay
       plan={planState}
       setPlan={setPlanState}
-      // courseDetails={courseDetails}
-      // colorByDepartment={colorByDepartment}
-      // colorByLevel={colorByLevel}
-      // onUpdateLock={updateLock}
-      // onPreviewCourse={previewCourse}
     />
   );
 }

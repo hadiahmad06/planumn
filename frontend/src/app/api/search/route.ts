@@ -67,7 +67,7 @@ export async function GET(req: Request) {
     ]
   );
 
-  console.log("Excluding courses:", excludeCourses);
+  // console.log("Excluding courses:", excludeCourses);
   // console.log("First 10 results:", results);
 
   return NextResponse.json(results);

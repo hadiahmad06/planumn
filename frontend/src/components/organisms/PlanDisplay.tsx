@@ -2,10 +2,10 @@
 
 import { Droppable } from "@hello-pangea/dnd";
 import { Box, Flex, Text, Heading } from "@chakra-ui/react";
-import CourseCard from "./CourseCard";
+import CourseCard from "../molecules/CourseCard";
 import { ColorKey, Course, CourseDetails, Plan, PlanDetails, Semester, SemesterDetails } from "@/types/plan";
 import { useEffect, useState } from "react";
-import { getCourseDetails, updateLock, previewCourse } from "@/handlers/planHandlers";
+import { getCourseDetails, updateLock, previewCourse } from "@/types/planHandlers";
 import theme from "@/styles/theme";
 
 const ALWAYS_VISIBLE_CREDITS = 4;
@@ -43,17 +43,11 @@ const SEMESTER_TITLE_MARGIN = 1;
 interface PlanDisplayProps {
   plan: PlanDetails;
   setPlan: (plan: PlanDetails) => void;
-  // courseDetails: Record<string, Course>;
-  // colorKey: ColorKey
-  // onUpdateLock: (semIndex: string, course: Course) => void;
-  // onPreviewCourse: (course: CourseCardCourse | null) => void;
 }
 
 export default function PlanDisplay({
   plan,
   setPlan,
-  // onUpdateLock,
-  // onPreviewCourse,
 }: PlanDisplayProps) {
 
   const [colorKey, setColorKey] = useState<ColorKey>('department');

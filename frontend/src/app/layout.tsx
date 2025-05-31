@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Planumn - Course Planning Made Easy",
+  title: "PlanUMN - Course Planning Made Easy",
   description: "Plan your academic journey with ease",
 };
 

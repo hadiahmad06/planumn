@@ -2,8 +2,8 @@
 
 import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
 import { Box, Flex, VStack, Heading, Text } from "@chakra-ui/react";
-import SearchBar from "./SearchBar";
-import SettingsPanel from "./SettingsPanel";
+import SearchBar from "../molecules/SearchBar";
+import SettingsPanel from "../molecules/SettingsPanel";
 import CoursePreviewPanel from "./CoursePreviewPanel";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
