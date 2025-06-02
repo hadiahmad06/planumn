@@ -2,10 +2,18 @@
 
 import { Droppable } from "@hello-pangea/dnd";
 import { Box, Flex, Text, Heading } from "@chakra-ui/react";
+import {
+  Menu,
+  IconButton,
+  Portal,
+} from "@chakra-ui/react";
+import { Icon } from "@chakra-ui/icons";
+import { FiShare } from "react-icons/fi";
 import CourseCard from "../molecules/CourseCard";
 import { ColorKey, Course, CourseDetails, Plan, PlanDetails, Semester, SemesterDetails } from "@/types/plan";
 import { useEffect, useState } from "react";
-import { getCourseDetails, updateLock, previewCourse } from "@/types/planHandlers";
+import { Skeleton } from "@chakra-ui/react";
+import { fetchCourseDetails, getCourseDetails, updateLock, previewCourse } from "@/types/planHandlers";
 import theme from "@/styles/theme";
 
 const ALWAYS_VISIBLE_CREDITS = 4;
@@ -63,6 +71,7 @@ export default function PlanDisplay({
     };
 
     fetchInitialColorKey();
+    fetchCourseDetails(courseDetails, setCourseDetails, plan);
 
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === 'COLOR_KEY_UPDATE') {
@@ -74,68 +83,43 @@ export default function PlanDisplay({
     return () => window.removeEventListener('message', handleMessage);
   }, []); // Add listener for colorKey updates and fetch initial value
 
-  useEffect(() => {
-    const fetchCourseDetails = async () => {
-      const details: Record<number, CourseDetails> = {};
-      for (const semester of plan.semesters) {
-        for (const course of semester.courses) {
-          const key = course.id;
-          if (!details[key]) {
-            try {
-              const courseInfo = await getCourseDetails(course.id.toString());
-              if (courseInfo) {
-                details[key] = {
-                  ...course,
-                  lock: course.lock || "locked"
-                };
-              }
-            } catch (error) {
-              console.error(`Error fetching details for ${course.id}:`, error);
-              // Fall back to basic course info if fetch fails
-              details[key] = {
-                ...course,
-                class_desc: `unknown`,
-                cred_min: 1,
-                cred_max: 1,
-                lock: course.lock || "unlocked"
-              };
-            }
-          }
-        }
-      }
-      setCourseDetails(details);
-    };
-
-    fetchCourseDetails();
-  }, [plan]);
-
   // Update GlobalSearchLayout with current courses
   useEffect(() => {
     const courseIds = plan.semesters.flatMap((sem: { courses: CourseDetails[] }) => sem.courses.map(course => course.id));
     window.postMessage({ type: 'PLAN_COURSES_UPDATE', courseIds }, '*');
   }, [plan.semesters]);
 
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
+    useEffect(() => {
+    const handleMessage = async (event: MessageEvent) => {
       if (event.data.type === 'DRAG_END') {
+        console.log("Received drag end event:", event.data.result);
         const { source, destination } = event.data.result;
         if (!destination) return;
 
         const updated = [...plan.semesters];
 
-        const destSem = updated[Number(destination.droppableId)];
-        if (!destSem.courses) destSem.courses = [];
-
+        const destSem = updated.find(sem => sem.index === destination.droppableId);
+        if (!destSem) return;
+        const courses: Course[] = destSem.courses;
         if (source.droppableId === "search") {
+          // console.log("Adding course from search:", event.data.result.draggableId);
+          // const courseId = event.data.result.draggableId as number;
           const courseData = JSON.parse(event.data.result.draggableId) as CourseDetails;
-          destSem.courses.splice(destination.index, 0, {
+          // console.log("Fetched course data:", courseData);
+          const details = courseDetails;
+          details[courseData.id] = courseData;
+          setCourseDetails(details);
+
+          courses.splice(destination.index, 0, {
             ...courseData,
             lock: courseData.lock || "unlocked"
           });
+
         } else {
-          const sourceSem = updated[Number(source.droppableId)];
+          const sourceSem = updated.find(sem => sem.index === source.droppableId);
+          if (!sourceSem) return;
           const [moved] = sourceSem.courses.splice(source.index, 1);
-          destSem.courses.splice(destination.index, 0, moved);
+          courses.splice(destination.index, 0, moved);
         }
 
         setPlan({ ...plan, semesters: updated });
@@ -162,16 +146,40 @@ export default function PlanDisplay({
 
   return (
     <Box bg={theme.planDisplayStyles.container.bg /* "white" */} h="100%" p={theme.planDisplayStyles.container.padding /* 8 */} position="relative">
-      <Box textAlign="right">
-        <Heading size={theme.planDisplayStyles.heading.size as "2xl" /* "2xl" */} mb={theme.planDisplayStyles.heading.margin /* 4 */}>Your Graduation Plan</Heading>
-        <Text mb={theme.planDisplayStyles.majorText.margin /* 6 */} color={theme.planDisplayStyles.majorText.color /* "gray.500" */}>Major: {plan.major.join(", ")}</Text>
+      
+      <Box marginY="10" textAlign="right" display="flex" justifyContent="space-between" alignItems="center">
+        <Box>
+          <Menu.Root>
+            <Menu.Trigger asChild>
+              <IconButton aria-label="Share Plan" variant="solid">
+                <FiShare/>
+              </IconButton>
+            </Menu.Trigger>
+            <Portal>
+              <Menu.Positioner position="">
+                <Menu.Content>
+                  <Menu.Item value="share-link">
+                    Share Link <Menu.ItemCommand>⌘S</Menu.ItemCommand>
+                  </Menu.Item>
+                  <Menu.Item value="copy-plan">
+                    Copy Plan <Menu.ItemCommand>⌘C</Menu.ItemCommand>
+                  </Menu.Item>
+                </Menu.Content>
+              </Menu.Positioner>
+            </Portal>
+          </Menu.Root>
+        </Box>
+        <Box>
+          <Heading size={theme.planDisplayStyles.heading.size as "2xl" /* "2xl" */} mb={theme.planDisplayStyles.heading.margin /* 4 */}>Your Graduation Plan</Heading>
+          <Text mb={theme.planDisplayStyles.majorText.margin /* 6 */} color={theme.planDisplayStyles.majorText.color /* "gray.500" */}>Major: {plan.major.join(", ")}</Text>
+        </Box>
       </Box>
 
       <Flex direction="column" gap={theme.planDisplayStyles.container.gap /* 8 */}>
         {(() => {
           const sortedSemesters = [...plan.semesters].sort((a, b) => a.index.localeCompare(b.index));
-          const rows: SemesterDetails[][] = [];
-          let currentRow: SemesterDetails[] = [];
+          const rows: Semester[][] = [];
+          let currentRow: Semester[] = [];
 
           sortedSemesters.forEach(sem => {
             currentRow.push(sem);
@@ -192,7 +200,7 @@ export default function PlanDisplay({
                              sem.index.endsWith('3') ? 'Spring' : 
                              sem.index.endsWith('5') ? 'Summer' : 'Unknown';
                 return (
-                  <Droppable droppableId={String(plan.semesters.indexOf(sem))} key={sem.index}>
+                  <Droppable droppableId={String(sem.index)} key={sem.index}>
                     {(provided) => (
                       <Box
                         ref={provided.innerRef}
@@ -231,10 +239,11 @@ export default function PlanDisplay({
                             ))}
                           </Flex>
                           <Flex direction="column" gap={COURSE_VERTICAL_GAP} w="full" alignItems="center">
-                            {sem?.courses?.map((course: CourseDetails, j: number) => {
+                            {sem?.courses?.map((course: Course, j: number) => {
                               const key = course.id;
-                              const fullCourse = courseDetails[key] || course;
-                              return (
+                              let details = courseDetails[key];
+                              const fullCourse = details;
+                              return details ? (
                                 <CourseCard
                                   key={`${sem.index}-${j}`}
                                   course={fullCourse}
@@ -246,6 +255,8 @@ export default function PlanDisplay({
                                   fontSize={'15px'}
                                   onPreviewCourse={previewCourse}
                                 />
+                              ) : (
+                                <Skeleton key={`${sem.index}-${j}`} height="40px" width="full" borderRadius="md" />
                               );
                             })}
                             {provided.placeholder}

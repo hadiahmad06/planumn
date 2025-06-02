@@ -26,10 +26,13 @@ const createEmptyPlan = (): PlanDetails => {
     });
   }
   
+  console.log("Created empty plan with semesters:", semesters);
   return {
+    id: "new-plan",
+    user_id: null,
     createdAt: new Date(),
     major: ["Computer Science B.S."],
-    semesters
+    semesters: semesters
   };
 };
 

@@ -48,7 +48,6 @@ export default function SearchBar({
         onPreviewCourse?.(null);
         return;
       }
-
       const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&exclude=${encodeURIComponent(JSON.stringify(currentPlanCourses))}`);
       const data = await res.json();
       setResults(data);
@@ -156,18 +155,22 @@ export default function SearchBar({
         >
           <table style={{ width: '100%' }}>
             <tbody>
-              {sortedKeys.map((key) => (
+              
+              {(() => { let globalIndex = 0;
+              return sortedKeys.map((key) => (
                 <tr key={key} style={{ borderBottom: '1px solid var(--border)' }}>
                   <td style={{ padding: '0.5rem', backgroundColor: 'var(--card)', fontWeight: 'semibold', color: 'var(--secondary)', width: '96px' }}>
                     {key}
                   </td>
                   <td style={{ padding: '0.5rem' }}>
                     <Flex flexWrap="wrap" gap={2}>
-                      {groupedResults[key].map((course, index) => (
+                      {groupedResults[key].map((course) => {
+                        const currentIndex = globalIndex++;
+                        return (
                         <Draggable
-                          key={`search-${course.dept_abbr}-${course.course_num}`}
+                          key={`search-${course.id}`}
                           draggableId={JSON.stringify(course)}
-                          index={index}
+                          index={currentIndex}
                         >
                           {(provided) => (
                             <Box
@@ -187,11 +190,11 @@ export default function SearchBar({
                             </Box>
                           )}
                         </Draggable>
-                      ))}
+                      )})}
                     </Flex>
                   </td>
                 </tr>
-              ))}
+              ))})()}
             </tbody>
           </table>
         </Box>

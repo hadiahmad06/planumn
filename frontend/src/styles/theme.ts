@@ -1,14 +1,25 @@
+// import { ThemeConfig, extendBaseTheme } from "@chakra-ui/react";
+
+const colors = {
+  primary: "#007BFF", // Primary color for buttons and highlights
+  primaryHover: "#0056b3", // Hover color for primary elements
+  secondary: "#6c757d", // Secondary color for less emphasized elements
+  secondaryHover: "#5a6268", // Hover color for secondary elements
+  background: "rgba(255, 255, 255, 0.8)", // Translucent background for the main layout
+  glassBackground: "rgba(255, 255, 255, 0.5)", // Translucent background for glass-like components
+};
+
 // Define reusable styles for components
 export const cardStyles = {
   base: {
-    bg: "rgba(255, 255, 255, 0.8)", // Translucent background for cards
+    bg: "rgba(0, 0, 0, 0.8)", // Translucent background for cards
     color: "black",
     p: 4,
     borderRadius: "md",
     boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
   },
   glass: {
-    bg: "rgba(255, 255, 255, 0.5)", // Translucent background for glass cards
+    bg: "rgba(0, 0, 0, 0.5)", // Translucent background for glass cards
     color: "black",
     p: 4,
     borderRadius: "md",
@@ -169,16 +180,14 @@ export default {
 //   container: {
 //     padding: 12,
 //     gap: 4,
-//     bg: "white",
-//     border: "1px",
-//     borderColor: "gray.200",
+//     bg: "transparent", // Transparent background for layout
+//     border: "1px solid rgba(255, 255, 255, 0.5)",
+//     borderColor: "rgba(200, 200, 200, 0.5)",
 //     borderRadius: "lg",
-//     width: 64, // Added missing width property
-//     top: 8, // Added missing top property
 //   },
 //   heading: {
 //     size: "lg",
-//     margin: 4, // Added missing margin property
+//     margin: 4,
 //   },
 //   searchMargin: 4,
 // };
@@ -186,9 +195,9 @@ export default {
 // export const planDisplayStyles = {
 //   container: {
 //     padding: 8,
-//     bg: "white",
+//     bg: "transparent", // Transparent background for plan display
 //     position: "relative",
-//     gap: 8, // Added missing gap property
+//     gap: 8,
 //   },
 //   heading: {
 //     size: "2xl",
@@ -196,12 +205,12 @@ export default {
 //   },
 //   majorText: {
 //     margin: 6,
-//     color: "gray.500",
+//     color: "rgba(50, 50, 50, 0.8)",
 //   },
 //   semesterBox: {
-//     bg: "gray.50",
-//     border: "1px",
-//     borderColor: "gray.200",
+//     bg: "rgba(240, 240, 240, 0.5)", // Translucent background for semester boxes
+//     border: "1px solid rgba(200, 200, 200, 0.5)",
+//     borderColor: "rgba(180, 180, 180, 0.5)",
 //     padding: 3,
 //     width: "160px",
 //     minHeight: "160px",
@@ -211,17 +220,17 @@ export default {
 // export const coursePreviewPanelStyles = {
 //   container: {
 //     width: "100%",
-//     bg: "white",
+//     bg: "rgba(255, 255, 255, 0.5)", // Translucent background for course preview panel
 //     padding: 4,
 //     borderRadius: "lg",
-//     boxShadow: "0 4px 6px rgba(212, 175, 55, 0.2)",
-//     border: "1px",
-//     borderColor: "gold.200",
+//     boxShadow: "0 4px 6px rgba(0, 0, 0, 0.2)",
+//     border: "1px solid rgba(255, 255, 255, 0.5)",
+//     borderColor: "rgba(200, 200, 200, 0.5)",
 //   },
 //   text: {
 //     fontSize: "xl",
 //     fontWeight: "bold",
-//     color: "maroon.500",
+//     color: "rgba(100, 0, 0, 0.8)",
 //   },
 // };
 
@@ -229,26 +238,26 @@ export default {
 //   container: {
 //     position: "relative",
 //     width: "100%",
-//     border: "1px",
-//     borderColor: "gold.200",
+//     border: "1px solid rgba(255, 255, 255, 0.5)",
+//     borderColor: "rgba(200, 200, 200, 0.5)",
 //     borderRadius: "lg",
-//     boxShadow: "0 2px 4px rgba(212, 175, 55, 0.2)",
-//     bg: "white",
+//     boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+//     bg: "transparent", // Transparent background for search bar
 //     display: "flex",
 //     flexDirection: "column",
 //   },
 //   input: {
 //     paddingLeft: 12,
 //     paddingY: 3,
-//     border: "1px",
-//     borderColor: "gold.200",
+//     border: "1px solid rgba(255, 255, 255, 0.5)",
+//     borderColor: "rgba(200, 200, 200, 0.5)",
 //     rounded: "md",
 //     fontSize: "md",
 //     _focus: {
 //       outline: "none",
 //       ring: "2px",
-//       ringColor: "gold.200",
-//       borderColor: "gold.400",
+//       ringColor: "rgba(255, 255, 255, 0.5)",
+//       borderColor: "rgba(200, 200, 200, 0.5)",
 //     },
 //   },
 // };

@@ -31,12 +31,16 @@ export interface SemesterDetails {
 }
 
 export interface Plan {
+  id: string;
+  user_id: string | null;
   createdAt: Date;
   major: string[];
   semesters: Semester[];
 } 
 
 export interface PlanDetails {
+  id: string;
+  user_id: string | null;
   createdAt: Date;
   major: string[];
   semesters: SemesterDetails[];

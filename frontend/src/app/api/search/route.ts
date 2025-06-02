@@ -22,6 +22,8 @@ export async function GET(req: Request) {
 
   const numberPattern = partialNumber ? `%${partialNumber}%` : `%${q}%`;
 
+  const excludeClause = excludeCourses.length > 0 ? `AND id NOT IN (${excludeCourses.map(() => "?").join(", ")})` : "";
+
   const results = await db.all(
     `SELECT DISTINCT id, campus, dept_abbr, course_num, class_desc, total_students, total_grades, onestop, onestop_desc, cred_min, cred_max, srt_vals,
       CASE 
@@ -44,7 +46,7 @@ export async function GET(req: Request) {
        OR LOWER(course_num) LIKE ?
        OR LOWER(class_desc) LIKE ?
      )
-     AND id NOT IN (${excludeCourses.map(() => "?").join(", ") || "NULL"})
+     ${excludeClause}
      ORDER BY priority, dept_abbr, course_num
      LIMIT 100`,
     [
@@ -67,6 +69,8 @@ export async function GET(req: Request) {
     ]
   );
 
+  console.log("Search query:", q);
+  console.log("Excluding courses:", excludeCourses);
   // console.log("Excluding courses:", excludeCourses);
   // console.log("First 10 results:", results);
 

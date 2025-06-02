@@ -34,6 +34,40 @@ export async function getCourseDetails(id:string) {
   return response.json();
 }
 
+export async function fetchCourseDetails (
+  courseDetails: Record<number, CourseDetails>, 
+  setCourseDetails: (courseDetails: Record<number, CourseDetails>) => void,
+  plan: PlanDetails) {
+      const details: Record<number, CourseDetails> = { ...courseDetails };
+      for (const semester of plan.semesters) {
+        for (const course of semester.courses) {
+          const key = course.id;
+          if (!details[key]) {
+            try {
+              const courseInfo = await getCourseDetails(key.toString());
+              if (courseInfo) {
+                details[key] = {
+                  ...course,
+                  lock: course.lock || "locked"
+                };
+              }
+            } catch (error) {
+              console.error(`Error fetching details for ${course.id}:`, error);
+              // Fall back to basic course info if fetch fails
+              details[key] = {
+                ...course,
+                class_desc: `unknown`,
+                cred_min: 1,
+                cred_max: 1,
+                lock: course.lock || "unlocked"
+              };
+            }
+          }
+        }
+      }
+      setCourseDetails(details);
+    };
+
 export function updateLock(
   planState: PlanDetails,
   setPlanState: (plan: PlanDetails) => void

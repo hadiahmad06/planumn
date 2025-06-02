@@ -66,7 +66,7 @@ export default function GlobalSearchLayout({ children }: GlobalSearchLayoutProps
     if (!result.destination) return;
 
     // Forward the drag end event to the plan page if we're on a plan page
-    if (pathname.startsWith('/plan/')) {
+    if (pathname.startsWith('/plan')) {
       window.postMessage({ type: 'DRAG_END', result }, '*');
     }
   };

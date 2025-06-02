@@ -7,6 +7,7 @@ import GlobalSearchLayout from "@/components/organisms/GlobalSearchLayout";
 import { usePathname } from "next/navigation";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { Analytics } from "@vercel/analytics/next";
+import AuthButton from "@/components/molecules/AuthButton";
 
 export default function ClientLayout({
   children,
@@ -34,12 +35,19 @@ export default function ClientLayout({
           zIndex: -1,
         }}
       >
-        {(pathname.startsWith("/plan")) && (
-          <GlobalSearchLayout>
-            {children}
-          </GlobalSearchLayout>
-        )}
-        {pathname === "/" || pathname.startsWith("/info") ? children : null}
+        <Flex justify="space-between" align="center" p={4}>
+          <Box flex="1">
+            {(pathname.startsWith("/plan")) && (
+              <GlobalSearchLayout>
+                {children}
+              </GlobalSearchLayout>
+            )}
+            {pathname === "/" || pathname.startsWith("/info") ? children : null}
+          </Box>
+          <Box position="absolute" top="4" right="4">
+            <AuthButton />
+          </Box>
+        </Flex>
       </Box>
       <SpeedInsights/>
       <Analytics/>
