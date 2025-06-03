@@ -41,15 +41,6 @@ export default function CoursePreviewPanel({ course }: CoursePreviewProps) {
         position: "relative",
       }}
     >
-      {/* Charts in top right */}
-      <div style={{ position: 'absolute', top: '16px', right: 0, display: 'flex', gap: '8px', padding: '16px', zIndex: 1 }}>
-        <BarChart distribution={{ grades: typeof course.total_grades === 'string'
-          ? JSON.parse(course.total_grades)
-          : course.total_grades, isSummary: false }} isMobile={false} />
-        <AreaChart distribution={{ grades: typeof course.total_grades === 'string'
-          ? JSON.parse(course.total_grades)
-          : course.total_grades, isSummary: false }} isMobile={false} averageGPA={course.total_grades} />
-      </div>
       <Stack style={{ alignItems: "start", gap: "16px" }}>
         <Text
           style={{
@@ -79,6 +70,14 @@ export default function CoursePreviewPanel({ course }: CoursePreviewProps) {
           <strong>Total # of Students:</strong> {course.total_students}
         </Text>
       </Stack>
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <BarChart distribution={{ grades: typeof course.total_grades === 'string'
+            ? JSON.parse(course.total_grades)
+            : course.total_grades, isSummary: false }} isMobile={false} />
+          <AreaChart distribution={{ grades: typeof course.total_grades === 'string'
+            ? JSON.parse(course.total_grades)
+            : course.total_grades, isSummary: false }} isMobile={false} averageGPA={course.total_grades} />
+        </div>
     </Box>
   );
 }
