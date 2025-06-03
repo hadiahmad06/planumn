@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import CourseCard from "./CourseCard";
-import { Box, Input, Text, Flex } from "@mantine/core";
+import { Box, Input, Text, Flex, Paper } from "@mantine/core";
 import { Course, CourseDetails } from "@/types/plan";
 
 export type ColorKey = 'department' | 'level' | 'none';
@@ -87,12 +87,14 @@ export default function SearchBar({
         width: '100%',
         backgroundColor: 'white',
         borderRadius: '8px',
-        border: isFocused ? '1px solid #811331' : '1px solid #ccc',
+        border: '1px solid transparent',
         padding: '0.3rem 0.75rem',
         boxShadow: isFocused
           ? '0 0 0 4px rgba(209, 99, 145, 0.25), 0 6px 18px rgba(0, 0, 0, 0.1)'
           : '0 2px 8px rgba(0, 0, 0, 0.06)',
+        outline: isFocused ? '1px solid #811331' : '1px solid #ccc',
         transition: 'all 0.2s ease',
+        overflow: 'visible',
       }}
     >
       <Box style={{ position: 'relative' }}>
@@ -126,81 +128,63 @@ export default function SearchBar({
         />
       </Box>
       {isOpen && isFocused && results.length > 0 && (
-        <Box
-          mt={8}
+        <Paper
+          withBorder
+          radius="md"
+          shadow="xs"
           style={{
-            border: '1px solid #eee',
-            borderRadius: '6px',
-            backgroundColor: '#fff',
-            maxHeight: '60vh',
-            overflowY: 'auto',
-            boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+            width: "100%",
+            marginTop: "0.25rem",
+            marginBottom: "0.5rem",
+            maxHeight: "60vh",
+            overflowY: "auto",
+            backgroundColor: "white",
             opacity: isDragging ? 0.5 : 1,
-            transform: isOpen && isFocused ? 'translateY(0)' : 'translateY(10px)',
-            transition: 'opacity 0.2s ease, transform 0.2s ease',
+            pointerEvents: isDragging ? "none" : "auto",
+            transition: "opacity 0.2s"
           }}
         >
           <table style={{ width: '100%' }}>
             <tbody>
-              {(() => {
-                let globalIndex = 0;
-                return sortedKeys.map((key, index) => (
-                  <tr
-                    key={key}
-                    style={{
-                      borderBottom: '1px solid #f0f0f0',
-                      backgroundColor: index % 2 === 0 ? '#ffffff' : '#f8f8f8',
-                    }}
-                  >
-                    <td
-                      style={{
-                        padding: '0.5rem',
-                        backgroundColor: '#f9f9f9',
-                        fontWeight: 600,
-                        color: '#666',
-                        width: '96px',
-                      }}
-                    >
-                      {key}
-                    </td>
-                    <td style={{ padding: '0.5rem' }}>
-                      <Flex wrap="wrap" gap={8}>
-                        {groupedResults[key].map((course) => {
-                          const currentIndex = globalIndex++;
-                          return (
-                            <Draggable
-                              key={`search-${course.id}`}
-                              draggableId={JSON.stringify(course)}
-                              index={currentIndex}
+              {sortedKeys.map((key) => (
+                <tr key={key} style={{ borderBottom: '1px solid var(--border)' }}>
+                  <td style={{ padding: '0.5rem', backgroundColor: 'var(--card)', fontWeight: 'semibold', color: 'var(--secondary)', width: '96px' }}>
+                    {key}
+                  </td>
+                  <td style={{ padding: '0.5rem' }}>
+                    <Flex wrap="wrap" gap={2}>
+                      {groupedResults[key].map((course, index) => (
+                        <Draggable
+                          key={`search-${course.dept_abbr}-${course.course_num}`}
+                          draggableId={JSON.stringify(course)}
+                          index={index}
+                        >
+                          {(provided) => (
+                            <Box
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              {...provided.dragHandleProps}
+                              onMouseEnter={() => onPreviewCourse?.(course)}
+                              onMouseLeave={() => onPreviewCourse?.(null)}
                             >
-                              {(provided) => (
-                                <Box
-                                  ref={provided.innerRef}
-                                  {...provided.draggableProps}
-                                  {...provided.dragHandleProps}
-                                  onMouseEnter={() => onPreviewCourse?.(course)}
-                                  onMouseLeave={() => onPreviewCourse?.(null)}
-                                >
-                                  <CourseCard
-                                    course={course}
-                                    colorKey={colorKey}
-                                    isDraggable={false}
-                                    fixedWidth={true}
-                                    fixedHeight={true}
-                                  />
-                                </Box>
-                              )}
-                            </Draggable>
-                          );
-                        })}
-                      </Flex>
-                    </td>
-                  </tr>
-                ));
-              })()}
+                              <CourseCard
+                                course={course}
+                                colorKey={colorKey} // Pass colorKey directly to CourseCard
+                                isDraggable={false}
+                                fixedWidth={true}
+                                fixedHeight={true}
+                              />
+                            </Box>
+                          )}
+                        </Draggable>
+                      ))}
+                    </Flex>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
-        </Box>
+        </Paper>
       )}
     </Box>
   );
