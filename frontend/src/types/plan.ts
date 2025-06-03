@@ -19,6 +19,17 @@ export interface CourseDetails extends Course {
   srt_vals: string;
 };
 
+// Distribution is the distribution of grades for a course
+// isSummary is used to make the bar chart larger when showing summary information,
+// unless it's being rendered on a mobile device.
+  export interface Distribution {
+    grades: {
+      [grade: string]: number; // Accepts any grade key like 'A', 'B+', 'P', 'S', etc.
+    };
+    isSummary: boolean;
+  }
+
+
 
 export interface Semester {
   index: string;

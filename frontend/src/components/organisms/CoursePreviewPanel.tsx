@@ -1,6 +1,8 @@
 import { Course, CourseDetails } from '@/types/plan';
 import { Box, Text, Stack, Loader } from '@mantine/core';
 import { useState, useEffect } from 'react';
+import { BarChart } from '../molecules/barchart';
+import { AreaChart } from '../molecules/areachart';
 
 type CoursePreviewProps = {
   course: CourseDetails | null;
@@ -21,6 +23,8 @@ export default function CoursePreviewPanel({ course }: CoursePreviewProps) {
 
     fetchPreviewData();
   }, [course]);
+  console.log(typeof course?.total_grades); // is it "string" or "object"?
+
 
   if (!course) return null;
 
@@ -64,6 +68,14 @@ export default function CoursePreviewPanel({ course }: CoursePreviewProps) {
         <Text>
           <strong>Total # of Students:</strong> {course.total_students}
         </Text>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <BarChart distribution={{ grades: typeof course.total_grades === 'string'
+            ? JSON.parse(course.total_grades)
+            : course.total_grades, isSummary: false }} isMobile={false} />
+          <AreaChart distribution={{ grades: typeof course.total_grades === 'string'
+            ? JSON.parse(course.total_grades)
+            : course.total_grades, isSummary: false }} isMobile={false} averageGPA={course.total_grades} />
+        </div>
       </Stack>
     </Box>
   );
