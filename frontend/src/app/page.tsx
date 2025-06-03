@@ -2,16 +2,19 @@
 
 import AnimatedTypingText from "@/components/atoms/AnimatedTypingTest";
 import "@/styles/global.css"; // make sure this path is correct
-import { Container, Flex, Button, Box, Stack, Text, Title, Group } from "@mantine/core";
+import { Container, Flex, Button, Box, Stack, Text, Title, Group, Center, Space } from "@mantine/core";
 import { IconEdit, IconEye, IconPlayerPlay, IconUpload, IconPlayerPlayFilled } from "@tabler/icons-react";
 
 export default function Home() {
   return (
     <Flex
       w="100vw"
-      h="100vh"
+      mih="100vh"
       justify="center"
       align="center"
+      style={{
+        overflow: "hidden",
+      }}
     >
       <Container
         fluid
@@ -25,6 +28,7 @@ export default function Home() {
           justify="center"
           align="center"
         >
+          <Space h="8vh" />
           <Box>
             <Title
               order={1}
@@ -154,49 +158,50 @@ export default function Home() {
               <Text color="#334155">Built by students</Text>
             </Group>
           </Group>
+          <Space h="8vh" />
+          <Box
+            style={{
+              // position: "absolute",
+              // bottom: 0,
+              // left: 0,
+              width: "100%",
+              height: "5vh",
+              // padding: "1rem 2rem",
+              // backgroundColor: "rgba(255, 255, 255, 0.3)",
+              // borderTop: "1px solid #e2e8f0",
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              gap: "1.5rem",
+              // zIndex: 2,
+              // fontSize: "4rem",
+              fontWeight: 500,
+              color: "#811331",
+            }}
+          >
+            <Button
+              component="a"
+              href="/info/privacy"
+              variant="subtle"
+              style={{
+                color: "#811331",
+              }}
+            >
+              Privacy
+            </Button>
+            <Button
+              component="a"
+              href="/info/contact"
+              variant="subtle"
+              style={{
+                color: "#811331",
+              }}
+            >
+              Contact
+            </Button>
+          </Box>
         </Stack>
       </Container>
-
-      <Box
-        style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          width: "100%",
-          padding: "1rem 2rem",
-          backgroundColor: "rgba(255, 255, 255, 0.95)",
-          borderTop: "1px solid #e2e8f0",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: "1.5rem",
-          zIndex: 2,
-          fontSize: "0.875rem",
-          fontWeight: 500,
-          color: "#811331",
-        }}
-      >
-        <Button
-          component="a"
-          href="/info/privacy"
-          variant="subtle"
-          style={{
-            color: "#811331",
-          }}
-        >
-          Privacy
-        </Button>
-        <Button
-          component="a"
-          href="/info/contact"
-          variant="subtle"
-          style={{
-            color: "#811331",
-          }}
-        >
-          Contact
-        </Button>
-      </Box>
     </Flex>
   );
 }
