@@ -31,7 +31,7 @@ export default function Home() {
               style={{
                 fontSize: "4rem",
                 fontWeight: "bold",
-                color: "#0f172a",
+                // color: "#0f172a",
                 marginBottom: "0.5rem",
               }}
             >
@@ -197,14 +197,6 @@ export default function Home() {
           Contact
         </Button>
       </Box>
-
-      <style jsx global>{`
-        @keyframes blink {
-          50% {
-            border-color: transparent;
-          }
-        }
-      `}</style>
     </Flex>
   );
 }

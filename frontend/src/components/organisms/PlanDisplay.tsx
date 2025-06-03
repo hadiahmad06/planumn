@@ -1,8 +1,8 @@
 "use client";
 
 import { Droppable } from "@hello-pangea/dnd";
-import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal, Stack } from '@mantine/core';
-import { FiShare } from "react-icons/fi";
+import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal, Stack, Space } from '@mantine/core';
+import { FiSave, FiShare } from "react-icons/fi";
 import CourseCard from "../molecules/CourseCard";
 import { ColorKey, Course, CourseDetails, PlanDetails, Semester } from "@/types/plan";
 import { useEffect, useState } from "react";
@@ -138,132 +138,165 @@ export default function PlanDisplay({
 
   return (
     <Box style={{ background: theme.planDisplayStyles.container.bg, height: '100%', padding: theme.planDisplayStyles.container.padding, position: 'relative' }}>
-      <Flex style={{ marginY: '10', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>
-          <Menu>
-            <Menu.Target>
-              <Button aria-label="Share Plan" variant="filled">
-                <FiShare style={{ marginRight: '0.5rem' }} /> Share
-              </Button>
-            </Menu.Target>
-            <Portal>
-              <Menu.Dropdown>
-                <Menu.Item>Share Link</Menu.Item>
-                <Menu.Item>Copy Plan</Menu.Item>
-              </Menu.Dropdown>
-            </Portal>
-          </Menu>
-        </Box>
-        <Stack
-        align="flex-end"
-        >
-          <Title order={2} style={{ marginBottom: theme.planDisplayStyles.heading.margin }}>Your Graduation Plan</Title>
-          <Text style={{ marginBottom: theme.planDisplayStyles.majorText.margin, color: theme.planDisplayStyles.majorText.color }}>Major: {plan.major.join(', ')}</Text>
+      <Flex justify="flex-end">
+        <Button.Group>
+          <Button 
+            variant="default" 
+            leftSection={<FiShare />}
+          >
+            Copy Link
+          </Button>
+          <Button 
+            variant="gradient" 
+            leftSection={<FiSave />}
+            gradient={{ from: "#C15D8E", to: "#E78AB4", deg: 0 }}
+          >
+            Save
+          </Button>
+        </Button.Group>
+      </Flex>
+      <Space h="lg"/>
+      <Flex justify="flex-end" align="flex-start" mb="lg" gap="sm">
+        
+
+        <Stack gap={1} style={{ textAlign: 'right' }}>
+          <Title
+            order={2}
+            style={{
+              fontSize: '24px',
+              fontWeight: 700,
+              color: '#2D2A32',
+            }}
+          >
+            Your Graduation Plan
+          </Title>
+          <Text
+            style={{
+              fontSize: '15px',
+              color: '#6C6F85',
+            }}
+          >
+            Major: {plan.major.join(', ') || "Unknown"}
+          </Text>
         </Stack>
       </Flex>
 
       <Flex direction="column" gap={theme.planDisplayStyles.container.gap}>
         {(() => {
-          const sortedSemesters = [...plan.semesters].sort((a, b) => a.index.localeCompare(b.index));
-          const rows: Semester[][] = [];
-          let currentRow: Semester[] = [];
+          const seasonLabels = { '9': 'Fall', '3': 'Spring', '5': 'Summer' };
+          const seasonOrder = ['Fall', 'Spring', 'Summer'];
+          const groupedByYear: Record<string, Record<string, Semester>> = {};
 
-          sortedSemesters.forEach((sem, i) => {
-            const previousSem = sortedSemesters[i - 1];
-
-            // pushes fall to the next row by ++1 the year if its a fall
-            const getSchoolYear = (index: string) => {
-              return Number(index.slice(1, 3)) + (index.endsWith('9') ? 1 : 0);
-            };
-
-            if ((previousSem && getSchoolYear(sem.index) !== getSchoolYear(previousSem.index))) {
-              rows.push(currentRow);
-              currentRow = [];
+          plan.semesters.forEach((sem) => {
+            const seasonCode = sem.index[3];
+            const season = seasonLabels[seasonCode as keyof typeof seasonLabels];
+            let year = sem.index.slice(0, 3); // e.g., '122' for 2022
+            if (season === 'Fall') {
+              const centuryDigit = parseInt(year[0], 10);
+              const decade = parseInt(year.slice(1), 10);
+              const fullYear = (centuryDigit + 1) * 100 + decade + 1; // shift Fall to next year
+              const newCentury = Math.floor(fullYear / 100) - 1;
+              const newDecade = fullYear % 100;
+              year = `${newCentury}${String(newDecade).padStart(2, '0')}`;
             }
-            currentRow.push(sem);
+
+            if (season && year) {
+              if (!groupedByYear[year]) groupedByYear[year] = {};
+              groupedByYear[year][season] = sem;
+            }
           });
 
-          if (currentRow.length > 0) {
-            rows.push(currentRow);
-          }
+          return (
+            <Flex direction="column" gap={theme.planDisplayStyles.container.gap}>
+              {Object.entries(groupedByYear).sort(([a], [b]) => a.localeCompare(b)).map(([year, semGroup]) => {
+                // Determine max credits for row
+                const maxCredits = Math.max(
+                  ...seasonOrder.map((season) => {
+                    const sem = semGroup[season];
+                    return sem ? Math.max(
+                      ALWAYS_VISIBLE_CREDITS,
+                      sem.courses.reduce((sum, c) => {
+                        const key = c.id;
+                        return sum + (courseDetails[key]?.cred_min || 0);
+                      }, 0)
+                    ) : 0;
+                  })
+                );
 
-          return rows.map((row, rowIndex) => (
-            <Flex key={rowIndex} gap={theme.planDisplayStyles.container.gap} justify="flex-end">
-              {row.map((sem) => {
-                const season = sem.index.endsWith('9') ? 'Fall' : 
-                             sem.index.endsWith('3') ? 'Spring' : 
-                             sem.index.endsWith('5') ? 'Summer' : 'Unknown';
                 return (
-                  <Droppable droppableId={String(sem.index)} key={sem.index}>
-                    {(provided) => (
-                      <Box
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
-                        style={{
-                          background: SEMESTER_BOX_BG,
-                          border: '1px solid',
-                          borderColor: SEMESTER_BOX_BORDER,
-                          borderRadius: 'lg',
-                          padding: SEMESTER_BOX_PADDING,
-                          width: SEMESTER_BOX_WIDTH,
-                          minHeight: SEMESTER_BOX_MIN_HEIGHT,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Text style={{ fontSize: SEMESTER_TITLE_SIZE, fontWeight: SEMESTER_TITLE_WEIGHT, marginBottom: SEMESTER_TITLE_MARGIN }}>
-                          {season} 20{sem.index.slice(1, 3)}
-                        </Text>
-                        <Flex style={{ width: '100%', gap: CREDIT_LINE_GAP }}>
-                          <Flex direction="column" align="flex-end" style={{ paddingRight: CREDIT_NUMBER_PADDING }}>
-                            {Array.from({
-                              length: Math.max(
-                                ALWAYS_VISIBLE_CREDITS,
-                                sem?.courses?.reduce((sum, c) => {
-                                  const key = c.id;
-                                  return sum + (courseDetails[key]?.cred_min || 0);
-                                }, 0) || 0
-                              ),
-                            }).map((_, i) => (
-                              <Text
-                                key={i}
-                                style={{ fontSize: CREDIT_NUMBER_SIZE, color: SECONDARY_TEXT_COLOR, height: CREDIT_LINE_HEIGHT }}
-                              >
-                                {i + 1}
+                  <Flex key={year} gap={theme.planDisplayStyles.container.gap} justify="center">
+                    {seasonOrder.map((season) => {
+                      const sem = semGroup[season];
+                      if (!sem) {
+                        return <Box key={`${year}-${season}`} style={{ width: SEMESTER_BOX_WIDTH }} />;
+                      }
+
+                      return (
+                        <Droppable droppableId={String(sem.index)} key={sem.index}>
+                          {(provided) => (
+                            <Box
+                              ref={provided.innerRef}
+                              {...provided.droppableProps}
+                              style={{
+                                background: 'linear-gradient(135deg, rgba(249, 245, 255, 0.8), rgba(245, 245, 255, 0.6))',
+                                border: '1px solid rgba(128, 128, 128, 0.2)',
+                                borderRadius: '1rem',
+                                padding: 12,
+                                width: SEMESTER_BOX_WIDTH,
+                                minHeight: SEMESTER_BOX_MIN_HEIGHT,
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                              }}
+                            >
+                              <Text style={{ fontSize: SEMESTER_TITLE_SIZE, fontWeight: SEMESTER_TITLE_WEIGHT, marginBottom: SEMESTER_TITLE_MARGIN }}>
+                                {season} 20{sem.index.slice(1, 3)}
                               </Text>
-                            ))}
-                          </Flex>
-                          <Flex direction="column" gap={COURSE_VERTICAL_GAP} style={{ width: '100%', alignItems: 'center' }}>
-                            {sem?.courses?.map((course, j) => {
-                              const key = course.id;
-                              const details = courseDetails[key];
-                              return details ? (
-                                <CourseCard
-                                  key={`${sem.index}-${j}`}
-                                  course={details}
-                                  index={j}
-                                  semName={sem.index}
-                                  updateLock={() => updateLock(plan, setPlan)(sem.index, details)}
-                                  colorKey={colorKey}
-                                  fixedWidth
-                                  fontSize="15px"
-                                  onPreviewCourse={previewCourse}
-                                />
-                              ) : (
-                                <Skeleton key={`${sem.index}-${j}`} height="40px" width="100%" />
-                              );
-                            })}
-                            {provided.placeholder}
-                          </Flex>
-                        </Flex>
-                      </Box>
-                    )}
-                  </Droppable>
+                              <Flex style={{ width: '100%', gap: CREDIT_LINE_GAP }}>
+                                <Flex direction="column" align="flex-end" style={{ paddingRight: CREDIT_NUMBER_PADDING }}>
+                                  {Array.from({ length: maxCredits }).map((_, i) => (
+                                    <Text
+                                      key={i}
+                                      style={{ fontSize: '10px', color: 'rgba(0, 0, 0, 0.35)', height: CREDIT_LINE_HEIGHT }}
+                                    >
+                                      {i + 1}
+                                    </Text>
+                                  ))}
+                                </Flex>
+                                <Flex direction="column" gap={COURSE_VERTICAL_GAP} style={{ width: '100%', alignItems: 'center' }}>
+                                  {sem.courses.map((course, j) => {
+                                    const key = course.id;
+                                    const details = courseDetails[key];
+                                    return details ? (
+                                      <CourseCard
+                                        key={`${sem.index}-${j}`}
+                                        course={details}
+                                        index={j}
+                                        semName={sem.index}
+                                        updateLock={() => updateLock(plan, setPlan)(sem.index, details)}
+                                        colorKey={colorKey}
+                                        fixedWidth
+                                        fontSize="15px"
+                                        onPreviewCourse={previewCourse}
+                                      />
+                                    ) : (
+                                      <Skeleton key={`${sem.index}-${j}`} height="40px" width="100%" />
+                                    );
+                                  })}
+                                  {provided.placeholder}
+                                </Flex>
+                              </Flex>
+                            </Box>
+                          )}
+                        </Droppable>
+                      );
+                    })}
+                  </Flex>
                 );
               })}
             </Flex>
-          ));
+          );
         })()}
       </Flex>
     </Box>

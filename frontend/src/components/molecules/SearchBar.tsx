@@ -81,30 +81,23 @@ export default function SearchBar({
 
   return (
     <Box
+      ref={searchRef}
       style={{
         position: 'relative',
         width: '100%',
-        border: '1px solid',
-        // borderColor: 'gold',
-        // borderRadius: 'lg',
-        // boxShadow: '0 2px 4px rgba(212, 175, 55, 0.2)',
-        // background: 'white',
-        display: 'flex',
-        flexDirection: 'column',
+        backgroundColor: 'white',
+        borderRadius: '8px',
+        border: isFocused ? '1px solid #811331' : '1px solid #ccc',
+        padding: '0.3rem 0.75rem',
+        boxShadow: isFocused
+          ? '0 0 0 4px rgba(209, 99, 145, 0.25), 0 6px 18px rgba(0, 0, 0, 0.1)'
+          : '0 2px 8px rgba(0, 0, 0, 0.06)',
+        transition: 'all 0.2s ease',
       }}
     >
-      <Box>
-        <Text
-          left={4}
-          top="50%"
-          // transform="translateY(-50%)"
-          // fontSize="lg"
-          color="gold.400"
-          // zIndex={1}
-        >
-          🔍
-        </Text>
+      <Box style={{ position: 'relative' }}>
         <Input
+          unstyled
           type="text"
           placeholder="Search by course name, department, or code..."
           value={query}
@@ -114,87 +107,97 @@ export default function SearchBar({
           }}
           onFocus={() => {
             setIsOpen(true);
-            setIsFocused(true); // Set focus state to true
+            setIsFocused(true);
           }}
           onBlur={() => {
-            setIsFocused(false); // Set focus state to false
+            setIsFocused(false);
           }}
-          width="100%"
-          pl={12}
-          py={3}
-          // border="1px"
-          // borderColor="gold.200"
-          // rounded="md"
-          // fontSize="md"
-          // _focus={{
-          //   outline: "none",
-          //   ring: "2px",
-          //   ringColor: "gold.200",
-          //   borderColor: "gold.400"
-          // }}
+          styles={{
+            input: {
+              border: 'none',
+              outline: 'none',
+              padding: '0.3rem 0',
+              width: '100%',
+              fontSize: '0.95rem',
+              background: 'transparent',
+              color: '#333',
+            }
+          }}
         />
       </Box>
-      {isOpen && isFocused && results.length > 0 && ( // Added isFocused condition
+      {isOpen && isFocused && results.length > 0 && (
         <Box
-          // position="absolute"
-          // zIndex={50}
-          // width="full"
-          mt={1}
-          // border="1px"
-          // borderColor="gold.200"
-          // rounded="md"
-          // bg="white"
-          // maxH="60vh"
-          // overflowY="auto"
-          // boxShadow="0 4px 6px rgba(212, 175, 55, 0.2)"
-          // transition="opacity 0.2s"
-          opacity={isDragging ? 0.5 : 1}
-          // pointerEvents={isDragging ? "none" : "auto"}
-          top="100%"
-          left={0}
+          mt={8}
+          style={{
+            border: '1px solid #eee',
+            borderRadius: '6px',
+            backgroundColor: '#fff',
+            maxHeight: '60vh',
+            overflowY: 'auto',
+            boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+            opacity: isDragging ? 0.5 : 1,
+            transform: isOpen && isFocused ? 'translateY(0)' : 'translateY(10px)',
+            transition: 'opacity 0.2s ease, transform 0.2s ease',
+          }}
         >
           <table style={{ width: '100%' }}>
             <tbody>
-              
-              {(() => { let globalIndex = 0;
-              return sortedKeys.map((key) => (
-                <tr key={key} style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td style={{ padding: '0.5rem', backgroundColor: 'var(--card)', fontWeight: 'semibold', color: 'var(--secondary)', width: '96px' }}>
-                    {key}
-                  </td>
-                  <td style={{ padding: '0.5rem' }}>
-                    <Flex wrap="wrap" gap={2}>
-                      {groupedResults[key].map((course) => {
-                        const currentIndex = globalIndex++;
-                        return (
-                        <Draggable
-                          key={`search-${course.id}`}
-                          draggableId={JSON.stringify(course)}
-                          index={currentIndex}
-                        >
-                          {(provided) => (
-                            <Box
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                              onMouseEnter={() => onPreviewCourse?.(course)}
-                              onMouseLeave={() => onPreviewCourse?.(null)}
+              {(() => {
+                let globalIndex = 0;
+                return sortedKeys.map((key, index) => (
+                  <tr
+                    key={key}
+                    style={{
+                      borderBottom: '1px solid #f0f0f0',
+                      backgroundColor: index % 2 === 0 ? '#ffffff' : '#f8f8f8',
+                    }}
+                  >
+                    <td
+                      style={{
+                        padding: '0.5rem',
+                        backgroundColor: '#f9f9f9',
+                        fontWeight: 600,
+                        color: '#666',
+                        width: '96px',
+                      }}
+                    >
+                      {key}
+                    </td>
+                    <td style={{ padding: '0.5rem' }}>
+                      <Flex wrap="wrap" gap={8}>
+                        {groupedResults[key].map((course) => {
+                          const currentIndex = globalIndex++;
+                          return (
+                            <Draggable
+                              key={`search-${course.id}`}
+                              draggableId={JSON.stringify(course)}
+                              index={currentIndex}
                             >
-                              <CourseCard
-                                course={course}
-                                colorKey={colorKey} // Pass colorKey directly to CourseCard
-                                isDraggable={false}
-                                fixedWidth={true}
-                                fixedHeight={true}
-                              />
-                            </Box>
-                          )}
-                        </Draggable>
-                      )})}
-                    </Flex>
-                  </td>
-                </tr>
-              ))})()}
+                              {(provided) => (
+                                <Box
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                  onMouseEnter={() => onPreviewCourse?.(course)}
+                                  onMouseLeave={() => onPreviewCourse?.(null)}
+                                >
+                                  <CourseCard
+                                    course={course}
+                                    colorKey={colorKey}
+                                    isDraggable={false}
+                                    fixedWidth={true}
+                                    fixedHeight={true}
+                                  />
+                                </Box>
+                              )}
+                            </Draggable>
+                          );
+                        })}
+                      </Flex>
+                    </td>
+                  </tr>
+                ));
+              })()}
             </tbody>
           </table>
         </Box>

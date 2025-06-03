@@ -29,18 +29,18 @@ export default function CoursePreviewPanel({ course }: CoursePreviewProps) {
       style={{
         width: "100%",
         backgroundColor: "white",
-        padding: "16px",
-        borderRadius: "8px",
-        boxShadow: "0 4px 6px rgba(212, 175, 55, 0.2)",
-        border: "1px solid",
-        borderColor: "#FFD700",
+        padding: "20px",
+        borderRadius: "12px",
+        boxShadow: "0 6px 18px rgba(0, 0, 0, 0.08)",
+        border: "1px solid rgba(255, 215, 0, 0.4)",
+        transition: "all 0.2s ease",
       }}
     >
-      <Stack style={{ alignItems: "start", gap: "16px" }}>
+      <Stack gap="md" style={{ alignItems: "flex-start" }}>
         <Text
           style={{
-            fontSize: "1.25rem", /* equivalent to xl */
-            fontWeight: "bold",
+            fontSize: "1.375rem",
+            fontWeight: 700,
             color: "#800000",
           }}
         >
@@ -48,20 +48,22 @@ export default function CoursePreviewPanel({ course }: CoursePreviewProps) {
         </Text>
         <Text
           style={{
-            fontSize: "1.125rem", /* equivalent to lg */
-            fontWeight: "500",
+            fontSize: "1.125rem",
+            fontWeight: 500,
+            color: "#333",
           }}
         >
           {course.class_desc}
         </Text>
-        <Box style={{ width: "100%", height: "1px", backgroundColor: "#E0E0E0" }} />
-        <Text>
-          <strong>Credits:</strong> {course.cred_min === course.cred_max ? course.cred_min : `${course.cred_min} - ${course.cred_max}`}
+        <Box style={{ width: "100%", height: "1px", backgroundColor: "#E5E5E5" }} />
+        <Text style={{ fontSize: "0.95rem", color: "#555" }}>
+          <strong>Credits:</strong>{" "}
+          {course.cred_min === course.cred_max ? course.cred_min : `${course.cred_min} - ${course.cred_max}`}
         </Text>
-        <Text>
+        <Text style={{ fontSize: "0.95rem", color: "#555" }}>
           <strong>Description:</strong> {course.onestop_desc}
         </Text>
-        <Text>
+        <Text style={{ fontSize: "0.95rem", color: "#555" }}>
           <strong>Total # of Students:</strong> {course.total_students}
         </Text>
       </Stack>

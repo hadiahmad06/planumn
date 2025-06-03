@@ -49,7 +49,7 @@ export default function CourseCard({
       style={{
         position: 'relative',
         color: 'white',
-        borderRadius: 'md',
+        borderRadius: '6px',
         fontSize,
         display: 'flex',
         alignItems: 'center',

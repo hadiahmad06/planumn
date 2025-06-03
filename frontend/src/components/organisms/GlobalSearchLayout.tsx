@@ -29,6 +29,7 @@ const CONTAINER_BORDER = "gray.200";
 
 export default function GlobalSearchLayout({ children }: GlobalSearchLayoutProps) {
   const [colorKey, setColorKey] = useState<ColorKey>('department');
+  const [hiddenSemesters, setHiddenSemesters] = useState<string[]>([]);
   const [previewCourse, setPreviewCourse] = useState<CourseDetails | null>(null);
   const [currentPlanCourses, setCurrentPlanCourses] = useState<number[]>([]);
   const pathname = usePathname();
@@ -98,12 +99,6 @@ export default function GlobalSearchLayout({ children }: GlobalSearchLayoutProps
           <Stack
           justify="space-between"
           align="stretch"
-          // style={{
-          //   width: '50%',
-          //   borderRight: '1px solid gray',
-          //   backgroundColor: 'white',
-          //   position: 'relative',
-          // }}
           >
             <Droppable droppableId="search">
               {(provided) => (
@@ -121,7 +116,7 @@ export default function GlobalSearchLayout({ children }: GlobalSearchLayoutProps
                       marginBottom: "0.5rem",
                     }}
                     >
-                      <AnimatedTypingText/>
+                      <AnimatedTypingText blink={false}/>
                     </Title>
                     {/* <Title order={2} style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>PlanUMN</Title> */}
                     {/* <Box style={{ marginBottom: '1rem' }}> */}
@@ -132,26 +127,29 @@ export default function GlobalSearchLayout({ children }: GlobalSearchLayoutProps
                       />
                     {/* </Box> */}
                     {/* <Box style={{ marginTop: '1rem' }}> */}
-                      <SettingsPanel
-                        colorKey={colorKey}
-                        setColorKey={setColorKey}
-                        onAutofill={() => {
-                          if (pathname.startsWith('/plan/')) {
-                            window.postMessage({ type: 'AUTOFILL' }, '*');
-                          }
-                        }}
-                      />
+                      
                     {/* </Box> */}
                   {/* </Box> */}
                   {provided.placeholder}
                 </Box>
               )}
             </Droppable>
-            <Box 
-            // style={{ position: 'absolute', top: '70vh', left: '2rem', right: '2rem' }}
-            >
-              <CoursePreviewPanel course={previewCourse} />
-            </Box>
+            <SettingsPanel
+              colorKey={colorKey}
+              setColorKey={setColorKey}
+              hiddenSemesters={hiddenSemesters}
+              setHiddenSemesters={setHiddenSemesters}
+              onAutofill={() => {
+                if (pathname.startsWith('/plan')) {
+                  window.postMessage({ type: 'AUTOFILL' }, '*');
+                }
+              }}
+            />
+            {/* <Box
+            > */}
+              
+            <CoursePreviewPanel course={previewCourse} />
+            {/* </Box> */}
           </Stack>
         </Container>
 
