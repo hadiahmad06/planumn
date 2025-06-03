@@ -32,11 +32,19 @@ export interface SemesterDetails {
 
 export interface Plan {
   id: string;
-  user_id: string | null;
+  user_id: string;
   createdAt: Date;
   major: string[];
   semesters: Semester[];
 } 
+
+export interface PlanNullable {
+  id: string | null;
+  user_id: string | null;
+  createdAt: Date | null;
+  major: string[];
+  semesters: Semester[];
+}
 
 export interface PlanDetails {
   id: string;
@@ -45,4 +53,5 @@ export interface PlanDetails {
   major: string[];
   semesters: SemesterDetails[];
 }
+
 export type ColorKey = "none" | "department" | "level";
