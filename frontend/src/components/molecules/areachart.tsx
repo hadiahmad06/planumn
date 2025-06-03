@@ -41,6 +41,18 @@ export const letterToGpa = (letter: string) => {
 
 export const AreaChart = ({ distribution, averageGPA, isMobile = true }: { distribution: Distribution, averageGPA: number, isMobile: boolean }) => {
     const { isSummary } = distribution;
+    const { grades } = distribution;
+    // Check if there are no letter grades (A, B, C, D, F) in the grades object
+    const letterGradeKeys = ['A', 'B', 'C', 'D', 'F'];
+    const noLetterGrades = !grades || !letterGradeKeys.some(grade => grades[grade] > 0);
+    if (noLetterGrades) {
+      return (
+        <div style={{ width: '100%', textAlign: 'center', color: '#888', fontStyle: 'italic', padding: '16px 0' }}>
+          Grades are not available.
+        </div>
+      );
+    }
+  
     let scale = isSummary ? 1.3 : 1;
     if (isMobile) scale = 0.8;
   
@@ -55,7 +67,6 @@ export const AreaChart = ({ distribution, averageGPA, isMobile = true }: { distr
       gpa: number;
     } | null>(null);
   
-    const { grades } = distribution;
     const hasAPlus = grades?.["A+"] > 0;
   
     const maxGrade = Math.max(...Object.values(grades ?? {}));
