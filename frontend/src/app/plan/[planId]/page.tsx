@@ -1,10 +1,10 @@
 "use client";
 
+import { Box, Text, Title, Container } from "@mantine/core";
 import { useState, useEffect } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { supabase } from "@/lib/supabase";
 import { useParams, notFound } from "next/navigation";
-import { Box, Text, Heading } from "@chakra-ui/react";
 import PlanDisplay from "@/components/organisms/PlanDisplay";
 import { LockType, Plan, PlanDetails } from "@/types/plan";
 import { getPlanDetails } from "@/types/planHandlers";
@@ -93,22 +93,43 @@ export default function PlanPage() {
 
   if (!planState) {
     return (
-      <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" textAlign="center">
+      <Box
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+        }}
+      >
         <Text>Loading...</Text>
       </Box>
     );
   }
 
-  if (isExpired) {
-    return (
-      <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" textAlign="center" p={8}>
-        <Box>
-          <Heading size="2xl" mb={2}>Plan Expired</Heading>
-          <Text color="gray.500">This graduation plan is no longer available. Create a new one to get started.</Text>
-        </Box>
-      </Box>
-    );
-  }
+  // if (isExpired) {
+  //   return (
+  //     <Box
+  //       style={{
+  //         minHeight: "100vh",
+  //         display: "flex",
+  //         alignItems: "center",
+  //         justifyContent: "center",
+  //         textAlign: "center",
+  //         padding: "2rem",
+  //       }}
+  //     >
+  //       <Container>
+  //         <Title order={1} style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
+  //           Plan Expired
+  //         </Title>
+  //         <Text style={{ color: "gray" }}>
+  //           This graduation plan is no longer available. Create a new one to get started.
+  //         </Text>
+  //       </Container>
+  //     </Box>
+  //   );
+  // }
 
   return (
     <PlanDisplay

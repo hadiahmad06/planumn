@@ -1,5 +1,5 @@
 import { Course, CourseDetails } from '@/types/plan';
-import { Box, Text, VStack, Spinner } from '@chakra-ui/react';
+import { Box, Text, Stack, Loader } from '@mantine/core';
 import { useState, useEffect } from 'react';
 
 type CoursePreviewProps = {
@@ -26,22 +26,35 @@ export default function CoursePreviewPanel({ course }: CoursePreviewProps) {
 
   return (
     <Box
-      width="100%"
-      bg="white"
-      p={4}
-      borderRadius="lg"
-      boxShadow="0 4px 6px rgba(212, 175, 55, 0.2)"
-      border="1px"
-      borderColor="gold.200"
+      style={{
+        width: "100%",
+        backgroundColor: "white",
+        padding: "16px",
+        borderRadius: "8px",
+        boxShadow: "0 4px 6px rgba(212, 175, 55, 0.2)",
+        border: "1px solid",
+        borderColor: "#FFD700",
+      }}
     >
-      <VStack align="start" gap={3}>
-        <Text fontSize="xl" fontWeight="bold" color="maroon.500">
+      <Stack style={{ alignItems: "start", gap: "16px" }}>
+        <Text
+          style={{
+            fontSize: "1.25rem", /* equivalent to xl */
+            fontWeight: "bold",
+            color: "#800000",
+          }}
+        >
           {course.dept_abbr} {course.course_num}
         </Text>
-        <Text fontSize="lg" fontWeight="medium">
+        <Text
+          style={{
+            fontSize: "1.125rem", /* equivalent to lg */
+            fontWeight: "500",
+          }}
+        >
           {course.class_desc}
         </Text>
-        <Box w="100%" h="1px" bg="gray.200" />
+        <Box style={{ width: "100%", height: "1px", backgroundColor: "#E0E0E0" }} />
         <Text>
           <strong>Credits:</strong> {course.cred_min === course.cred_max ? course.cred_min : `${course.cred_min} - ${course.cred_max}`}
         </Text>
@@ -51,7 +64,7 @@ export default function CoursePreviewPanel({ course }: CoursePreviewProps) {
         <Text>
           <strong>Total # of Students:</strong> {course.total_students}
         </Text>
-      </VStack>
+      </Stack>
     </Box>
   );
-} 
+}

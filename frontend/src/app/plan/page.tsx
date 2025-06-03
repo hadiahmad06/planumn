@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import SettingsPanel from "@/components/molecules/SettingsPanel";
 import SearchBar from "@/components/molecules/SearchBar";
 import CoursePreviewPanel from "@/components/organisms/CoursePreviewPanel";
-import { Box, Flex, Text, VStack, Heading } from "@chakra-ui/react";
+import { Box, Flex, Text, Stack, Title } from '@mantine/core';
 import GlobalSearchLayout from "@/components/organisms/GlobalSearchLayout";
 import PlanDisplay from "@/components/organisms/PlanDisplay";
 import { Course, CourseDetails, Plan, PlanDetails, Semester, SemesterDetails } from "@/types/plan";
@@ -38,7 +38,7 @@ const createEmptyPlan = (): PlanDetails => {
 
 export default function NewPlanPage() {
   const [planState, setPlanState] = useState<PlanDetails>(createEmptyPlan());
-  
+
   return (
     <PlanDisplay
       plan={planState}

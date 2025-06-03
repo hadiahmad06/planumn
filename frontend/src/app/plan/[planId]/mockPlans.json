@@ -1,96 +1,15 @@
 {
-  "id-example": {
-    "createdAt": "2025-05-28T23:00:00.000Z",
-    "major": ["Computer Science B.S."],
-    "semesters": [
-      {
-        "index": "1229",
-        "courses": [
-          { "id": 1, "lock": "locked" },
-          { "id": 2, "lock": "locked" },
-          { "id": 3, "lock": "locked" },
-          { "id": 4, "lock": "locked" }
-        ]
-      },
-      {
-        "index": "1233",
-        "courses": [
-          { "id": 5, "lock": "locked" },
-          { "id": 6, "lock": "locked" },
-          { "id": 7, "lock": "locked" },
-          { "id": 8, "lock": "locked" }
-        ]
-      },
-      {
-        "index": "1235",
-        "courses": []
-      },
-      {
-        "index": "1239",
-        "courses": [
-          { "id": 9, "lock": "locked" },
-          { "id": 10, "lock": "locked" },
-          { "id": 11, "lock": "locked" },
-          { "id": 12, "lock": "locked" }
-        ]
-      },
-      {
-        "index": "1243",
-        "courses": [
-          { "id": 13, "lock": "locked" },
-          { "id": 14, "lock": "locked" },
-          { "id": 15, "lock": "locked" },
-          { "id": 16, "lock": "locked" }
-        ]
-      },
-      {
-        "index": "1245",
-        "courses": []
-      },
-      {
-        "index": "1249",
-        "courses": [
-          { "id": 17, "lock": "locked" },
-          { "id": 18, "lock": "locked" },
-          { "id": 19, "lock": "locked" },
-          { "id": 20, "lock": "locked" }
-        ]
-      },
-      {
-        "index": "1253",
-        "courses": [
-          { "id": 21, "lock": "locked" },
-          { "id": 22, "lock": "locked" },
-          { "id": 23, "lock": "locked" },
-          { "id": 24, "lock": "locked" }
-        ]
-      },
-      {
-        "index": "1255",
-        "courses": []
-      },
-      {
-        "index": "1259",
-        "courses": [
-          { "id": 25, "lock": "locked" },
-          { "id": 26, "lock": "locked" },
-          { "id": 27, "lock": "locked" },
-          { "id": 28, "lock": "locked" }
-        ]
-      },
-      {
-        "index": "1263",
-        "courses": [
-          { "id": 29, "lock": "locked" },
-          { "id": 30, "lock": "locked" },
-          { "id": 31, "lock": "locked" },
-          { "id": 32, "lock": "locked" }
-        ]
-      },
-      {
-        "index": "1265",
-        "courses": []
-      }
-    ]
-  }
+  "plans": [
+    {
+      "id": "plan-1",
+      "name": "Sample Plan",
+      "semesters": [
+        {
+          "id": "semester-1",
+          "name": "Fall 2025",
+          "courses": []
+        }
+      ]
+    }
+  ]
 }

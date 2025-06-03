@@ -3,9 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import CourseCard from "./CourseCard";
-import { Box, Input, Text, Flex } from "@chakra-ui/react";
+import { Box, Input, Text, Flex } from "@mantine/core";
 import { Course, CourseDetails } from "@/types/plan";
-// import CoursePreview from './CoursePreview';
 
 export type ColorKey = 'department' | 'level' | 'none';
 
@@ -24,7 +23,7 @@ export default function SearchBar({
   const [results, setResults] = useState<CourseDetails[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
-  const [isFocused, setIsFocused] = useState(false); // Added state to track focus
+  const [isFocused, setIsFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -82,25 +81,26 @@ export default function SearchBar({
 
   return (
     <Box
-      position="relative"
-      width="100%"
-      border="1px"
-      borderColor="gold.200"
-      borderRadius="lg"
-      boxShadow="0 2px 4px rgba(212, 175, 55, 0.2)"
-      bg="white"
-      display="flex"
-      flexDirection="column"
+      style={{
+        position: 'relative',
+        width: '100%',
+        border: '1px solid',
+        // borderColor: 'gold',
+        // borderRadius: 'lg',
+        // boxShadow: '0 2px 4px rgba(212, 175, 55, 0.2)',
+        // background: 'white',
+        display: 'flex',
+        flexDirection: 'column',
+      }}
     >
-      <Box position="relative">
+      <Box>
         <Text
-          position="absolute"
           left={4}
           top="50%"
-          transform="translateY(-50%)"
-          fontSize="lg"
+          // transform="translateY(-50%)"
+          // fontSize="lg"
           color="gold.400"
-          zIndex={1}
+          // zIndex={1}
         >
           🔍
         </Text>
@@ -122,34 +122,34 @@ export default function SearchBar({
           width="100%"
           pl={12}
           py={3}
-          border="1px"
-          borderColor="gold.200"
-          rounded="md"
-          fontSize="md"
-          _focus={{
-            outline: "none",
-            ring: "2px",
-            ringColor: "gold.200",
-            borderColor: "gold.400"
-          }}
+          // border="1px"
+          // borderColor="gold.200"
+          // rounded="md"
+          // fontSize="md"
+          // _focus={{
+          //   outline: "none",
+          //   ring: "2px",
+          //   ringColor: "gold.200",
+          //   borderColor: "gold.400"
+          // }}
         />
       </Box>
       {isOpen && isFocused && results.length > 0 && ( // Added isFocused condition
         <Box
-          position="absolute"
-          zIndex={50}
-          width="full"
+          // position="absolute"
+          // zIndex={50}
+          // width="full"
           mt={1}
-          border="1px"
-          borderColor="gold.200"
-          rounded="md"
-          bg="white"
-          maxH="60vh"
-          overflowY="auto"
-          boxShadow="0 4px 6px rgba(212, 175, 55, 0.2)"
-          transition="opacity 0.2s"
+          // border="1px"
+          // borderColor="gold.200"
+          // rounded="md"
+          // bg="white"
+          // maxH="60vh"
+          // overflowY="auto"
+          // boxShadow="0 4px 6px rgba(212, 175, 55, 0.2)"
+          // transition="opacity 0.2s"
           opacity={isDragging ? 0.5 : 1}
-          pointerEvents={isDragging ? "none" : "auto"}
+          // pointerEvents={isDragging ? "none" : "auto"}
           top="100%"
           left={0}
         >
@@ -163,7 +163,7 @@ export default function SearchBar({
                     {key}
                   </td>
                   <td style={{ padding: '0.5rem' }}>
-                    <Flex flexWrap="wrap" gap={2}>
+                    <Flex wrap="wrap" gap={2}>
                       {groupedResults[key].map((course) => {
                         const currentIndex = globalIndex++;
                         return (

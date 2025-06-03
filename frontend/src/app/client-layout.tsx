@@ -1,56 +1,44 @@
 "use client";
 
-import Link from "next/link";
-import { Provider } from "@/components/ui/provider"
-import { Box, Container, Flex, Text } from "@chakra-ui/react";
-import GlobalSearchLayout from "@/components/organisms/GlobalSearchLayout";
-import { usePathname } from "next/navigation";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import { Analytics } from "@vercel/analytics/next";
-import AuthButton from "@/components/molecules/AuthButton";
+import { Box, Container, Flex, Text } from '@mantine/core';
+import Link from 'next/link';
+import GlobalSearchLayout from '@/components/organisms/GlobalSearchLayout';
+import { usePathname } from 'next/navigation';
+import { SpeedInsights } from '@vercel/speed-insights/next';
+import { Analytics } from '@vercel/analytics/next';
+import AuthButton from '@/components/molecules/AuthButton';
 
-export default function ClientLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
+  console.log(`Rendering ClientLayout with pathname: ${pathname}`);
+
+  let content;
+  if (pathname.startsWith('/plan')) {
+    content = <GlobalSearchLayout>{children}</GlobalSearchLayout>;
+  } else if (pathname === '/' || pathname.startsWith('/info')) {
+    content = children;
+  }
+
   return (
-    <Provider>
+    // <Provider>
       <Box
-        backgroundImage="url('/your-image.jpg')"
-        backgroundSize="cover"
-        backgroundPosition="center"
-        position="relative"
-        _before={{
-          content: '""',
-          position: "absolute",
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          bg: "rgba(238, 138, 138, 0.5)", // dark overlay
-          backdropFilter: "blur(4px)",
-          zIndex: -1,
+        style={{
+          backgroundImage: "url('/your-image.jpg')",
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          position: 'relative',
         }}
       >
-        <Flex justify="space-between" align="center" p={4}>
-          <Box flex="1">
-            {(pathname.startsWith("/plan")) && (
-              <GlobalSearchLayout>
-                {children}
-              </GlobalSearchLayout>
-            )}
-            {pathname === "/" || pathname.startsWith("/info") ? children : null}
-          </Box>
-          <Box position="absolute" top="4" right="4">
+        <Flex justify="space-between" align="center" style={{ padding: '16px' }}>
+          {content}
+          <Box style={{ position: 'absolute', top: '16px', right: '16px' }}>
             <AuthButton />
           </Box>
         </Flex>
+        <SpeedInsights />
+        <Analytics />
       </Box>
-      <SpeedInsights/>
-      <Analytics/>
-    </Provider>
+    // </Provider>
   );
 }

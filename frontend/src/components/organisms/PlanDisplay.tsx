@@ -1,19 +1,12 @@
 "use client";
 
 import { Droppable } from "@hello-pangea/dnd";
-import { Box, Flex, Text, Heading } from "@chakra-ui/react";
-import {
-  Menu,
-  IconButton,
-  Portal,
-} from "@chakra-ui/react";
-import { Icon } from "@chakra-ui/icons";
+import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal } from '@mantine/core';
 import { FiShare } from "react-icons/fi";
 import CourseCard from "../molecules/CourseCard";
-import { ColorKey, Course, CourseDetails, Plan, PlanDetails, Semester, SemesterDetails } from "@/types/plan";
+import { ColorKey, Course, CourseDetails, PlanDetails, Semester } from "@/types/plan";
 import { useEffect, useState } from "react";
-import { Skeleton } from "@chakra-ui/react";
-import { fetchCourseDetails, getCourseDetails, updateLock, previewCourse } from "@/types/planHandlers";
+import { fetchCourseDetails, updateLock, previewCourse } from "@/types/planHandlers";
 import theme from "@/styles/theme";
 
 const ALWAYS_VISIBLE_CREDITS = 4;
@@ -57,7 +50,6 @@ export default function PlanDisplay({
   plan,
   setPlan,
 }: PlanDisplayProps) {
-
   const [colorKey, setColorKey] = useState<ColorKey>('department');
   const [courseDetails, setCourseDetails] = useState<Record<number, CourseDetails>>({});
 
@@ -89,7 +81,7 @@ export default function PlanDisplay({
     window.postMessage({ type: 'PLAN_COURSES_UPDATE', courseIds }, '*');
   }, [plan.semesters]);
 
-    useEffect(() => {
+  useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
       if (event.data.type === 'DRAG_END') {
         console.log("Received drag end event:", event.data.result);
@@ -145,37 +137,30 @@ export default function PlanDisplay({
   }, [plan]);
 
   return (
-    <Box bg={theme.planDisplayStyles.container.bg /* "white" */} h="100%" p={theme.planDisplayStyles.container.padding /* 8 */} position="relative">
-      
-      <Box marginY="10" textAlign="right" display="flex" justifyContent="space-between" alignItems="center">
+    <Box style={{ background: theme.planDisplayStyles.container.bg, height: '100%', padding: theme.planDisplayStyles.container.padding, position: 'relative' }}>
+      <Flex style={{ marginY: '10', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box>
-          <Menu.Root>
-            <Menu.Trigger asChild>
-              <IconButton aria-label="Share Plan" variant="solid">
-                <FiShare/>
-              </IconButton>
-            </Menu.Trigger>
+          <Menu>
+            <Menu.Target>
+              <Button aria-label="Share Plan" variant="filled">
+                <FiShare style={{ marginRight: '0.5rem' }} /> Share
+              </Button>
+            </Menu.Target>
             <Portal>
-              <Menu.Positioner position="">
-                <Menu.Content>
-                  <Menu.Item value="share-link">
-                    Share Link <Menu.ItemCommand>⌘S</Menu.ItemCommand>
-                  </Menu.Item>
-                  <Menu.Item value="copy-plan">
-                    Copy Plan <Menu.ItemCommand>⌘C</Menu.ItemCommand>
-                  </Menu.Item>
-                </Menu.Content>
-              </Menu.Positioner>
+              <Menu.Dropdown>
+                <Menu.Item>Share Link</Menu.Item>
+                <Menu.Item>Copy Plan</Menu.Item>
+              </Menu.Dropdown>
             </Portal>
-          </Menu.Root>
+          </Menu>
         </Box>
         <Box>
-          <Heading size={theme.planDisplayStyles.heading.size as "2xl" /* "2xl" */} mb={theme.planDisplayStyles.heading.margin /* 4 */}>Your Graduation Plan</Heading>
-          <Text mb={theme.planDisplayStyles.majorText.margin /* 6 */} color={theme.planDisplayStyles.majorText.color /* "gray.500" */}>Major: {plan.major.join(", ")}</Text>
+          <Title order={2} style={{ marginBottom: theme.planDisplayStyles.heading.margin }}>Your Graduation Plan</Title>
+          <Text style={{ marginBottom: theme.planDisplayStyles.majorText.margin, color: theme.planDisplayStyles.majorText.color }}>Major: {plan.major.join(', ')}</Text>
         </Box>
-      </Box>
+      </Flex>
 
-      <Flex direction="column" gap={theme.planDisplayStyles.container.gap /* 8 */}>
+      <Flex direction="column" gap={theme.planDisplayStyles.container.gap}>
         {(() => {
           const sortedSemesters = [...plan.semesters].sort((a, b) => a.index.localeCompare(b.index));
           const rows: Semester[][] = [];
@@ -194,7 +179,7 @@ export default function PlanDisplay({
           }
 
           return rows.map((row, rowIndex) => (
-            <Flex key={rowIndex} gap={theme.planDisplayStyles.container.gap /* 6 */} justify="flex-end">
+            <Flex key={rowIndex} gap={theme.planDisplayStyles.container.gap} justify="flex-end">
               {row.map((sem) => {
                 const season = sem.index.endsWith('9') ? 'Fall' : 
                              sem.index.endsWith('3') ? 'Spring' : 
@@ -205,58 +190,59 @@ export default function PlanDisplay({
                       <Box
                         ref={provided.innerRef}
                         {...provided.droppableProps}
-                        bg={SEMESTER_BOX_BG}
-                        border="1px"
-                        borderColor={SEMESTER_BOX_BORDER}
-                        borderRadius="lg"
-                        p={SEMESTER_BOX_PADDING}
-                        w={SEMESTER_BOX_WIDTH}
-                        minH={SEMESTER_BOX_MIN_HEIGHT}
-                        display="flex"
-                        flexDirection="column"
-                        alignItems="center"
+                        style={{
+                          background: SEMESTER_BOX_BG,
+                          border: '1px solid',
+                          borderColor: SEMESTER_BOX_BORDER,
+                          borderRadius: 'lg',
+                          padding: SEMESTER_BOX_PADDING,
+                          width: SEMESTER_BOX_WIDTH,
+                          minHeight: SEMESTER_BOX_MIN_HEIGHT,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                        }}
                       >
-                        <Text fontSize={SEMESTER_TITLE_SIZE} fontWeight={SEMESTER_TITLE_WEIGHT} mb={SEMESTER_TITLE_MARGIN}>
+                        <Text style={{ fontSize: SEMESTER_TITLE_SIZE, fontWeight: SEMESTER_TITLE_WEIGHT, marginBottom: SEMESTER_TITLE_MARGIN }}>
                           {season} 20{sem.index.slice(1, 3)}
                         </Text>
-                        <Flex w="full" gap={CREDIT_LINE_GAP}>
-                          <Flex direction="column" alignItems="flex-end" pr={CREDIT_NUMBER_PADDING}>
-                            {Array.from({ length: Math.max(
-                              ALWAYS_VISIBLE_CREDITS,
-                              sem?.courses?.reduce((sum: number, c: Course) => {
-                                const key = c.id;
-                                return sum + (courseDetails[key]?.cred_min || 0);
-                              }, 0) || 0
-                            ) }).map((_, i) => (
+                        <Flex style={{ width: '100%', gap: CREDIT_LINE_GAP }}>
+                          <Flex direction="column" align="flex-end" style={{ paddingRight: CREDIT_NUMBER_PADDING }}>
+                            {Array.from({
+                              length: Math.max(
+                                ALWAYS_VISIBLE_CREDITS,
+                                sem?.courses?.reduce((sum, c) => {
+                                  const key = c.id;
+                                  return sum + (courseDetails[key]?.cred_min || 0);
+                                }, 0) || 0
+                              ),
+                            }).map((_, i) => (
                               <Text
                                 key={i}
-                                fontSize={CREDIT_NUMBER_SIZE}
-                                color={SECONDARY_TEXT_COLOR}
-                                h={CREDIT_LINE_HEIGHT}
+                                style={{ fontSize: CREDIT_NUMBER_SIZE, color: SECONDARY_TEXT_COLOR, height: CREDIT_LINE_HEIGHT }}
                               >
                                 {i + 1}
                               </Text>
                             ))}
                           </Flex>
-                          <Flex direction="column" gap={COURSE_VERTICAL_GAP} w="full" alignItems="center">
-                            {sem?.courses?.map((course: Course, j: number) => {
+                          <Flex direction="column" gap={COURSE_VERTICAL_GAP} style={{ width: '100%', alignItems: 'center' }}>
+                            {sem?.courses?.map((course, j) => {
                               const key = course.id;
-                              let details = courseDetails[key];
-                              const fullCourse = details;
+                              const details = courseDetails[key];
                               return details ? (
                                 <CourseCard
                                   key={`${sem.index}-${j}`}
-                                  course={fullCourse}
+                                  course={details}
                                   index={j}
                                   semName={sem.index}
-                                  updateLock={() => updateLock(plan, setPlan)(sem.index, fullCourse)}
+                                  updateLock={() => updateLock(plan, setPlan)(sem.index, details)}
                                   colorKey={colorKey}
-                                  fixedWidth={true}
-                                  fontSize={'15px'}
+                                  fixedWidth
+                                  fontSize="15px"
                                   onPreviewCourse={previewCourse}
                                 />
                               ) : (
-                                <Skeleton key={`${sem.index}-${j}`} height="40px" width="full" borderRadius="md" />
+                                <Skeleton key={`${sem.index}-${j}`} height="40px" width="100%" />
                               );
                             })}
                             {provided.placeholder}

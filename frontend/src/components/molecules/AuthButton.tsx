@@ -1,8 +1,8 @@
 // components/AuthButton.tsx
 "use client";
+import { Button } from "@mantine/core";
 import { useEffect, useState } from "react";
 import { createBrowserClient } from "@supabase/ssr";
-import { Button } from "@chakra-ui/react";
 import { supabase } from "@/lib/supabase";
 
 export default function AuthButton() {
@@ -13,19 +13,17 @@ export default function AuthButton() {
   }, []);
 
   const handleLogin = async () => {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: prompt("Enter your email:") || "",
-    password: prompt("Enter your password:") || ""
-  });
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: prompt("Enter your email:") || "",
+      password: prompt("Enter your password:") || "",
+    });
 
-  if (error) {
-    console.error("Login error:", error.message);
-    // Optionally show Chakra toast or error message
-  } else {
-    console.log("Logged in user:", data.user);
-    // Optionally close modal or redirect
-  }
-};
+    if (error) {
+      console.error("Login error:", error.message);
+    } else {
+      console.log("Logged in user:", data.user);
+    }
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -35,12 +33,11 @@ export default function AuthButton() {
   return (
     <Button
       onClick={user ? handleLogout : handleLogin}
-      colorScheme="red"
+      color="red"
       size="lg"
-      variant="solid"
-      borderRadius="full"
-      boxShadow="sm"
-      _hover={{ boxShadow: "xl", transform: "scale(1.05)" }}
+      variant="filled"
+      radius="xl"
+      style={{ boxShadow: "sm" }}
     >
       {user ? "LOGOUT" : "LOGIN"}
     </Button>

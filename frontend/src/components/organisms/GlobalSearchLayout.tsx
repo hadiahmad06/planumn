@@ -1,14 +1,14 @@
 "use client";
 
+import { Box, Container, Flex, Group, Stack, Title } from '@mantine/core';
 import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
-import { Box, Flex, VStack, Heading, Text } from "@chakra-ui/react";
-import SearchBar from "../molecules/SearchBar";
-import SettingsPanel from "../molecules/SettingsPanel";
-import CoursePreviewPanel from "./CoursePreviewPanel";
+import { ColorKey, Course, CourseDetails } from '@/types/plan';
+import SearchBar from '@/components/molecules/SearchBar';
+import SettingsPanel from '@/components/molecules/SettingsPanel';
+import CoursePreviewPanel from '@/components/organisms/CoursePreviewPanel';
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import { ColorKey, Course, CourseDetails } from "@/types/plan"; // Added import for ColorKey
-import theme from "@/styles/theme";
+import AnimatedTypingText from '../atoms/AnimatedTypingTest';
 
 interface GlobalSearchLayoutProps {
   children: React.ReactNode;
@@ -28,7 +28,7 @@ const CONTAINER_BG = "white";
 const CONTAINER_BORDER = "gray.200";
 
 export default function GlobalSearchLayout({ children }: GlobalSearchLayoutProps) {
-  const [colorKey, setColorKey] = useState<ColorKey>('department'); // Updated to use ColorKey
+  const [colorKey, setColorKey] = useState<ColorKey>('department');
   const [previewCourse, setPreviewCourse] = useState<CourseDetails | null>(null);
   const [currentPlanCourses, setCurrentPlanCourses] = useState<number[]>([]);
   const pathname = usePathname();
@@ -73,64 +73,102 @@ export default function GlobalSearchLayout({ children }: GlobalSearchLayoutProps
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <Flex minH="100vh" bg={theme.globalSearchLayoutStyles.container.bg /* "white" */}>
+      <Flex
+        w="100vw"
+        h="100vh"
+        direction="row"
+        justify="space-between"
+        align="stretch"
+        // gap={CONTENT_GAP}
+        // p={CONTAINER_PADDING}
+        // h="400"
+        // style={{
+        //   minHeight: '100vh',
+        //   backgroundColor: CONTAINER_BG,
+        //   border: `1px solid ${CONTAINER_BORDER}`,
+        //   position: 'relative',
+        // }}
+      // style={{ minHeight: '100vh', backgroundColor: 'white' }}
+      >
         {/* Left side - Search Bar */}
-        <Box
-          w="1/2"
-          borderRight="1px"
-          borderColor={theme.globalSearchLayoutStyles.container.borderColor /* "gray.200" */}
-          bg={theme.globalSearchLayoutStyles.container.bg /* "white" */}
-          position="relative"
+        <Container
+          w="50vw"
+          fluid
         >
-          <Droppable droppableId="search">
-            {(provided) => (
-              <Box
-                ref={provided.innerRef}
-                {...provided.droppableProps}
-                h="100%"
-                p={theme.globalSearchLayoutStyles.container.padding /* 12 */}
-                display="flex"
-                flexDirection="column"
-                bg={theme.globalSearchLayoutStyles.container.bg /* "white" */}
-                border="1px"
-                borderColor={theme.globalSearchLayoutStyles.container.borderColor /* "gray.200" */}
-                borderRadius={theme.globalSearchLayoutStyles.container.borderRadius /* "lg" */}
-              >
-                <Box flex="1" display="flex" flexDirection="column">
-                  <Heading size={theme.globalSearchLayoutStyles.heading.size as "lg" /* "lg" */}>PlanUMN</Heading>
-                  <Box mb={theme.globalSearchLayoutStyles.searchMargin /* 4 */}>
-                    <SearchBar 
-                      colorKey={colorKey} // Updated to pass colorKey
-                      onPreviewCourse={setPreviewCourse}
-                      currentPlanCourses={currentPlanCourses}
-                    />
-                  </Box>
-                  <Box mt={4}>
-                    <SettingsPanel
-                      colorKey={colorKey} // Updated to pass colorKey
-                      setColorKey={setColorKey} // Updated to pass setColorKey
-                      onAutofill={() => {
-                        // Forward autofill event to plan page if we're on a plan page
-                        if (pathname.startsWith('/plan/')) {
-                          window.postMessage({ type: 'AUTOFILL' }, '*');
-                        }
-                      }}
-                    />
-                  </Box>
+          <Stack
+          justify="space-between"
+          align="stretch"
+          // style={{
+          //   width: '50%',
+          //   borderRight: '1px solid gray',
+          //   backgroundColor: 'white',
+          //   position: 'relative',
+          // }}
+          >
+            <Droppable droppableId="search">
+              {(provided) => (
+                <Box
+                  ref={provided.innerRef}
+                  style={{
+                  }}
+                >
+                  {/* <Box style={{ flex: 1, display: 'flex', flexDirection: 'column' }}> */}
+                    <Title
+                    style={{
+                      fontSize: "1.5rem",
+                      fontWeight: "bold",
+                      color: "#0f172a",
+                      marginBottom: "0.5rem",
+                    }}
+                    >
+                      <AnimatedTypingText/>
+                    </Title>
+                    {/* <Title order={2} style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>PlanUMN</Title> */}
+                    {/* <Box style={{ marginBottom: '1rem' }}> */}
+                      <SearchBar
+                        colorKey={colorKey}
+                        onPreviewCourse={setPreviewCourse}
+                        currentPlanCourses={currentPlanCourses}
+                      />
+                    {/* </Box> */}
+                    {/* <Box style={{ marginTop: '1rem' }}> */}
+                      <SettingsPanel
+                        colorKey={colorKey}
+                        setColorKey={setColorKey}
+                        onAutofill={() => {
+                          if (pathname.startsWith('/plan/')) {
+                            window.postMessage({ type: 'AUTOFILL' }, '*');
+                          }
+                        }}
+                      />
+                    {/* </Box> */}
+                  {/* </Box> */}
+                  {provided.placeholder}
                 </Box>
-                {provided.placeholder}
-              </Box>
-            )}
-          </Droppable>
-          <Box position="absolute" top="70vh" left={8} right={8}>
-            <CoursePreviewPanel course={previewCourse} />
-          </Box>
-        </Box>
+              )}
+            </Droppable>
+            <Box 
+            // style={{ position: 'absolute', top: '70vh', left: '2rem', right: '2rem' }}
+            >
+              <CoursePreviewPanel course={previewCourse} />
+            </Box>
+          </Stack>
+        </Container>
 
         {/* Right side - Content */}
-        <Box w="1/2" overflowY="auto" bg={theme.globalSearchLayoutStyles.container.bg /* "white" */}>
-          {children}
-        </Box>
+        <Container
+          fluid
+          >
+          <Stack 
+          justify="flex-start"
+          align="stretch"
+          style={{ 
+            marginTop: "4rem"
+          }}
+          >
+            {children}
+          </Stack>
+        </Container>
       </Flex>
     </DragDropContext>
   );
