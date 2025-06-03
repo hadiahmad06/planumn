@@ -13,5 +13,4 @@ module.exports = {
   },
 };
 
-export default module.exports;
 // This file is used to configure PostCSS plugins for the Mantine UI framework.
