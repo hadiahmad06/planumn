@@ -28,8 +28,8 @@ const createEmptyPlan = (): PlanDetails => {
   
   console.log("Created empty plan with semesters:", semesters);
   return {
-    id: "new-plan",
-    user_id: null,
+    id: "temp",
+    user_id: "temp_user",
     createdAt: new Date(),
     major: ["Computer Science B.S."],
     semesters: semesters

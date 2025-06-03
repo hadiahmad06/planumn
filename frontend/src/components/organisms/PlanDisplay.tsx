@@ -1,7 +1,7 @@
 "use client";
 
 import { Droppable } from "@hello-pangea/dnd";
-import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal } from '@mantine/core';
+import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal, Stack } from '@mantine/core';
 import { FiShare } from "react-icons/fi";
 import CourseCard from "../molecules/CourseCard";
 import { ColorKey, Course, CourseDetails, PlanDetails, Semester } from "@/types/plan";
@@ -154,10 +154,12 @@ export default function PlanDisplay({
             </Portal>
           </Menu>
         </Box>
-        <Box>
+        <Stack
+        align="flex-end"
+        >
           <Title order={2} style={{ marginBottom: theme.planDisplayStyles.heading.margin }}>Your Graduation Plan</Title>
           <Text style={{ marginBottom: theme.planDisplayStyles.majorText.margin, color: theme.planDisplayStyles.majorText.color }}>Major: {plan.major.join(', ')}</Text>
-        </Box>
+        </Stack>
       </Flex>
 
       <Flex direction="column" gap={theme.planDisplayStyles.container.gap}>
@@ -166,12 +168,19 @@ export default function PlanDisplay({
           const rows: Semester[][] = [];
           let currentRow: Semester[] = [];
 
-          sortedSemesters.forEach(sem => {
-            currentRow.push(sem);
-            if (sem.index.endsWith('5')) {
+          sortedSemesters.forEach((sem, i) => {
+            const previousSem = sortedSemesters[i - 1];
+
+            // pushes fall to the next row by ++1 the year if its a fall
+            const getSchoolYear = (index: string) => {
+              return Number(index.slice(1, 3)) + (index.endsWith('9') ? 1 : 0);
+            };
+
+            if ((previousSem && getSchoolYear(sem.index) !== getSchoolYear(previousSem.index))) {
               rows.push(currentRow);
               currentRow = [];
             }
+            currentRow.push(sem);
           });
 
           if (currentRow.length > 0) {

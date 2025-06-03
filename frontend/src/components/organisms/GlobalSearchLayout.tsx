@@ -73,12 +73,12 @@ export default function GlobalSearchLayout({ children }: GlobalSearchLayoutProps
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <Flex
+      <Group
         w="100vw"
         h="100vh"
-        direction="row"
         justify="space-between"
         align="stretch"
+        grow
         // gap={CONTENT_GAP}
         // p={CONTAINER_PADDING}
         // h="400"
@@ -158,18 +158,20 @@ export default function GlobalSearchLayout({ children }: GlobalSearchLayoutProps
         {/* Right side - Content */}
         <Container
           fluid
-          >
-          <Stack 
-          justify="flex-start"
-          align="stretch"
           style={{ 
-            marginTop: "4rem"
+            marginTop: "4rem",
+            marginBottom: "4rem"
           }}
           >
+          {/* <Stack 
+          justify="flex-start"
+          align="stretch"
+          
+          > */}
             {children}
-          </Stack>
+          {/* </Stack> */}
         </Container>
-      </Flex>
+      </Group>
     </DragDropContext>
   );
 }
