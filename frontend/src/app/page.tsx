@@ -1,6 +1,7 @@
 "use client";
 
 import AnimatedTypingText from "@/components/atoms/AnimatedTypingTest";
+import VideoPopup from "@/components/atoms/VideoPopup";
 import "@/styles/global.css"; // make sure this path is correct
 import { Container, Flex, Button, Box, Stack, Text, Title, Group, Center, Space } from "@mantine/core";
 import { IconEdit, IconEye, IconPlayerPlay, IconUpload, IconPlayerPlayFilled } from "@tabler/icons-react";
@@ -105,17 +106,7 @@ export default function Home() {
                 Start from Scratch
               </Button>
             </Button.Group>
-              <Button
-                leftSection={<IconPlayerPlayFilled size={18} />}
-                variant="outline"
-                color="#334155"
-                size="lg"
-                style={{
-                  borderRadius: "1rem",
-                }}
-              >
-                Watch Demo
-              </Button>
+            <VideoPopup/>
           </Group>
           {/* ▶  */}
 
