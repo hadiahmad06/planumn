@@ -16,18 +16,19 @@ import theme from "@/styles/theme";
 const ALWAYS_VISIBLE_CREDITS = 4;
 const COURSE_VERTICAL_GAP = 0;
 
+
 // Layout
 const CONTAINER_PADDING = 8;
 const ROW_GAP = 8;
 const SEMESTER_GAP = 6;
 const CREDIT_LINE_GAP = 2;
 const SEMESTER_BOX_PADDING = 3;
-const CREDIT_NUMBER_PADDING = 1;
+const CREDIT_NUMBER_PADDING = 0;
 
 // Dimensions
 const SEMESTER_BOX_WIDTH = "160px";
-const SEMESTER_BOX_MIN_HEIGHT = "160px";
-const CREDIT_LINE_HEIGHT = "20px";
+const SEMESTER_BOX_MIN_HEIGHT = "100px";
+const CREDIT_LINE_HEIGHT = "20px";  // 20px
 
 // Accordion control open/closed styles
 const accordionControlStyles = {
@@ -231,8 +232,8 @@ export default function PlanDisplay({
                       </Title>
                       {(() => {
                         const { Fall, Spring, Summer } = semGroup as { Fall?: Semester; Spring?: Semester; Summer?: Semester };
-                        return (['Fall', 'Spring', 'Summer'] as const).map((season) => {
-                          const sem = season === 'Fall' ? Fall : season === 'Spring' ? Spring : Summer;
+                        return (['🍂 Fall', '🌱 Spring', '☀️ Summer'] as const).map((season) => {
+                          const sem = season === '🍂 Fall' ? Fall : season === '🌱 Spring' ? Spring : Summer;
                           if (!sem) {
                             return <Box key={`${year}-${season}`} style={{ width: SEMESTER_BOX_WIDTH, minHeight: SEMESTER_BOX_MIN_HEIGHT }} />;
                           }
@@ -262,15 +263,15 @@ export default function PlanDisplay({
                                     borderBottomRightRadius: 0,
                                   },
                                   control: {
-                                    padding: 0,
-                                    margin: 0,
-                                    height: 'auto',
                                     borderTopLeftRadius: '1rem',
                                     borderTopRightRadius: '1rem',
                                     borderBottomLeftRadius: 0,
                                     borderBottomRightRadius: 0,
-                                  
+                                    padding: 0,
+                                    margin: 0,
+                                    height: 'auto'
                                   },
+                                  
                                   panel: { padding: 0, margin: 0 },
                                   chevron: { display: 'none' }
                                 }}
@@ -292,7 +293,7 @@ export default function PlanDisplay({
                                   }}
                                 >
                                   <Text>
-                                    {season} {season === 'Fall' ? year : parseInt(year) + 1}
+                                    {season} {season === '🍂 Fall' ? year : parseInt(year) + 1}
                                   </Text>
                                 </Accordion.Control>
                                 <Accordion.Panel
@@ -303,7 +304,7 @@ export default function PlanDisplay({
                                     margin: 0,
                                     boxShadow: 'none',
                                     border: 'none',
-                                    display: 'block'
+                                    display: 'block',                                    
                                   }}
                                 >
                                   <Droppable droppableId={String(sem.index)} key={sem.index}>
@@ -319,8 +320,8 @@ export default function PlanDisplay({
                                           borderTop: 'none',
                                           borderTopLeftRadius: 0,
                                           borderTopRightRadius: 0,
-                                          borderBottomLeftRadius: 0,
-                                          borderBottomRightRadius: 0,
+                                          borderBottomLeftRadius: '1rem',
+                                          borderBottomRightRadius: '1rem',
                                           padding: 12,
                                           width: SEMESTER_BOX_WIDTH,
                                           minHeight: SEMESTER_BOX_MIN_HEIGHT,
@@ -332,11 +333,20 @@ export default function PlanDisplay({
                                         }}
                                       >
                                         <Flex style={{ width: '100%', gap: CREDIT_LINE_GAP }}>
-                                          <Flex direction="column" align="flex-end" style={{ paddingRight: CREDIT_NUMBER_PADDING }}>
+                                          <Flex direction="column" align="flex-end" style={{ paddingRight: CREDIT_NUMBER_PADDING, minWidth: '2ch' }}>
                                             {Array.from({ length: totalCredits }).map((_, i) => (
                                               <Text
                                                 key={i}
-                                                style={{ fontSize: '10px', color: 'rgba(0, 0, 0, 0.35)', height: CREDIT_LINE_HEIGHT }}
+                                                style={{
+                                                  fontSize: '10px',
+                                                  color: 'rgba(0, 0, 0, 0.35)',
+                                                  height: CREDIT_LINE_HEIGHT,
+                                                  lineHeight: CREDIT_LINE_HEIGHT,
+                                                  textAlign: 'right',
+                                                  width: '100%',
+                                                  letterSpacing: 0,
+                                                  minWidth: '2ch',
+                                                }}
                                               >
                                                 {i + 1}
                                               </Text>
