@@ -1,7 +1,11 @@
 "use client";
 
 import { Droppable } from "@hello-pangea/dnd";
-import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal, Stack, Space } from '@mantine/core';
+import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal, Stack, Space, Accordion } from '@mantine/core';
+// Accordion control open/closed styles
+// You may move these to a CSS module or stylesheet if preferred
+const SEMESTER_BACKGROUND = 'linear-gradient(135deg, rgba(221, 208, 208, 0.8), rgba(245, 245, 255, 0.6))';
+
 import { FiSave, FiShare } from "react-icons/fi";
 import CourseCard from "../molecules/CourseCard";
 import { ColorKey, Course, CourseDetails, PlanDetails, Semester } from "@/types/plan";
@@ -24,6 +28,16 @@ const CREDIT_NUMBER_PADDING = 1;
 const SEMESTER_BOX_WIDTH = "160px";
 const SEMESTER_BOX_MIN_HEIGHT = "160px";
 const CREDIT_LINE_HEIGHT = "20px";
+
+// Accordion control open/closed styles
+const accordionControlStyles = {
+  open: {
+    fontWeight: 700,
+  },
+  closed: {
+    fontWeight: 500,
+  }
+};
 
 // Typography
 const HEADING_SIZE = "2xl";
@@ -181,7 +195,12 @@ export default function PlanDisplay({
         </Stack>
       </Flex>
 
-      <Flex direction="row" gap={theme.planDisplayStyles.container.gap} justify="center">
+      <Flex
+        direction="row"
+        gap={theme.planDisplayStyles.container.gap}
+        justify="flex-end"
+        style={{ position: 'absolute', top: 100, right: 32, zIndex: 1 }}
+      >
         {(() => {
           // Group semesters by year, only Fall and Spring
           const groupedByAcademicYear: Record<string, { Fall?: Semester; Spring?: Semester; Summer?: Semester }> = {};
@@ -206,7 +225,7 @@ export default function PlanDisplay({
                 .map(([year, semGroupRaw]) => {
                   const semGroup = semGroupRaw as Record<'Fall' | 'Spring' | 'Summer', Semester | undefined>;
                   return (
-                    <Flex key={year} direction="column" gap={theme.planDisplayStyles.container.gap}>
+                    <Flex key={year} direction="column" gap={theme.planDisplayStyles.container.gap + 10}>
                       <Title>
                         {/* {year}–{(parseInt(year) + 1).toString().slice(-2)} */}
                       </Title>
@@ -222,66 +241,136 @@ export default function PlanDisplay({
                             sem.courses.reduce((sum, c) => sum + (courseDetails[c.id]?.cred_min || 0), 0)
                           );
                           return (
-                            <Droppable droppableId={String(sem.index)} key={sem.index}>
-                              {(provided) => (
-                                <Box
-                                  ref={provided.innerRef}
-                                  {...provided.droppableProps}
+                              <Accordion
+                                style={{
+                                  width: '100%',
+                                  background: 'transparent',
+                                  boxShadow: 'none',
+                                  padding: 0,
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                }}
+                                defaultValue={sem.index}
+                                styles={{
+                                  content: { margin: 0, padding: 0 },
+                                  item: {
+                                    border: 'none',
+                                    // background: 'transparent',
+                                    margin: 0,
+                                    padding: 0,
+                                    borderBottomLeftRadius: 0,
+                                    borderBottomRightRadius: 0,
+                                  },
+                                  control: {
+                                    padding: 0,
+                                    margin: 0,
+                                    height: 'auto',
+                                    borderTopLeftRadius: '1rem',
+                                    borderTopRightRadius: '1rem',
+                                    borderBottomLeftRadius: 0,
+                                    borderBottomRightRadius: 0,
+                                  
+                                  },
+                                  panel: { padding: 0, margin: 0 },
+                                  chevron: { display: 'none' }
+                                }}
+                              >
+                              <Accordion.Item value={sem.index} key={sem.index}>
+                                <Accordion.Control
                                   style={{
-                                    background: 'linear-gradient(135deg, rgba(221, 208, 208, 0.8), rgba(245, 245, 255, 0.6))',
+                                    textAlign: 'center',
+                                    fontSize: SEMESTER_TITLE_SIZE,
+                                    color: '#2D2A32',
+                                    background: SEMESTER_BACKGROUND,
                                     border: '1px solid rgba(128, 128, 128, 0.2)',
-                                    borderRadius: '1rem',
                                     padding: 12,
-                                    width: SEMESTER_BOX_WIDTH,
-                                    minHeight: SEMESTER_BOX_MIN_HEIGHT,
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    alignItems: 'center',
+                                    width: '100%',
                                     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                                    display: 'block',
+                                    marginBottom: 0,
+                                    paddingBottom: 12,
                                   }}
                                 >
-                                  <Text style={{ fontSize: SEMESTER_TITLE_SIZE, fontWeight: SEMESTER_TITLE_WEIGHT, marginBottom: SEMESTER_TITLE_MARGIN }}>
-                                    <Text>
-                                      {season} {season === 'Fall' ? year : parseInt(year) + 1}
-                                    </Text>
+                                  <Text>
+                                    {season} {season === 'Fall' ? year : parseInt(year) + 1}
                                   </Text>
-                                  <Flex style={{ width: '100%', gap: CREDIT_LINE_GAP }}>
-                                    <Flex direction="column" align="flex-end" style={{ paddingRight: CREDIT_NUMBER_PADDING }}>
-                                      {Array.from({ length: totalCredits }).map((_, i) => (
-                                        <Text
-                                          key={i}
-                                          style={{ fontSize: '10px', color: 'rgba(0, 0, 0, 0.35)', height: CREDIT_LINE_HEIGHT }}
-                                        >
-                                          {i + 1}
-                                        </Text>
-                                      ))}
-                                    </Flex>
-                                    <Flex direction="column" gap={COURSE_VERTICAL_GAP} style={{ width: '100%', alignItems: 'center' }}>
-                                      {(sem.courses as CourseDetails[]).map((course, j) => {
-                                        const key = course.id;
-                                        const details = courseDetails[key];
-                                        return details ? (
-                                          <CourseCard
-                                            key={`${sem.index}-${j}`}
-                                            course={details}
-                                            index={j}
-                                            semName={sem.index}
-                                            updateLock={() => updateLock(plan, setPlan)(sem.index, details)}
-                                            colorKey={colorKey}
-                                            fixedWidth
-                                            fontSize="15px"
-                                            onPreviewCourse={previewCourse}
-                                          />
-                                        ) : (
-                                          <Skeleton key={`${sem.index}-${j}`} height="40px" width="100%" />
-                                        );
-                                      })}
-                                      {provided.placeholder}
-                                    </Flex>
-                                  </Flex>
-                                </Box>
-                              )}
-                            </Droppable>
+                                </Accordion.Control>
+                                <Accordion.Panel
+                                  className="accordion-panel"
+                                  style={{
+                                    background: 'transparent',
+                                    padding: 0,
+                                    margin: 0,
+                                    boxShadow: 'none',
+                                    border: 'none',
+                                    display: 'block'
+                                  }}
+                                >
+                                  <Droppable droppableId={String(sem.index)} key={sem.index}>
+                                    {(provided) => (
+                                      <Box
+                                        ref={provided.innerRef}
+                                        {...provided.droppableProps}
+                                        style={{
+                                          background: SEMESTER_BACKGROUND,
+                                          borderLeft: '1px solid rgba(128, 128, 128, 0.2)',
+                                          borderRight: '1px solid rgba(128, 128, 128, 0.2)',
+                                          borderBottom: '1px solid rgba(128, 128, 128, 0.2)',
+                                          borderTop: 'none',
+                                          borderTopLeftRadius: 0,
+                                          borderTopRightRadius: 0,
+                                          borderBottomLeftRadius: 0,
+                                          borderBottomRightRadius: 0,
+                                          padding: 12,
+                                          width: SEMESTER_BOX_WIDTH,
+                                          minHeight: SEMESTER_BOX_MIN_HEIGHT,
+                                          display: 'flex',
+                                          flexDirection: 'column',
+                                          alignItems: 'center',
+                                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+                                          marginTop: '0px'
+                                        }}
+                                      >
+                                        <Flex style={{ width: '100%', gap: CREDIT_LINE_GAP }}>
+                                          <Flex direction="column" align="flex-end" style={{ paddingRight: CREDIT_NUMBER_PADDING }}>
+                                            {Array.from({ length: totalCredits }).map((_, i) => (
+                                              <Text
+                                                key={i}
+                                                style={{ fontSize: '10px', color: 'rgba(0, 0, 0, 0.35)', height: CREDIT_LINE_HEIGHT }}
+                                              >
+                                                {i + 1}
+                                              </Text>
+                                            ))}
+                                          </Flex>
+                                          <Flex direction="column" gap={COURSE_VERTICAL_GAP} style={{ width: '100%', alignItems: 'center' }}>
+                                            {(sem.courses as CourseDetails[]).map((course, j) => {
+                                              const key = course.id;
+                                              const details = courseDetails[key];
+                                              return details ? (
+                                                <CourseCard
+                                                  key={`${sem.index}-${j}`}
+                                                  course={details}
+                                                  index={j}
+                                                  semName={sem.index}
+                                                  updateLock={() => updateLock(plan, setPlan)(sem.index, details)}
+                                                  colorKey={colorKey}
+                                                  fixedWidth
+                                                  fontSize="15px"
+                                                  onPreviewCourse={previewCourse}
+                                                />
+                                              ) : (
+                                                <Skeleton key={`${sem.index}-${j}`} height="40px" width="100%" />
+                                              );
+                                            })}
+                                            {provided.placeholder}
+                                          </Flex>
+                                        </Flex>
+                                      </Box>
+                                    )}
+                                  </Droppable>
+                                </Accordion.Panel>
+                              </Accordion.Item>
+                            </Accordion>
                           );
                         });
                       })()}

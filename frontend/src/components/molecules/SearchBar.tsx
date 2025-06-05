@@ -84,7 +84,7 @@ export default function SearchBar({
       ref={searchRef}
       style={{
         position: 'relative',
-        width: '100%',
+        width: '77%',
         backgroundColor: 'white',
         borderRadius: '8px',
         border: '1px solid transparent',
