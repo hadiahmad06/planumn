@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "PlanUMN - Course Planning Made Easy",
-  description: "Plan your academic journey with ease",
+  description: "PlanUMN is a powerful course and graduation planning tool built for University of Minnesota students. Easily visualize, organize, and schedule your academic path with our drag-and-drop interface.",
 };
 
 export default function RootLayout({
@@ -30,6 +30,19 @@ export default function RootLayout({
     <html lang="en" {...mantineHtmlProps}>
       <head>
         <ColorSchemeScript />
+        <link rel="icon" href="/favicon.ico" />
+
+        {/* Open Graph / Social Preview */}
+        <meta property="og:title" content="PlanUMN - UMN Grad Planner" />
+        <meta property="og:description" content="PlanUMN is a powerful course and graduation planning tool built for University of Minnesota students. Easily visualize, organize, and schedule your academic path with our drag-and-drop interface." />
+        <meta property="og:image" content="https://planu.mn/og-image.png" />
+        <meta property="og:url" content="https://planu.mn" />
+        <meta name="twitter:card" content="summary_large_image" />
+
+        {/* SEO Meta */}
+        <meta name="description" content="PlanUMN is a powerful course and graduation planning tool built for University of Minnesota students. Easily visualize, organize, and schedule your academic path with our drag-and-drop interface." />
+        <meta name="keywords" content="PlanUMN, UMN, University of Minnesota, Twin Cities, graduation planner, class schedule, academic planner, course planning, UMN class search, GopherGrades, UMN Schedule Builder, college course management" />
+        <meta name="author" content="Hadi Ahmad, Michael Zewdie" />
       </head>
       <body>
         <MantineProvider>
