@@ -35,8 +35,8 @@ export default function DeletionConfirmationModal({ opened, onClose, user }: Del
               onChange={(e) => setConfirmPassword(e.currentTarget.value)}
             />
             <TextInput
-              label='Type "Delete my data" to confirm'
-              placeholder="Delete my data"
+              label='Type "Delete all my data" to confirm'
+              placeholder="Delete all my data"
               value={confirmationText}
               onChange={(e) => setConfirmationText(e.currentTarget.value)}
             />
