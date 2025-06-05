@@ -2,11 +2,14 @@
 
 import AnimatedTypingText from "@/components/atoms/AnimatedTypingTest";
 import VideoPopup from "@/components/atoms/VideoPopup";
+import { UserSessionContext } from "@/contexts/UserSessionContext";
 import "@/styles/global.css"; // make sure this path is correct
 import { Container, Flex, Button, Box, Stack, Text, Title, Group, Center, Space } from "@mantine/core";
 import { IconEdit, IconEye, IconPlayerPlay, IconUpload, IconPlayerPlayFilled } from "@tabler/icons-react";
+import { useContext } from "react";
 
 export default function Home() {
+  const { user, session } = useContext(UserSessionContext);
   return (
     <Flex
       w="100vw"
