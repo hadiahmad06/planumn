@@ -79,6 +79,14 @@ export default function SearchBar({ onPreviewCourse }: Props) {
       : a.localeCompare(b) // Sort departments alphabetically
   );
 
+  // Dimensions
+  const SEMESTER_BOX_WIDTH = "170px";
+  const SEMESTER_BOX_MIN_HEIGHT = "110px";
+  const CREDIT_LINE_HEIGHT = "24px"; // or 22px
+
+  // Typography
+  const SEMESTER_TITLE_SIZE = "18px"; // or 20px
+
   return (
     <Box
       ref={searchRef}

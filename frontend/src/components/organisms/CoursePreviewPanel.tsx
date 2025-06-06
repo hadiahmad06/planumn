@@ -31,7 +31,7 @@ export default function CoursePreviewPanel({ course }: CoursePreviewProps) {
   return (
     <Box
       style={{
-        width: "100%",
+        width: "77%",
         backgroundColor: "white",
         padding: "20px",
         borderRadius: "12px",

@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { useParams, notFound } from "next/navigation";
 import PlanDisplay from "@/components/organisms/PlanDisplay";
 import { LockType, Plan } from "@/types/plan";
-import { getPlanDetails } from "@/types/planHandlers";
+// import { getPlanDetails } from "@/types/planHandlers";
 import { PlanContext } from "@/contexts/PlanContext";
 
 export default function PlanPage() {
@@ -61,8 +61,8 @@ export default function PlanPage() {
       const expired = Date.now() - plan.createdAt.getTime() > 1000 * 60 * 60 * 48;
       setIsExpired(expired);
 
-      const planDetails = await getPlanDetails(plan);
-      setPlan(planDetails);
+      // const planDetails = await getPlanDetails(plan);
+      setPlan(plan);
     };
 
     fetchPlan();

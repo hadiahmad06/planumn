@@ -1,30 +1,30 @@
-import { Course, CourseDetails, Plan, PlanDetails, Semester, SemesterDetails } from "@/types/plan";
+import { Course, CourseDetails, Plan, PlanDetails, Semester } from "@/types/plan";
 import { useEffect } from "react";
 
-export async function getPlanDetails(plan: Plan): Promise<PlanDetails> {
-  const semesters = await Promise.all(
-    plan.semesters.map(async (semester: Semester) => {
-      const courses = await Promise.all(
-        semester.courses.map(async (course: Course) => {
-          const courseDetails = await getCourseDetails(String(course.id));
-          return {
-            ...courseDetails,
-            lock: course.lock || "unlocked", // Ensure lock has a default value
-          } as CourseDetails;
-        })
-      );
-      return {
-        ...semester,
-        courses,
-      } as SemesterDetails;
-    })
-  );
+// export async function getPlanDetails(plan: Plan): Promise<PlanDetails> {
+//   const semesters = await Promise.all(
+//     plan.semesters.map(async (semester: Semester) => {
+//       const courses = await Promise.all(
+//         semester.courses.map(async (course: Course) => {
+//           const courseDetails = await getCourseDetails(String(course.id));
+//           return {
+//             ...courseDetails,
+//             lock: course.lock || "unlocked", // Ensure lock has a default value
+//           } as CourseDetails;
+//         })
+//       );
+//       return {
+//         ...semester,
+//         courses,
+//       } as SemesterDetails;
+//     })
+//   );
 
-  return {
-    ...plan,
-    semesters,
-  } as PlanDetails;
-}
+//   return {
+//     ...plan,
+//     semesters,
+//   } as PlanDetails;
+// }
 
 export async function getCourseDetails(id:string) {
   const response = await fetch(`/api/courses?id=${id}`);
@@ -69,8 +69,8 @@ export async function fetchCourseDetails (
     };
 
 export function updateLock(
-  planState: PlanDetails,
-  setPlanState: (plan: PlanDetails) => void
+  planState: Plan,
+  setPlanState: (plan: Plan) => void
 ) {
   return (semIndex: string, course: Course) => {
     const updated = [...planState.semesters];

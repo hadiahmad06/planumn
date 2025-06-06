@@ -2,7 +2,7 @@
 
 import PlanDisplay from '@/components/organisms/PlanDisplay';
 import { Plan, PlanNullable } from '@/types/plan';
-import { getPlanDetails } from '@/types/planHandlers';
+// import { getPlanDetails } from '@/types/planHandlers';
 import { Box, Group, Text, Button, FileButton, Container, Center, Stack, Space } from '@mantine/core';
 import { Dropzone, DropzoneProps } from '@mantine/dropzone';
 import { useContext, useEffect, useState } from 'react';
@@ -48,8 +48,8 @@ export default function PlanPage() {
           id: "temp", // Temporary ID for display purposes
           createdAt: new Date(), // Use current date for display
         } as Plan;
-        const planDetails = await getPlanDetails(plan);
-        setPlan(planDetails);
+        // const planDetails = await getPlanDetails(plan);
+        setPlan(plan);
         setShowPlanDisplay(true);
       } catch (error) {
         console.error(error);
