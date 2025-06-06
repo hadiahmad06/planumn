@@ -1,19 +1,20 @@
 "use client";
 
 import { Box, Text, Title, Container } from "@mantine/core";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { supabase } from "@/lib/supabase";
 import { useParams, notFound } from "next/navigation";
 import PlanDisplay from "@/components/organisms/PlanDisplay";
-import { LockType, Plan, PlanDetails } from "@/types/plan";
+import { LockType, Plan } from "@/types/plan";
 import { getPlanDetails } from "@/types/planHandlers";
+import { PlanContext } from "@/contexts/PlanContext";
 
 export default function PlanPage() {
   const params = useParams();
   const planId = Array.isArray(params?.planId) ? params.planId[0] : params?.planId;
 
-  const [planState, setPlanState] = useState<PlanDetails | null>(null);
+  const { plan, setPlan } = useContext(PlanContext);
   const [isExpired, setIsExpired] = useState(false);
   const [user, setUser] = useState<any>(null);
 
@@ -37,7 +38,7 @@ export default function PlanPage() {
 
       if (error || !data) {
         console.error("Plan fetch error:", error);
-        setPlanState(null);
+        setPlan(null);
         return;
       }
 
@@ -61,23 +62,23 @@ export default function PlanPage() {
       setIsExpired(expired);
 
       const planDetails = await getPlanDetails(plan);
-      setPlanState(planDetails);
+      setPlan(planDetails);
     };
 
     fetchPlan();
   }, [planId]);
 
   useEffect(() => {
-    if (!planState || !user || planState.user_id !== user.id) return;
+    if (!plan || !user || plan.user_id !== user.id) return;
 
     const updatePlan = async () => {
       const { error } = await supabase
         .from("plans")
         .update({
-          major: planState.major,
-          semesters: planState.semesters,
+          major: plan.major,
+          semesters: plan.semesters,
         })
-        .eq("id", planState.id);
+        .eq("id", plan.id);
 
       if (error) {
         console.error("Failed to sync plan to Supabase:", error);
@@ -87,11 +88,11 @@ export default function PlanPage() {
     };
 
     updatePlan();
-  }, [planState, user]);
+  }, [plan, user]);
 
   if (!planId) return notFound();
 
-  if (!planState) {
+  if (!plan) {
     return (
       <Box
         style={{
@@ -107,34 +108,7 @@ export default function PlanPage() {
     );
   }
 
-  // if (isExpired) {
-  //   return (
-  //     <Box
-  //       style={{
-  //         minHeight: "100vh",
-  //         display: "flex",
-  //         alignItems: "center",
-  //         justifyContent: "center",
-  //         textAlign: "center",
-  //         padding: "2rem",
-  //       }}
-  //     >
-  //       <Container>
-  //         <Title order={1} style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
-  //           Plan Expired
-  //         </Title>
-  //         <Text style={{ color: "gray" }}>
-  //           This graduation plan is no longer available. Create a new one to get started.
-  //         </Text>
-  //       </Container>
-  //     </Box>
-  //   );
-  // }
-
   return (
-    <PlanDisplay
-      plan={planState}
-      setPlan={setPlanState}
-    />
+    <PlanDisplay/>
   );
 }

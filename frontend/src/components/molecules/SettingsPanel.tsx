@@ -11,22 +11,21 @@ import {
   Accordion,
 } from "@mantine/core";
 import theme from "@/styles/theme";
+import { useContext } from "react";
+import { DisplaySettingsContext } from "@/contexts/DisplaySettingsContext";
 
 type Props = {
-  colorKey: ColorKey;
-  setColorKey: (key: ColorKey) => void; // Updated to use ColorKey type
   onAutofill: () => void;
   hiddenSemesters: string[];
   setHiddenSemesters: (value: string[]) => void;
 };
 
 export default function SettingsPanel({
-  colorKey,
-  setColorKey,
   onAutofill,
   hiddenSemesters,
   setHiddenSemesters,
 }: Props) {
+  const { colorKey, setColorKey } = useContext(DisplaySettingsContext);
   return (
     <Box
       style={{

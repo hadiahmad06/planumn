@@ -1,7 +1,7 @@
 "use client";
 
-import AnimatedTypingText from "@/components/atoms/AnimatedTypingTest";
-import VideoPopup from "@/components/atoms/VideoPopup";
+import AnimatedTypingText from "@/components/atoms/landing/AnimatedTypingTest";
+import VideoPopup from "@/components/atoms/landing/VideoPopup";
 import LoggedInLandingButtons from "@/components/molecules/landing/LoggedInLandingButtons";
 import LoggedOutLandingButtons from "@/components/molecules/landing/LoggedOutLandingButtons";
 import { UserSessionContext } from "@/contexts/UserSessionContext";

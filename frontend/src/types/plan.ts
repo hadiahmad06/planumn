@@ -36,10 +36,10 @@ export interface Semester {
   courses: Course[];
 }
 
-export interface SemesterDetails {
-  index: string;
-  courses: CourseDetails[];
-}
+// export interface SemesterDetails {
+//   index: string;
+//   courses: CourseDetails[];
+// }
 
 export interface Plan {
   id: string;
@@ -57,12 +57,17 @@ export interface PlanNullable {
   semesters: Semester[];
 }
 
-export interface PlanDetails {
-  id: string;
-  user_id: string | null;
-  createdAt: Date;
-  major: string[];
-  semesters: SemesterDetails[];
-}
+// export interface PlanDetails {
+//   id: string;
+//   user_id: string | null;
+//   createdAt: Date;
+//   major: string[];
+//   semesters: SemesterDetails[];
+// }
 
 export type ColorKey = "none" | "department" | "level";
+
+export function isPlanEmpty(plan: Plan): boolean {
+  if (plan.semesters.length === 0) return true;
+  return plan.semesters.every(sem => sem.courses.length === 0);
+}

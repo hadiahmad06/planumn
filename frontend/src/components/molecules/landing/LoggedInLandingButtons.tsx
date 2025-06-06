@@ -1,6 +1,6 @@
 "use client";
 
-import VideoPopup from "@/components/atoms/VideoPopup";
+import VideoPopup from "@/components/atoms/landing/VideoPopup";
 import { Button, Group, Stack } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { IconEdit, IconUpload, IconBook2, IconFolderOpen } from "@tabler/icons-react";

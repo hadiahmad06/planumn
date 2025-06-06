@@ -8,6 +8,9 @@ import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import { ColorSchemeScript, MantineProvider, mantineHtmlProps } from '@mantine/core';
 import { Notifications } from "@mantine/notifications";
+import { UserSessionProvider } from "@/contexts/UserSessionProvider";
+import { PlanProvider } from "@/contexts/PlanProvider";
+import { DisplaySettingsProvider } from "@/contexts/DisplaySettingsProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -50,9 +53,15 @@ export default function RootLayout({
       <body>
         <MantineProvider>
           <Notifications autoClose={4000}/>
-          <ClientLayout>
-            {children}
-          </ClientLayout>
+          <UserSessionProvider>
+            <PlanProvider>
+              <DisplaySettingsProvider>
+                <ClientLayout>
+                  {children}
+                </ClientLayout>
+              </DisplaySettingsProvider>
+            </PlanProvider>
+          </UserSessionProvider>
           {/* {children} */}
         </MantineProvider>
       </body>
