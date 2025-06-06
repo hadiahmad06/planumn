@@ -209,7 +209,9 @@ export default function PlanDisplay({
           const seasonLabels: Record<string, string> = { '9': 'Fall', '3': 'Spring', '5': 'Summer' };
           
           // Accordion control open/closed state for bottom border radius
-          const [openAccordion, setOpenAccordion] = useState<string | null>(null);
+          const [openAccordion, setOpenAccordion] = useState<string[]>(() =>
+            plan.semesters.map((sem) => sem.index)
+          );
 
           plan.semesters.forEach((sem) => {
             const seasonCode = sem.index[3];
@@ -247,8 +249,9 @@ export default function PlanDisplay({
                           );
                           return (
                               <Accordion
+                                multiple
                                 value={openAccordion}
-                                onChange={(value) => setOpenAccordion(value)}
+                                onChange={setOpenAccordion}
                                 style={{
                                   width: '100%',
                                   background: 'transparent',
@@ -257,12 +260,10 @@ export default function PlanDisplay({
                                   display: 'flex',
                                   flexDirection: 'column',
                                 }}
-                                defaultValue={sem.index}
                                 styles={{
                                   content: { margin: 0, padding: 0 },
                                   item: {
                                     border: 'none',
-                                    // background: 'transparent',
                                     margin: 0,
                                     padding: 0,
                                     borderBottomLeftRadius: '1rem',
@@ -280,14 +281,11 @@ export default function PlanDisplay({
                                     display: 'block',
                                     marginBottom: 0,
                                     paddingBottom: 12,
-                                    //top corners always rounded
                                     borderTopLeftRadius: '1rem',
                                     borderTopRightRadius: '1rem',
-                                    //bottom corners only rounded if open
-                                    borderBottomLeftRadius: openAccordion === sem.index ? '0' : '1rem',
-                                    borderBottomRightRadius: openAccordion === sem.index ? '0' : '1rem',
+                                    borderBottomLeftRadius: openAccordion.includes(sem.index) ? '0' : '1rem',
+                                    borderBottomRightRadius: openAccordion.includes(sem.index) ? '0' : '1rem',
                                   },
-                                  
                                   panel: { 
                                     padding: 0, 
                                     margin: 0,
