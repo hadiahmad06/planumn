@@ -345,7 +345,7 @@ export default function PlanDisplay() {
                                                   }}
                                                 >
                                                   <Flex style={{ width: '100%', gap: CREDIT_LINE_GAP }}>
-                                                    <Flex direction="column" align="flex-end" style={{ paddingRight: CREDIT_NUMBER_PADDING, minWidth: '2ch' }}>
+                                                    <Flex direction="column" align="flex-end" >
                                                       {Array.from({ length: totalCredits }).map((_, i) => (
                                                         <Text
                                                           key={i}
