@@ -1,7 +1,7 @@
 "use client";
 
 import { Droppable } from "@hello-pangea/dnd";
-import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal, Stack, Space, Accordion } from '@mantine/core';
+import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal, Stack, Space, Accordion, ScrollArea } from '@mantine/core';
 // Accordion control open/closed styles
 // You may move these to a CSS module or stylesheet if preferred
 const SEMESTER_BACKGROUND = 'linear-gradient(135deg, rgba(221, 208, 208, 0.8), rgba(245, 245, 255, 0.6))';
@@ -27,9 +27,9 @@ const SEMESTER_BOX_PADDING = 3;
 const CREDIT_NUMBER_PADDING = 0;
 
 // Dimensions
-const SEMESTER_BOX_WIDTH = "160px";
-const SEMESTER_BOX_MIN_HEIGHT = "100px";
-const CREDIT_LINE_HEIGHT = "20px";  // 20px
+const SEMESTER_BOX_WIDTH = "150px";
+const SEMESTER_BOX_MIN_HEIGHT = "90px";
+const CREDIT_LINE_HEIGHT = "20px";
 
 // Accordion control open/closed styles
 const accordionControlStyles = {
@@ -114,9 +114,10 @@ export default function PlanDisplay({
           // const courseId = event.data.result.draggableId as number;
           const courseData = JSON.parse(event.data.result.draggableId) as CourseDetails;
           // console.log("Fetched course data:", courseData);
-          const details = courseDetails;
-          details[courseData.id] = courseData;
-          setCourseDetails(details);
+          setCourseDetails(prev => ({
+            ...prev,
+            [courseData.id]: courseData,
+          }));
 
           courses.splice(destination.index, 0, {
             ...courseData,
@@ -153,7 +154,19 @@ export default function PlanDisplay({
   }, [plan]);
 
   return (
-    <Box style={{ background: theme.planDisplayStyles.container.bg, height: '100%', padding: theme.planDisplayStyles.container.padding, position: 'relative' }}>
+    <ScrollArea
+      style={{ height: '100vh', width: '100%' }}
+      type="scroll"
+      offsetScrollbars
+      scrollHideDelay={0}
+    >
+      <Box style={{ minWidth: 'max-content' }}>
+        <Box style={{
+          background: theme.planDisplayStyles.container.bg,
+          height: '100%',
+          padding: '12px 12px 12px 0',
+          position: 'relative',
+        }}>
       <Flex justify="flex-end">
         <Button.Group>
           <Button 
@@ -197,11 +210,14 @@ export default function PlanDisplay({
         </Stack>
       </Flex>
 
+      
       <Flex
         direction="row"
+        align="flex-start"
         gap={theme.planDisplayStyles.container.gap}
-        justify="flex-end"
-        style={{ position: 'absolute', top: 100, right: 32, zIndex: 1 }}
+        justify="flex-start"
+        wrap="nowrap"
+        style={{ padding: 20 }}
       >
         {(() => {
           // Group semesters by year, only Fall and Spring
@@ -232,7 +248,13 @@ export default function PlanDisplay({
                 .map(([year, semGroupRaw]) => {
                   const semGroup = semGroupRaw as Record<'Fall' | 'Spring' | 'Summer', Semester | undefined>;
                   return (
-                    <Flex key={year} direction="column" gap={theme.planDisplayStyles.container.gap + 10}>
+                    <Flex
+                      key={year}
+                      direction="column"
+                      align="center"
+                      gap={theme.planDisplayStyles.container.gap + 10}
+                      style={{ width: '150px' }}
+                    >
                       <Title>
                         {/* {year}–{(parseInt(year) + 1).toString().slice(-2)} */}
                       </Title>
@@ -390,6 +412,8 @@ export default function PlanDisplay({
           );
         })()}
       </Flex>
-    </Box>
+        </Box>
+      </Box>
+    </ScrollArea>
   );
 }
