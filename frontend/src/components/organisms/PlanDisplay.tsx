@@ -17,6 +17,7 @@ const ALWAYS_VISIBLE_CREDITS = 4;
 const COURSE_VERTICAL_GAP = 0;
 
 
+
 // Layout
 const CONTAINER_PADDING = 8;
 const ROW_GAP = 8;
@@ -206,6 +207,9 @@ export default function PlanDisplay({
           // Group semesters by year, only Fall and Spring
           const groupedByAcademicYear: Record<string, { Fall?: Semester; Spring?: Semester; Summer?: Semester }> = {};
           const seasonLabels: Record<string, string> = { '9': 'Fall', '3': 'Spring', '5': 'Summer' };
+          
+          // Accordion control open/closed state for bottom border radius
+          const [openAccordion, setOpenAccordion] = useState<string | null>(null);
 
           plan.semesters.forEach((sem) => {
             const seasonCode = sem.index[3];
@@ -243,6 +247,8 @@ export default function PlanDisplay({
                           );
                           return (
                               <Accordion
+                                value={openAccordion}
+                                onChange={(value) => setOpenAccordion(value)}
                                 style={{
                                   width: '100%',
                                   background: 'transparent',
@@ -259,26 +265,10 @@ export default function PlanDisplay({
                                     // background: 'transparent',
                                     margin: 0,
                                     padding: 0,
-                                    borderBottomLeftRadius: 0,
-                                    borderBottomRightRadius: 0,
+                                    borderBottomLeftRadius: '1rem',
+                                    borderBottomRightRadius: '1rem',
                                   },
                                   control: {
-                                    borderTopLeftRadius: '1rem',
-                                    borderTopRightRadius: '1rem',
-                                    borderBottomLeftRadius: 0,
-                                    borderBottomRightRadius: 0,
-                                    padding: 0,
-                                    margin: 0,
-                                    height: 'auto'
-                                  },
-                                  
-                                  panel: { padding: 0, margin: 0 },
-                                  chevron: { display: 'none' }
-                                }}
-                              >
-                              <Accordion.Item value={sem.index} key={sem.index}>
-                                <Accordion.Control
-                                  style={{
                                     textAlign: 'center',
                                     fontSize: SEMESTER_TITLE_SIZE,
                                     color: '#2D2A32',
@@ -290,23 +280,34 @@ export default function PlanDisplay({
                                     display: 'block',
                                     marginBottom: 0,
                                     paddingBottom: 12,
-                                  }}
-                                >
+                                    //top corners always rounded
+                                    borderTopLeftRadius: '1rem',
+                                    borderTopRightRadius: '1rem',
+                                    //bottom corners only rounded if open
+                                    borderBottomLeftRadius: openAccordion === sem.index ? '0' : '1rem',
+                                    borderBottomRightRadius: openAccordion === sem.index ? '0' : '1rem',
+                                  },
+                                  
+                                  panel: { 
+                                    padding: 0, 
+                                    margin: 0,
+                                    background: 'transparent',
+                                    boxShadow: 'none',
+                                    border: 'none',
+                                    display: 'block',
+                                    borderBottomLeftRadius: '1rem',
+                                    borderBottomRightRadius: '1rem',
+                                  },
+                                  chevron: { display: 'none' }
+                                }}
+                              >
+                              <Accordion.Item value={sem.index} key={sem.index}>
+                                <Accordion.Control>
                                   <Text>
                                     {season} {season === '🍂 Fall' ? year : parseInt(year) + 1}
                                   </Text>
                                 </Accordion.Control>
-                                <Accordion.Panel
-                                  className="accordion-panel"
-                                  style={{
-                                    background: 'transparent',
-                                    padding: 0,
-                                    margin: 0,
-                                    boxShadow: 'none',
-                                    border: 'none',
-                                    display: 'block',                                    
-                                  }}
-                                >
+                                <Accordion.Panel>
                                   <Droppable droppableId={String(sem.index)} key={sem.index}>
                                     {(provided) => (
                                       <Box
