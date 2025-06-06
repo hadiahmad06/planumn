@@ -1,8 +1,8 @@
 import { Course, CourseDetails } from '@/types/plan';
 import { Box, Text, Stack, Loader, Group } from '@mantine/core';
 import { useState, useEffect } from 'react';
-import { BarChart } from '../atoms/barchart';
-import { AreaChart } from '../atoms/areachart';
+import { BarChart } from '../atoms/course-preview/barchart';
+import { AreaChart } from '../atoms/course-preview/areachart';
 
 type CoursePreviewProps = {
   course: CourseDetails | null;

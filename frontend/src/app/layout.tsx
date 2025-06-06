@@ -3,8 +3,14 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ClientLayout from "./client-layout";
 
+
 import '@mantine/core/styles.css';
+import '@mantine/notifications/styles.css';
 import { ColorSchemeScript, MantineProvider, mantineHtmlProps } from '@mantine/core';
+import { Notifications } from "@mantine/notifications";
+import { UserSessionProvider } from "@/contexts/UserSessionProvider";
+import { PlanProvider } from "@/contexts/PlanProvider";
+import { DisplaySettingsProvider } from "@/contexts/DisplaySettingsProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -46,9 +52,16 @@ export default function RootLayout({
       </head>
       <body>
         <MantineProvider>
-          <ClientLayout>
-            {children}
-          </ClientLayout>
+          <Notifications autoClose={4000}/>
+          <UserSessionProvider>
+            <PlanProvider>
+              <DisplaySettingsProvider>
+                <ClientLayout>
+                  {children}
+                </ClientLayout>
+              </DisplaySettingsProvider>
+            </PlanProvider>
+          </UserSessionProvider>
           {/* {children} */}
         </MantineProvider>
       </body>

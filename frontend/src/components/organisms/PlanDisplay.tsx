@@ -1,13 +1,16 @@
 "use client";
 
 import { Droppable } from "@hello-pangea/dnd";
-import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal, Stack, Space } from '@mantine/core';
+import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal, Stack, Space, Container, Group } from '@mantine/core';
 import { FiSave, FiShare } from "react-icons/fi";
 import CourseCard from "../molecules/CourseCard";
-import { ColorKey, Course, CourseDetails, PlanDetails, Semester } from "@/types/plan";
-import { useEffect, useState } from "react";
+import { ColorKey, Course, CourseDetails, Plan, Semester } from "@/types/plan";
+import { useContext, useEffect, useState } from "react";
 import { fetchCourseDetails, updateLock, previewCourse } from "@/types/planHandlers";
 import theme from "@/styles/theme";
+import { DisplaySettingsContext } from "@/contexts/DisplaySettingsContext";
+import { PlanContext } from "@/contexts/PlanContext";
+import SearchLayout from "@/components/organisms/SearchLayout";
 
 const ALWAYS_VISIBLE_CREDITS = 4;
 const COURSE_VERTICAL_GAP = 0;
@@ -31,55 +34,19 @@ const SEMESTER_TITLE_SIZE = "18px";
 const CREDIT_NUMBER_SIZE = "xs";
 const SEMESTER_TITLE_WEIGHT = "medium";
 
-// Colors
-const SEMESTER_BOX_BG = "gray.50";
-const SEMESTER_BOX_BORDER = "gray.200";
-const SECONDARY_TEXT_COLOR = "gray.500";
-
 // Margins
 const HEADING_MARGIN = 4;
 const MAJOR_TEXT_MARGIN = 6;
 const SEMESTER_TITLE_MARGIN = 1;
 
-interface PlanDisplayProps {
-  plan: PlanDetails;
-  setPlan: (plan: PlanDetails) => void;
-}
 
-export default function PlanDisplay({
-  plan,
-  setPlan,
-}: PlanDisplayProps) {
-  const [colorKey, setColorKey] = useState<ColorKey>('department');
-  const [courseDetails, setCourseDetails] = useState<Record<number, CourseDetails>>({});
+export default function PlanDisplay() {
+  const { plan, setPlan, cachedCourses, setCachedCourses} = useContext(PlanContext);
+  if (!plan) {
+    return <Skeleton height="100%" />; // Handle loading state
+  }
 
-  useEffect(() => {
-    // Fetch the initial colorKey value from GlobalSearchLayout
-    const fetchInitialColorKey = () => {
-      const initialColorKey = window.localStorage.getItem('colorKey'); // Assuming GlobalSearchLayout stores it in localStorage
-      if (initialColorKey) {
-        setColorKey(initialColorKey as ColorKey);
-      }
-    };
-
-    fetchInitialColorKey();
-    fetchCourseDetails(courseDetails, setCourseDetails, plan);
-
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data.type === 'COLOR_KEY_UPDATE') {
-        setColorKey(event.data.colorKey as ColorKey); // Update colorKey based on the message
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
-  }, []); // Add listener for colorKey updates and fetch initial value
-
-  // Update GlobalSearchLayout with current courses
-  useEffect(() => {
-    const courseIds = plan.semesters.flatMap((sem: { courses: CourseDetails[] }) => sem.courses.map(course => course.id));
-    window.postMessage({ type: 'PLAN_COURSES_UPDATE', courseIds }, '*');
-  }, [plan.semesters]);
+  const { colorKey } = useContext(DisplaySettingsContext);
 
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
@@ -94,13 +61,12 @@ export default function PlanDisplay({
         if (!destSem) return;
         const courses: Course[] = destSem.courses;
         if (source.droppableId === "search") {
-          // console.log("Adding course from search:", event.data.result.draggableId);
-          // const courseId = event.data.result.draggableId as number;
+
           const courseData = JSON.parse(event.data.result.draggableId) as CourseDetails;
-          // console.log("Fetched course data:", courseData);
-          const details = courseDetails;
+
+          const details = cachedCourses;
           details[courseData.id] = courseData;
-          setCourseDetails(details);
+          setCachedCourses(details);
 
           courses.splice(destination.index, 0, {
             ...courseData,
@@ -137,6 +103,24 @@ export default function PlanDisplay({
   }, [plan]);
 
   return (
+    <Group
+      w="100vw"
+      h="100vh"
+      justify="space-between"
+      align="stretch"
+      grow
+    >
+      <Container
+        w="50vw"
+      >
+        <SearchLayout />
+      </Container>
+      <Container
+        fluid
+        style={{
+          marginTop:"4rem",
+        }}
+      >
     <Box style={{ background: theme.planDisplayStyles.container.bg, height: '100%', padding: theme.planDisplayStyles.container.padding, position: 'relative' }}>
       <Flex justify="flex-end">
         <Button.Group>
@@ -217,7 +201,7 @@ export default function PlanDisplay({
                       ALWAYS_VISIBLE_CREDITS,
                       sem.courses.reduce((sum, c) => {
                         const key = c.id;
-                        return sum + (courseDetails[key]?.cred_min || 0);
+                        return sum + (cachedCourses[key]?.cred_min || 0);
                       }, 0)
                     ) : 0;
                   })
@@ -267,7 +251,7 @@ export default function PlanDisplay({
                                 <Flex direction="column" gap={COURSE_VERTICAL_GAP} style={{ width: '100%', alignItems: 'center' }}>
                                   {sem.courses.map((course, j) => {
                                     const key = course.id;
-                                    const details = courseDetails[key];
+                                    const details = cachedCourses[key];
                                     return details ? (
                                       <CourseCard
                                         key={`${sem.index}-${j}`}
@@ -300,5 +284,8 @@ export default function PlanDisplay({
         })()}
       </Flex>
     </Box>
+
+      </Container>
+    </Group>
   );
 }

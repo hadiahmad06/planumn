@@ -34,7 +34,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-, "src/components/atoms/areachart.tsx"  ],
+, "src/components/atoms/course-preview/areachart.tsx"  ],
   "exclude": [
     "node_modules"
   ]

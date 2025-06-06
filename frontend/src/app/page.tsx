@@ -1,7 +1,9 @@
 "use client";
 
-import AnimatedTypingText from "@/components/atoms/AnimatedTypingTest";
-import VideoPopup from "@/components/atoms/VideoPopup";
+import AnimatedTypingText from "@/components/atoms/landing/AnimatedTypingTest";
+import VideoPopup from "@/components/atoms/landing/VideoPopup";
+import LoggedInLandingButtons from "@/components/molecules/landing/LoggedInLandingButtons";
+import LoggedOutLandingButtons from "@/components/molecules/landing/LoggedOutLandingButtons";
 import { UserSessionContext } from "@/contexts/UserSessionContext";
 import "@/styles/global.css"; // make sure this path is correct
 import { Container, Flex, Button, Box, Stack, Text, Title, Group, Center, Space } from "@mantine/core";
@@ -69,48 +71,7 @@ export default function Home() {
             Planner with drag-and-drop course planning.
           </Text>
 
-          <Group
-            justify="center"
-            gap="lg"
-            style={{ paddingTop: "1rem" }}
-          >
-            <Button.Group>
-              <Button
-                leftSection={<IconUpload size={18} />}
-                variant="gradient"
-                gradient={{ from: "#6B102C", to: "#C15D8E", deg: 90 }}
-                size="lg"
-                style={{
-                  borderTopLeftRadius: "1rem",
-                  borderBottomLeftRadius: "1rem",
-                  borderTopRightRadius: "0.25rem",
-                  borderBottomRightRadius: "0.25rem",
-                  marginRight: "0.2rem",
-                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3)",
-                }}
-                onClick={() => (window.location.href = "/plan/import")}
-              >
-                Import Transcript
-              </Button>
-              <Button
-              leftSection={<IconEdit size={18} />}
-                variant="gradient"
-                gradient={{ from: "#C15D8E", to: "#E78AB4", deg: 90 }}
-                size="lg"
-                style={{
-                  borderTopRightRadius: "1rem",
-                  borderBottomRightRadius: "1rem",
-                  borderTopLeftRadius: "0.25rem",
-                  borderBottomLeftRadius: "0.25rem",
-                  boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3)",
-                }}
-                onClick={() => (window.location.href = "/plan")}
-              >
-                Start from Scratch
-              </Button>
-            </Button.Group>
-            <VideoPopup/>
-          </Group>
+          {user && session ? <LoggedInLandingButtons /> : <LoggedOutLandingButtons />}
           {/* ▶  */}
 
           <Group

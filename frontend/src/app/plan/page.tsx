@@ -1,19 +1,16 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import SettingsPanel from "@/components/molecules/SettingsPanel";
-import SearchBar from "@/components/molecules/SearchBar";
-import CoursePreviewPanel from "@/components/organisms/CoursePreviewPanel";
-import { Box, Flex, Text, Stack, Title } from '@mantine/core';
-import GlobalSearchLayout from "@/components/organisms/GlobalSearchLayout";
+import { useContext, useEffect, useState } from "react";
 import PlanDisplay from "@/components/organisms/PlanDisplay";
-import { Course, CourseDetails, Plan, PlanDetails, Semester, SemesterDetails } from "@/types/plan";
-// import { handleUpdateLock, handlePreviewCourse } from "@/handlers/planHandlers";
+import { Plan, Semester } from "@/types/plan";
+import { PlanContext } from "@/contexts/PlanContext";
+import { Skeleton } from "@mantine/core";
+import OverwriteSavedPrompt from "@/components/atoms/OverwriteSavedPrompt";
 
 // Create a new empty plan
-const createEmptyPlan = (): PlanDetails => {
+const createEmptyPlan = (): Plan => {
   const currentYear = new Date().getFullYear();
-  const semesters: SemesterDetails[] = [];
+  const semesters: Semester[] = [];
   
   // Create 12 semesters (4 years)
   for (let i = 0; i < 12; i++) {
@@ -37,12 +34,15 @@ const createEmptyPlan = (): PlanDetails => {
 };
 
 export default function NewPlanPage() {
-  const [planState, setPlanState] = useState<PlanDetails>(createEmptyPlan());
+  const [promptVisible, setPromptVisible] = useState(true);
+  const { setPlan } = useContext(PlanContext);
 
-  return (
-    <PlanDisplay
-      plan={planState}
-      setPlan={setPlanState}
-    />
-  );
+  // logic behind checking if plan already exists is in child component
+  return promptVisible ? 
+    <OverwriteSavedPrompt
+      setPromptVisible={setPromptVisible}
+      onOverwrite={() => setPlan(createEmptyPlan())}
+      message="An autosave was found. Continuing wil replace it with an empty plan."
+      /> 
+      : <PlanDisplay/>;
 }

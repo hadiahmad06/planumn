@@ -1,24 +1,23 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useContext } from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import CourseCard from "./CourseCard";
 import { Box, Input, Text, Flex, Paper } from "@mantine/core";
 import { Course, CourseDetails } from "@/types/plan";
+import { DisplaySettingsContext } from "@/contexts/DisplaySettingsContext";
+import { PlanContext } from "@/contexts/PlanContext";
 
 export type ColorKey = 'department' | 'level' | 'none';
 
 type Props = {
-  colorKey?: ColorKey; // Updated to use ColorKey
   onPreviewCourse?: (course: CourseDetails | null) => void;
-  currentPlanCourses?: number[];
 };
 
-export default function SearchBar({ 
-  colorKey = 'none', // Updated default value to match ColorKey
-  onPreviewCourse,
-  currentPlanCourses = []
-}: Props) {
+export default function SearchBar({ onPreviewCourse }: Props) {
+  const { colorKey } = useContext(DisplaySettingsContext);
+  const { cachedCourses } = useContext(PlanContext);
+
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<CourseDetails[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -47,7 +46,8 @@ export default function SearchBar({
         onPreviewCourse?.(null);
         return;
       }
-      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&exclude=${encodeURIComponent(JSON.stringify(currentPlanCourses))}`);
+      const excludeKeys = Object.keys(cachedCourses);
+      const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&exclude=${encodeURIComponent(JSON.stringify(excludeKeys))}`);
       const data = await res.json();
       setResults(data);
     };
@@ -57,7 +57,7 @@ export default function SearchBar({
     }, 300);
 
     return () => clearTimeout(delayDebounce);
-  }, [query, onPreviewCourse, currentPlanCourses]);
+  }, [query, cachedCourses]);
 
   // Group courses based on colorKey
   const groupedResults = results.reduce((acc, course) => {
