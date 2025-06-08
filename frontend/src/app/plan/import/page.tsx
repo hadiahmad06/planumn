@@ -36,19 +36,23 @@ export default function PlanPage() {
           body: formData,
         });
 
-        const incomplete = await res.json() as PlanNullable;
-        const noCoursesFound = incomplete.semesters.every(semester => semester.courses.length === 0);
-        if (incomplete.semesters.length === 0 || noCoursesFound) {
+        const plan = await res.json() as PlanNullable;
+        const noCoursesFound = plan.semesters.every(semester => semester.courses.length === 0);
+        if (plan.semesters.length === 0 || noCoursesFound) {
           setErrorMessage("Please ensure the file is a valid UMN Unofficial Transcript.");
           setFile(null);
           return;
         }
-        const plan = {
-          ...incomplete,
-          id: "temp", // Temporary ID for display purposes
-          createdAt: new Date(), // Use current date for display
-        } as Plan;
-        // const planDetails = await getPlanDetails(plan);
+        // const plan = {
+        //   ...incomplete,
+        //   id: "temp", // Temporary ID for display purposes
+        //   user_id: "temp",
+        //   createdAt: new Date(), // Use current date for display
+        //   last_updated: new Date(),
+        //   can_view: 
+        //   title: "Imported Plan"
+        // } as Plan;
+
         setPlan(plan);
         setShowPlanDisplay(true);
       } catch (error) {

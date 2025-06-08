@@ -2,13 +2,13 @@
 
 import { useContext, useEffect, useState } from "react";
 import PlanDisplay from "@/components/organisms/PlanDisplay";
-import { Plan, Semester } from "@/types/plan";
+import { Plan, PlanNullable, Semester } from "@/types/plan";
 import { PlanContext } from "@/contexts/PlanContext";
 import { Skeleton } from "@mantine/core";
 import OverwriteSavedPrompt from "@/components/atoms/OverwriteSavedPrompt";
 
 // Create a new empty plan
-const createEmptyPlan = (): Plan => {
+const createEmptyPlan = (): PlanNullable => {
   const currentYear = new Date().getFullYear();
   const semesters: Semester[] = [];
   
@@ -25,10 +25,13 @@ const createEmptyPlan = (): Plan => {
   
   console.log("Created empty plan with semesters:", semesters);
   return {
-    id: "temp",
-    user_id: "temp_user",
-    createdAt: new Date(),
-    major: ["Computer Science B.S."],
+    id: null,
+    user_id: null,
+    created_at: new Date(),
+    last_updated: new Date(),
+    can_view: [],
+    title: "New Plan",
+    programs: ["Computer Science B.S."],
     semesters: semesters
   };
 };

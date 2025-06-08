@@ -14,9 +14,11 @@ import SettingsModal from "@/components/molecules/authentication/SettingsModal";
 import DeletionConfirmationModal from "./DeletionConfirmationModal";
 import { UserSessionContext } from "@/contexts/UserSessionContext";
 import { useContext } from "react";
+import { PlanContext } from "@/contexts/PlanContext";
 
 export default function ProfileDropdown() {
   const { user, setUser } = useContext(UserSessionContext);
+  const { setPlan, changesSaved } = useContext(PlanContext);
   const [openedSettings, { open: openSettings, close: closeSettings }] = useDisclosure(false);
   const [openedDeletionConfirmation, { open: openDeletionConfirmation, close: closeDeletionConfirmation }] = useDisclosure(false);
 
@@ -81,6 +83,10 @@ export default function ProfileDropdown() {
               onClick={async () => {
                 await supabase.auth.signOut();
                 setUser(null);
+                if(changesSaved) {
+                  setPlan(null);
+                  localStorage.removeItem("plan");
+                }
               }}
             >
               Log out

@@ -3,6 +3,7 @@ import PDFParser from "pdf2json";
 import path from "path";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
+import { Course, PlanNullable } from "@/types/plan";
 
 
 export const POST = async (req: NextRequest) => {
@@ -42,7 +43,7 @@ export const POST = async (req: NextRequest) => {
   // Match all semester headers (e.g. "Fall Semester 2022") along with their index
   const semRegex = /(Fall|Spring|Summer)\s+Semester\s+(\d{4})/g;
   let match;
-  const semesters: Record<string, string[]> = {};
+  const semesters: Record<string, number[]> = {};
   const indices: { name: string; index: number }[] = [];
 
   while ((match = semRegex.exec(rawText)) !== null) {
@@ -74,7 +75,7 @@ export const POST = async (req: NextRequest) => {
         const result = await db.get(
           `SELECT id FROM classdistribution WHERE dept_abbr = ? AND course_num = ?`,
           [dept_abbr, course_num]
-        );
+        ) as Course;
 
         if (result?.id) {
           semesters[semIndex].push(result.id);
@@ -87,12 +88,18 @@ export const POST = async (req: NextRequest) => {
 
   await db.close();
   const formatted = {
-    major: ["Unknown"], // will update this once we have major data
+    id: null,
+    user_id: null,
+    created_at: new Date(),
+    last_updated: new Date(),
+    can_view: [],
+    title: "Imported Plan",
+    programs: ["Unknown"], // will update this once we have major data
     semesters: Object.entries(semesters).map(([index, ids]) => ({
       index,
       courses: ids.map((id) => ({ id, lock: "locked" })),
     })),
-  };
+  } as PlanNullable;
 
   return NextResponse.json(formatted);
 };

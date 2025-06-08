@@ -4,6 +4,9 @@ import { Box } from '@mantine/core';
 import { Draggable } from '@hello-pangea/dnd';
 import { getCourseColor } from '@/lib/colors';
 import { ColorKey, CourseDetails } from '@/types/plan';
+import { useContext } from 'react';
+import { PlanContext } from '@/contexts/PlanContext';
+import { DisplaySettingsContext } from '@/contexts/DisplaySettingsContext';
 
 const CARD_PADDING = '0.5rem';
 const CARD_FIXED_FONT_SIZE = '14px';
@@ -12,11 +15,11 @@ const CARD_FIXED_HEIGHT = '40px';
 const CARD_HEIGHT_MULTIPLIER = 20;
 
 export default function CourseCard({
-  course,
+  courseId,
   index = 0,
   semName = '',
   updateLock,
-  colorKey = 'none',
+  // colorKey = 'none',
   isDraggable = true,
   className = '',
   onClick,
@@ -25,11 +28,11 @@ export default function CourseCard({
   fontSize = CARD_FIXED_FONT_SIZE,
   onPreviewCourse,
 }: {
-  course: CourseDetails;
+  courseId: number;
   index?: number;
   semName?: string;
   updateLock?: () => void;
-  colorKey?: ColorKey;
+  // colorKey?: ColorKey;
   isDraggable?: boolean;
   className?: string;
   onClick?: () => void;
@@ -38,7 +41,12 @@ export default function CourseCard({
   fontSize?: string;
   onPreviewCourse?: (course: CourseDetails | null) => void;
 }) {
-  const courseColor = colorKey === 'department'
+  const { cachedCourses, cachedSearchResults } = useContext(PlanContext);
+  const { colorKey } = useContext(DisplaySettingsContext);
+  const course = cachedCourses[courseId] || cachedSearchResults[courseId];
+  
+  const courseColor = !course ? '#607D8B' 
+  : colorKey === 'department'
     ? getCourseColor(course, 'department')
     : colorKey === 'level'
     ? getCourseColor(course, 'level')

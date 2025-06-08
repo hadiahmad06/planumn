@@ -1,5 +1,6 @@
-import { Course, CourseDetails, Plan, PlanDetails, Semester } from "@/types/plan";
-import { useEffect } from "react";
+import { PlanContext } from "@/contexts/PlanContext";
+import { Course, CourseDetails, Semester } from "@/types/plan";
+import { useContext, useEffect } from "react";
 
 // export async function getPlanDetails(plan: Plan): Promise<PlanDetails> {
 //   const semesters = await Promise.all(
@@ -34,54 +35,52 @@ export async function getCourseDetails(id:string) {
   return response.json();
 }
 
-export async function fetchCourseDetails (
-  courseDetails: Record<number, CourseDetails>, 
-  setCourseDetails: (courseDetails: Record<number, CourseDetails>) => void,
-  plan: PlanDetails) {
-      const details: Record<number, CourseDetails> = { ...courseDetails };
-      for (const semester of plan.semesters) {
-        for (const course of semester.courses) {
-          const key = course.id;
-          if (!details[key]) {
-            try {
-              const courseInfo = await getCourseDetails(key.toString());
-              if (courseInfo) {
-                details[key] = {
-                  ...course,
-                  lock: course.lock || "locked"
-                };
-              }
-            } catch (error) {
-              console.error(`Error fetching details for ${course.id}:`, error);
-              // Fall back to basic course info if fetch fails
-              details[key] = {
-                ...course,
-                class_desc: `unknown`,
-                cred_min: 1,
-                cred_max: 1,
-                lock: course.lock || "unlocked"
-              };
-            }
-          }
-        }
-      }
-      setCourseDetails(details);
-    };
+// export async function fetchCourseDetails (
+//   courseDetails: Record<number, CourseDetails>, 
+//   setCourseDetails: (courseDetails: Record<number, CourseDetails>) => void,
+//   plan: PlanDetails) {
+//       const details: Record<number, CourseDetails> = { ...courseDetails };
+//       for (const semester of plan.semesters) {
+//         for (const course of semester.courses) {
+//           const key = course.id;
+//           if (!details[key]) {
+//             try {
+//               const courseInfo = await getCourseDetails(key.toString());
+//               if (courseInfo) {
+//                 details[key] = {
+//                   ...course,
+//                   lock: course.lock || "locked"
+//                 };
+//               }
+//             } catch (error) {
+//               console.error(`Error fetching details for ${course.id}:`, error);
+//               // Fall back to basic course info if fetch fails
+//               details[key] = {
+//                 ...course,
+//                 class_desc: `unknown`,
+//                 cred_min: 1,
+//                 cred_max: 1,
+//                 lock: course.lock || "unlocked"
+//               };
+//             }
+//           }
+//         }
+//       }
+//       setCourseDetails(details);
+//     };
 
-export function updateLock(
-  planState: Plan,
-  setPlanState: (plan: Plan) => void
-) {
-  return (semIndex: string, course: Course) => {
-    const updated = [...planState.semesters];
-    const semIdx = updated.findIndex(s => s.index === semIndex);
-    const courseIdx = updated[semIdx].courses.findIndex(c => c.id === course.id);
+export function updateLock(semIndex: string, j: number){
+  const { plan, setPlan } = useContext(PlanContext);
+  if (!plan) return;
 
-    const currentLock = updated[semIdx].courses[courseIdx].lock;
-    updated[semIdx].courses[courseIdx].lock =
-      currentLock === "locked" ? "unlocked" : "locked";
-    setPlanState({ ...planState, semesters: updated });
-  };
+  const updated = [...plan.semesters];
+  const semIdx = updated.findIndex(s => s.index === semIndex);
+  // const courseIdx = updated[semIdx].courses.findIndex(c => c.id === course.id);
+
+  const currentLock = updated[semIdx].courses[j].lock;
+  updated[semIdx].courses[j].lock =
+  currentLock === "locked" ? "unlocked" : "locked";
+  setPlan({ ...plan, semesters: updated });
 }
 
 export function previewCourse(course: CourseDetails | null) {

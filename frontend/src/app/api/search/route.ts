@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import path from "path";
-import { Course } from "@/types/plan";
+import { Course, CourseStub } from "@/types/plan";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const q = searchParams.get("q")?.toLowerCase().replace(/\s+/g, "") ?? "";
   const excludeParam = searchParams.get("exclude");
-  const excludeCourses: number[] = excludeParam ? JSON.parse(excludeParam) : [];
+  const excludeCourses: number[] = excludeParam ? JSON.parse(excludeParam): [];
 
   const db = await open({
     filename: path.join(process.cwd(), "public", "ProcessedData.db"),
@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   const excludeClause = excludeCourses.length > 0 ? `AND id NOT IN (${excludeCourses.map(() => "?").join(", ")})` : "";
 
   const results = await db.all(
-    `SELECT DISTINCT id, campus, dept_abbr, course_num, class_desc, total_students, total_grades, onestop, onestop_desc, cred_min, cred_max, srt_vals,
+    `SELECT DISTINCT id, dept_abbr, course_num,
       CASE 
         WHEN LOWER(dept_abbr || course_num) = LOWER(?) THEN 1
         WHEN LOWER(dept_abbr || course_num) = LOWER(?) THEN 2
@@ -67,7 +67,7 @@ export async function GET(req: Request) {
       `%${q}%`,
       ...excludeCourses
     ]
-  );
+  ) as CourseStub[];
 
   console.log("Search query:", q);
   console.log("Excluding courses:", excludeCourses);

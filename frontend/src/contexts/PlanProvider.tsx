@@ -2,13 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { PlanContext } from "@/contexts/PlanContext";
-import { CourseDetails, Plan } from "@/types/plan";
+import { CourseDetails, CourseStub, Plan, PlannedCourse, PlanNullable } from "@/types/plan";
 import { getCourseDetails } from "@/types/planHandlers";
 
 export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
-    const [plan, setPlan] = useState<Plan | null>(null);
+    const [plan, setPlan] = useState<PlanNullable | null>(null);
+    const [cachedCourses, setCachedCourses] = useState<Record<number, PlannedCourse>>({});
     const [planFetched, setPlanFetched] = useState<boolean>(false);
-    const [cachedCourses, setCachedCourses] = useState<Record<number, CourseDetails>>({});
+    const [changesSaved, setChangesSaved] = useState<boolean>(true);
+    const [cachedSearchResults, setCachedSearchResults] = useState<Record<number, CourseStub>>({});
 
     // Load from localStorage on mount
     useEffect(() => {
@@ -19,31 +21,53 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
         setPlanFetched(true);
     }, []);
 
-    // Save to localStorage and updated cached on update.
+    useEffect(() => {
+        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+            if (!changesSaved) {
+                e.preventDefault();
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload);
+        };
+    }, [changesSaved]);
+
+    // Save to localStorage, update cache, and trigger autosave changesSaved status on update.
     useEffect(() => {
         localStorage.setItem("plan", JSON.stringify(plan));
         if (plan) {
             const allCourses = plan.semesters.flatMap(sem => sem.courses);
             Promise.all(allCourses.map(course => getCourseDetails(String(course.id))))
             .then(detailsArr => {
-                const detailsMap: Record<number, CourseDetails> = {};
+                const detailsMap: Record<number, PlannedCourse> = {};
                 detailsArr.forEach((details, idx) => {
                 detailsMap[allCourses[idx].id] = details;
                 });
                 setCachedCourses(detailsMap);
             });
+            
         } else {
             setCachedCourses({});
+            setChangesSaved(true);
         }
         console.log(cachedCourses);
     }, [plan]);
 
-    useEffect(() => {
-
-    })
-
     return (
-        <PlanContext.Provider value={{ plan, setPlan, planFetched, cachedCourses, setCachedCourses}}>
+        <PlanContext.Provider
+            value={{
+                plan,
+                setPlan,
+                cachedCourses,
+                setCachedCourses,
+                planFetched,
+                changesSaved,
+                cachedSearchResults,
+                setCachedSearchResults
+            }}
+        >
             {children}
         </PlanContext.Provider>
     );

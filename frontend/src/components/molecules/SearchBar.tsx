@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useContext } from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import CourseCard from "./CourseCard";
 import { Box, Input, Text, Flex, Paper } from "@mantine/core";
-import { Course, CourseDetails } from "@/types/plan";
+import { Course, CourseDetails, CourseStub } from "@/types/plan";
 import { DisplaySettingsContext } from "@/contexts/DisplaySettingsContext";
 import { PlanContext } from "@/contexts/PlanContext";
 
@@ -16,10 +16,10 @@ type Props = {
 
 export default function SearchBar({ onPreviewCourse }: Props) {
   const { colorKey } = useContext(DisplaySettingsContext);
-  const { cachedCourses } = useContext(PlanContext);
+  const { cachedCourses, setCachedSearchResults } = useContext(PlanContext);
 
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<CourseDetails[]>([]);
+  const [results, setResults] = useState<CourseStub[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -48,8 +48,11 @@ export default function SearchBar({ onPreviewCourse }: Props) {
       }
       const excludeKeys = Object.keys(cachedCourses);
       const res = await fetch(`/api/search?q=${encodeURIComponent(query)}&exclude=${encodeURIComponent(JSON.stringify(excludeKeys))}`);
-      const data = await res.json();
+      const data = await res.json() as CourseStub[];
       setResults(data);
+      setCachedSearchResults(
+        Object.fromEntries(data.map((course) => [course.id, course]))
+      );
     };
 
     const delayDebounce = setTimeout(() => {
@@ -70,7 +73,7 @@ export default function SearchBar({ onPreviewCourse }: Props) {
     }
     acc[key].push(course);
     return acc;
-  }, {} as Record<string, CourseDetails[]>);
+  }, {} as Record<string, CourseStub[]>);
 
   // Sort keys based on colorKey
   const sortedKeys = Object.keys(groupedResults).sort((a, b) => 
@@ -172,12 +175,11 @@ export default function SearchBar({ onPreviewCourse }: Props) {
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              onMouseEnter={() => onPreviewCourse?.(course)}
+                              onMouseEnter={() => {}}
                               onMouseLeave={() => onPreviewCourse?.(null)}
                             >
                               <CourseCard
-                                course={course}
-                                colorKey={colorKey} // Pass colorKey directly to CourseCard
+                                courseId={course.id}
                                 isDraggable={false}
                                 fixedWidth={true}
                                 fixedHeight={true}

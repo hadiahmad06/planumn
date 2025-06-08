@@ -44,8 +44,11 @@ export default function PlanPage() {
 
       const plan: Plan = {
         id: data.id,
-        createdAt: new Date(data.created_at),
-        major: data.major,
+        created_at: new Date(data.created_at),
+        last_updated: new Date(data.last_updated),
+        can_view: data.can_view,
+        title: data.title,
+        programs: data.programs,
         semesters: data.semesters.map((semester: any) => ({
           ...semester,
           courses: semester.courses.map((course: any) => ({
@@ -58,8 +61,8 @@ export default function PlanPage() {
         user_id: data.user_id,
       };
 
-      const expired = Date.now() - plan.createdAt.getTime() > 1000 * 60 * 60 * 48;
-      setIsExpired(expired);
+      // const expired = Date.now() - plan.created_at.getTime() > 1000 * 60 * 60 * 48;
+      // setIsExpired(expired);
 
       // const planDetails = await getPlanDetails(plan);
       setPlan(plan);
@@ -67,28 +70,6 @@ export default function PlanPage() {
 
     fetchPlan();
   }, [planId]);
-
-  useEffect(() => {
-    if (!plan || !user || plan.user_id !== user.id) return;
-
-    const updatePlan = async () => {
-      const { error } = await supabase
-        .from("plans")
-        .update({
-          major: plan.major,
-          semesters: plan.semesters,
-        })
-        .eq("id", plan.id);
-
-      if (error) {
-        console.error("Failed to sync plan to Supabase:", error);
-      } else {
-        console.log("Plan synced successfully");
-      }
-    };
-
-    updatePlan();
-  }, [plan, user]);
 
   if (!planId) return notFound();
 

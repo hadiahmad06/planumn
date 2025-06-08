@@ -8,9 +8,9 @@ const SEMESTER_BACKGROUND = 'linear-gradient(135deg, rgba(221, 208, 208, 0.8), r
 
 import { FiSave, FiShare } from "react-icons/fi";
 import CourseCard from "../molecules/CourseCard";
-import { ColorKey, Course, CourseDetails, Plan, Semester } from "@/types/plan";
+import { ColorKey, Course, CourseDetails, CourseMetadata, Plan, QueriedCourse, Semester } from "@/types/plan";
 import { useContext, useEffect, useState } from "react";
-import { fetchCourseDetails, updateLock, previewCourse } from "@/types/planHandlers";
+import { updateLock, previewCourse } from "@/types/planHandlers";
 import theme from "@/styles/theme";
 import { DisplaySettingsContext } from "@/contexts/DisplaySettingsContext";
 import { PlanContext } from "@/contexts/PlanContext";
@@ -75,18 +75,18 @@ export default function PlanDisplay() {
 
         const destSem = updated.find(sem => sem.index === destination.droppableId);
         if (!destSem) return;
-        const courses: Course[] = destSem.courses;
+        const courses: CourseMetadata[] = destSem.courses;
         if (source.droppableId === "search") {
 
-          const courseData = JSON.parse(event.data.result.draggableId) as CourseDetails;
+          const courseData = JSON.parse(event.data.result.draggableId) as QueriedCourse;
 
-          const details = cachedCourses;
-          details[courseData.id] = courseData;
-          setCachedCourses(details);
+          // const details = cachedCourses;
+          // details[courseData.id] = courseData;
+          // setCachedCourses(details);
 
           courses.splice(destination.index, 0, {
             ...courseData,
-            lock: courseData.lock || "unlocked"
+            lock: "unlocked"
           });
 
         } else {
@@ -182,7 +182,11 @@ export default function PlanDisplay() {
                       color: '#6C6F85',
                     }}
                   >
-                    Major: {plan.major.join(', ') || "Unknown"}
+                    Program{plan.programs && plan.programs.length>0
+                      ? (plan.programs.length === 1 
+                        ? ":" + plan.programs[0] 
+                        : "s:" + plan.programs.join(', ')) 
+                      : ": Unknown"}
                   </Text>
                 </Stack>
               </Flex>
@@ -265,6 +269,7 @@ export default function PlanDisplay() {
                                           multiple
                                           value={openAccordion}
                                           onChange={setOpenAccordion}
+                                          key={`${year}-${season}`}
                                           style={{
                                             width: '100%',
                                             background: 'transparent',
@@ -365,24 +370,33 @@ export default function PlanDisplay() {
                                                       ))}
                                                     </Flex>
                                                     <Flex direction="column" gap={COURSE_VERTICAL_GAP} style={{ width: '100%', alignItems: 'center' }}>
-                                                      {(sem.courses as CourseDetails[]).map((course, j) => {
-                                                        const key = course.id;
-                                                        const details = cachedCourses[key];
-                                                        return details ? (
-                                                          <CourseCard
-                                                            key={`${sem.index}-${j}`}
-                                                            course={details}
-                                                            index={j}
-                                                            semName={sem.index}
-                                                            updateLock={() => updateLock(plan, setPlan)(sem.index, details)}
-                                                            colorKey={colorKey}
-                                                            fixedWidth
-                                                            fontSize="15px"
-                                                            onPreviewCourse={previewCourse}
-                                                          />
-                                                        ) : (
-                                                          <Skeleton key={`${sem.index}-${j}`} height="40px" width="100%" />
-                                                        );
+                                                      {(sem.courses as CourseMetadata[]).map((course, j) => {
+                                                        return <CourseCard
+                                                          key={`${sem.index}-${j}`}
+                                                          courseId={course.id}
+                                                          index={j}
+                                                          semName={sem.index}
+                                                          updateLock={() => updateLock(sem.index, j)}
+                                                          fixedWidth
+                                                          fontSize="15px"
+                                                          onPreviewCourse={previewCourse}/>
+                                                        // const key = course.id;
+                                                        // const details = cachedCourses[key];
+                                                        // return details ? (
+                                                        //   <CourseCard
+                                                        //     key={`${sem.index}-${j}`}
+                                                        //     course={details}
+                                                        //     index={j}
+                                                        //     semName={sem.index}
+                                                        //     updateLock={() => updateLock(plan, setPlan)(sem.index, details)}
+                                                        //     colorKey={colorKey}
+                                                        //     fixedWidth
+                                                        //     fontSize="15px"
+                                                        //     onPreviewCourse={previewCourse}
+                                                        //   />
+                                                        // ) : (
+                                                        //   <Skeleton key={`${sem.index}-${j}`} height="40px" width="100%" />
+                                                        // );
                                                       })}
                                                       {provided.placeholder}
                                                     </Flex>

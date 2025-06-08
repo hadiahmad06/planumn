@@ -1,23 +1,30 @@
 "use client";
 
 import { createContext } from "react";
-import { CourseDetails, Plan } from "@/types/plan";
+import { CourseDetails, CourseStub, Plan, PlannedCourse, PlanNullable, QueriedCourse } from "@/types/plan";
 
 export const PlanContext = createContext<{
-    plan: Plan | null
-    setPlan: (plan: Plan | null) => void;
-    planFetched: boolean
-    cachedCourses: Record<number, CourseDetails>
-    setCachedCourses: (courses: Record<number, CourseDetails>) => void;
+    plan: PlanNullable | null
+    setPlan: (plan: PlanNullable | null) => void;
+    cachedCourses: Record<number, PlannedCourse>
+    setCachedCourses: (courses: Record<number, PlannedCourse>) => void;
+    planFetched: boolean;
+    changesSaved: boolean;
+    cachedSearchResults: Record<number, CourseStub>;
+    setCachedSearchResults: (courses: Record<number, CourseStub>) => void;
 }>({
     plan: null,
     setPlan: () => {
         console.warn("setPlan not implemented in context");
     },
-    planFetched: false,
     cachedCourses: {},
-    setCachedCourses: (courses: Record<number, CourseDetails>) => {
+    setCachedCourses: () => {
         console.warn("setCachedCourses not implemented in context");
+    },
+    planFetched: false,
+    changesSaved: true,
+    cachedSearchResults: {},
+    setCachedSearchResults: () => {
+        console.warn("setCachedSearchResults not implemented in context");
     }
 });
-
