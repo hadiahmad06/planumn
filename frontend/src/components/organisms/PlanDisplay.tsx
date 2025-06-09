@@ -10,11 +10,12 @@ import { FiSave, FiShare } from "react-icons/fi";
 import CourseCard from "../molecules/CourseCard";
 import { ColorKey, Course, CourseDetails, CourseMetadata, Plan, QueriedCourse, Semester } from "@/types/plan";
 import { useContext, useEffect, useState } from "react";
-import { updateLock, previewCourse } from "@/types/planHandlers";
+import { updateLock } from "@/types/planHandlers";
 import theme from "@/styles/theme";
 import { DisplaySettingsContext } from "@/contexts/DisplaySettingsContext";
 import { PlanContext } from "@/contexts/PlanContext";
 import SearchLayout from "@/components/organisms/SearchLayout";
+import CoursePreviewPanel from "./CoursePreviewPanel";
 
 const ALWAYS_VISIBLE_CREDITS = 4;
 const COURSE_VERTICAL_GAP = 0;
@@ -378,8 +379,7 @@ export default function PlanDisplay() {
                                                           semName={sem.index}
                                                           updateLock={() => updateLock(sem.index, j)}
                                                           fixedWidth
-                                                          fontSize="15px"
-                                                          onPreviewCourse={previewCourse}/>
+                                                          fontSize="15px"/>
                                                         // const key = course.id;
                                                         // const details = cachedCourses[key];
                                                         // return details ? (

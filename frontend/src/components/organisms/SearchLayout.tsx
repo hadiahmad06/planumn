@@ -13,7 +13,6 @@ import AnimatedTypingText from '../atoms/landing/AnimatedTypingTest';
 export default function SearchLayout() {
   
   const [hiddenSemesters, setHiddenSemesters] = useState<string[]>([]);
-  const [previewCourse, setPreviewCourse] = useState<CourseDetails | null>(null);
   const pathname = usePathname();
 
   return (
@@ -38,9 +37,7 @@ export default function SearchLayout() {
             >
               <AnimatedTypingText blink={false}/>
             </Title>
-            <SearchBar
-              onPreviewCourse={setPreviewCourse}
-            />
+            <SearchBar/>
             {provided.placeholder}
           </Box>
         )}
@@ -54,8 +51,6 @@ export default function SearchLayout() {
           }
         }}
       />
-        
-      <CoursePreviewPanel course={previewCourse} />
     </Stack>
   );
 }

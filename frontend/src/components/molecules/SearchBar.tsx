@@ -10,11 +10,7 @@ import { PlanContext } from "@/contexts/PlanContext";
 
 export type ColorKey = 'department' | 'level' | 'none';
 
-type Props = {
-  onPreviewCourse?: (course: CourseDetails | null) => void;
-};
-
-export default function SearchBar({ onPreviewCourse }: Props) {
+export default function SearchBar() {
   const { colorKey } = useContext(DisplaySettingsContext);
   const { cachedCourses, setCachedSearchResults } = useContext(PlanContext);
 
@@ -29,7 +25,6 @@ export default function SearchBar({ onPreviewCourse }: Props) {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsOpen(false);
-        onPreviewCourse?.(null);
       }
     };
 
@@ -37,13 +32,12 @@ export default function SearchBar({ onPreviewCourse }: Props) {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [onPreviewCourse]);
+  }, []);
 
   useEffect(() => {
     const fetchResults = async () => {
       if (query.length === 0) {
         setResults([]);
-        onPreviewCourse?.(null);
         return;
       }
       const excludeKeys = Object.keys(cachedCourses);
@@ -175,14 +169,13 @@ export default function SearchBar({ onPreviewCourse }: Props) {
                               ref={provided.innerRef}
                               {...provided.draggableProps}
                               {...provided.dragHandleProps}
-                              onMouseEnter={() => {}}
-                              onMouseLeave={() => onPreviewCourse?.(null)}
                             >
                               <CourseCard
                                 courseId={course.id}
                                 isDraggable={false}
                                 fixedWidth={true}
                                 fixedHeight={true}
+                                source="search"
                               />
                             </Box>
                           )}

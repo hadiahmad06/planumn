@@ -16,11 +16,14 @@ import { IconPlayCardJFilled } from '@tabler/icons-react';
 import { DragDropContext, DropResult } from '@hello-pangea/dnd';
 import { PlanContext } from '@/contexts/PlanContext';
 import { UserSessionContext } from '@/contexts/UserSessionContext';
+import CoursePreviewPanel from '@/components/organisms/CoursePreviewPanel';
+import { Course, CourseDetails } from '@/types/plan';
+import { PreviewContext } from '@/contexts/PreviewContext';
+import { PreviewProvider } from '@/contexts/PreviewProvider';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const {plan} = useContext(PlanContext);
   const {user, session} = useContext(UserSessionContext);
-
 
   const handleDragEnd = (result: DropResult) => {
       if (!result.destination) return;
@@ -33,42 +36,45 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
-      <Box
-        style={{
-          position: 'relative',
-          backgroundImage: 'url("/images/backgroundblur.png")',
-          backgroundSize: 'cover',
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center',
-          minHeight: '100vh',
-          overflow: 'hidden',
-        }}
-      >
+      <PreviewProvider>
         <Box
           style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backdropFilter: 'blur(10px)',
-            backgroundColor: 'rgba(255, 255, 255, 0.7)',
-            zIndex: 0,
+            position: 'relative',
+            backgroundImage: 'url("/images/backgroundblur.png")',
+            backgroundSize: 'cover',
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center',
+            minHeight: '100vh',
+            overflow: 'hidden',
           }}
-        />
-        <Flex
-          justify="space-between"
-          align="center"
-          style={{ padding: '16px', position: 'relative', zIndex: 1 }}
         >
-          {children}
-          <Box style={{ position: 'absolute', top: '16px', right: '16px' }}>
-            {user && session ? <ProfileDropdown /> : <AuthButton />}
-          </Box>
-        </Flex>
-        <SpeedInsights />
-        <Analytics />
-      </Box>
+          <Box
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backdropFilter: 'blur(10px)',
+              backgroundColor: 'rgba(255, 255, 255, 0.7)',
+              zIndex: 0,
+            }}
+          />
+          <Flex
+            justify="space-between"
+            align="center"
+            style={{ padding: '16px', position: 'relative', zIndex: 1 }}
+          >
+            {children}
+            <Box style={{ position: 'absolute', top: '16px', right: '16px' }}>
+              {user && session ? <ProfileDropdown /> : <AuthButton />}
+            </Box>
+          </Flex>
+          <CoursePreviewPanel/>
+          <SpeedInsights />
+          <Analytics />
+        </Box>
+      </PreviewProvider>
     </DragDropContext>
   );
 }
