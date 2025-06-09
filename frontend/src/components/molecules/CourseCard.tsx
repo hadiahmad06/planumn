@@ -76,8 +76,8 @@ export default function CourseCard({
       transition: 'transform 0.2s',
       }}
       onClick={() => setPersistPreview?.(course, source === "search" ? "bottom-right" : "bottom-left")}
-      onMouseEnter={() => setTempPreview?.(course, source === "search" ? "bottom-right" : "bottom-left")}
-      onMouseLeave={() => setTempPreview?.(null, null)}
+      onPointerEnter={() => setTempPreview?.(course, source === "search" ? "bottom-right" : "bottom-left")}
+      onPointerLeave={() => setTempPreview?.(null, null)}
       className={className}
     >
       {course.dept_abbr} {course.course_num}
