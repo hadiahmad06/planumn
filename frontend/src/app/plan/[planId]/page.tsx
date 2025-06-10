@@ -6,24 +6,24 @@ import { createBrowserClient } from "@supabase/ssr";
 import { supabase } from "@/lib/supabase";
 import { useParams, notFound } from "next/navigation";
 import PlanDisplay from "@/components/organisms/PlanDisplay";
-import { LockType, Plan } from "@/types/plan";
+import { LockType, Plan, PlanNullable } from "@/types/plan";
 // import { getPlanDetails } from "@/types/planHandlers";
 import { PlanContext } from "@/contexts/PlanContext";
+import { cachePlannedCourses } from "@/contexts/PlanProvider";
 
 export default function PlanPage() {
   const params = useParams();
   const planId = Array.isArray(params?.planId) ? params.planId[0] : params?.planId;
 
-  const { plan, setPlan } = useContext(PlanContext);
-  const [isExpired, setIsExpired] = useState(false);
+  const { setPlan, setRemotePlan, setCachedCourses } = useContext(PlanContext);
   const [user, setUser] = useState<any>(null);
 
-  useEffect(() => {
-    const supabaseClient = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-    supabaseClient.auth.getUser().then(({ data }) => {
-      setUser(data?.user ?? null);
-    });
-  }, []);
+  // useEffect(() => {
+  //   const supabaseClient = createBrowserClient(process.env.NEXT_PUBLIC_SUPABASE_URL!,process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
+  //   supabaseClient.auth.getUser().then(({ data }) => {
+  //     setUser(data?.user ?? null);
+  //   });
+  // }, []);
 
   useEffect(() => {
     const fetchPlan = async () => {
@@ -66,6 +66,8 @@ export default function PlanPage() {
 
       // const planDetails = await getPlanDetails(plan);
       setPlan(plan);
+      setRemotePlan(JSON.parse(JSON.stringify(plan)) as PlanNullable);
+      cachePlannedCourses(plan, setCachedCourses);
     };
 
     fetchPlan();
@@ -73,21 +75,21 @@ export default function PlanPage() {
 
   if (!planId) return notFound();
 
-  if (!plan) {
-    return (
-      <Box
-        style={{
-          minHeight: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          textAlign: "center",
-        }}
-      >
-        <Text>Loading...</Text>
-      </Box>
-    );
-  }
+  // if (!plan) {
+  //   return (
+  //     <Box
+  //       style={{
+  //         minHeight: "100vh",
+  //         display: "flex",
+  //         alignItems: "center",
+  //         justifyContent: "center",
+  //         textAlign: "center",
+  //       }}
+  //     >
+  //       <Text>Loading...</Text>
+  //     </Box>
+  //   );
+  // }
 
   return (
     <PlanDisplay/>
