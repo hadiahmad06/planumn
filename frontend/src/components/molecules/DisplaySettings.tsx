@@ -1,6 +1,5 @@
 "use client";
 
-import { ColorKey } from "@/types/plan";
 import {
   Box,
   Button,
@@ -12,7 +11,6 @@ import {
   Paper
 } from "@mantine/core";
 import { IconX } from "@tabler/icons-react";
-import theme from "@/styles/theme";
 import { useContext, useState, useRef, useEffect } from "react";
 import { DisplaySettingsContext } from "@/contexts/DisplaySettingsContext";
 

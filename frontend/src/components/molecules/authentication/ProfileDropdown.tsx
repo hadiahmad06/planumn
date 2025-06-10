@@ -3,9 +3,6 @@ import { User } from "@supabase/supabase-js";
 import { Menu, Button, Group, Text, Divider, Stack, Space } from "@mantine/core";
 import {
   IconSettings,
-  IconMessageCircle,
-  IconPhoto,
-  IconSearch,
   IconRefresh,
   IconTrash,
   IconUser
@@ -42,7 +39,7 @@ export default function ProfileDropdown() {
             <Text size="xs" c="dimmed" px="xs">Application</Text>
 
             <Menu.Item
-              leftSection={<IconSettings size={16} style={{ marginLeft: "6px" }} />}
+              leftSection={<IconSettings size={16} style={{ marginLeft: "2px" }} />}
               style={{ fontSize: "0.95rem", paddingRight: "1rem" }}
               onClick={openDisplaySettings}
             >
