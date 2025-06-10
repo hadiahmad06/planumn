@@ -4,15 +4,12 @@ import { Box, Container, Flex, Group, Stack, Title } from '@mantine/core';
 import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
 import { ColorKey, Course, CourseDetails } from '@/types/plan';
 import SearchBar from '@/components/molecules/SearchBar';
-import SettingsPanel from '@/components/molecules/SettingsPanel';
 import CoursePreviewPanel from '@/components/organisms/CoursePreviewPanel';
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import AnimatedTypingText from '../atoms/landing/AnimatedTypingTest';
 
 export default function SearchLayout() {
-  
-  const [hiddenSemesters, setHiddenSemesters] = useState<string[]>([]);
   const pathname = usePathname();
 
   return (
@@ -42,15 +39,6 @@ export default function SearchLayout() {
           </Box>
         )}
       </Droppable>
-      <SettingsPanel
-        hiddenSemesters={hiddenSemesters}
-        setHiddenSemesters={setHiddenSemesters}
-        onAutofill={() => {
-          if (pathname.startsWith('/plan')) {
-            window.postMessage({ type: 'AUTOFILL' }, '*');
-          }
-        }}
-      />
     </Stack>
   );
 }

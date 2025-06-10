@@ -1,13 +1,14 @@
 import { supabase } from "@/lib/supabase";
 import { User } from "@supabase/supabase-js";
-import { Menu, Button, Avatar, Group, Text, Modal, Divider, Stack, Space } from "@mantine/core";
+import { Menu, Button, Group, Text, Divider, Stack, Space } from "@mantine/core";
 import {
   IconSettings,
   IconMessageCircle,
   IconPhoto,
   IconSearch,
   IconRefresh,
-  IconTrash
+  IconTrash,
+  IconUser
 } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
 import SettingsModal from "@/components/molecules/authentication/SettingsModal";
@@ -15,12 +16,14 @@ import DeletionConfirmationModal from "./DeletionConfirmationModal";
 import { UserSessionContext } from "@/contexts/UserSessionContext";
 import { useContext } from "react";
 import { PlanContext } from "@/contexts/PlanContext";
+import DisplaySettings from "../DisplaySettings";
 
 export default function ProfileDropdown() {
   const { user, setUser } = useContext(UserSessionContext);
   const { setPlan, changesSaved } = useContext(PlanContext);
   const [openedSettings, { open: openSettings, close: closeSettings }] = useDisclosure(false);
   const [openedDeletionConfirmation, { open: openDeletionConfirmation, close: closeDeletionConfirmation }] = useDisclosure(false);
+  const [openedDisplaySettings, { open: openDisplaySettings, close: closeDisplaySettings }] = useDisclosure(false);
 
   return (
     <>
@@ -39,38 +42,25 @@ export default function ProfileDropdown() {
             <Text size="xs" c="dimmed" px="xs">Application</Text>
 
             <Menu.Item
-              leftSection={<IconSettings size={16} />}
+              leftSection={<IconSettings size={16} style={{ marginLeft: "6px" }} />}
+              style={{ fontSize: "0.95rem", paddingRight: "1rem" }}
+              onClick={openDisplaySettings}
+            >
+              Display Settings
+            </Menu.Item>
+
+            <Divider />
+            <Space h="0.1rem" />
+            <Text size="xs" c="dimmed" px="xs">Account</Text>
+            <Menu.Item
+              leftSection={
+                <IconUser size={20} color="#111" />
+              }
               style={{ fontSize: "0.95rem", paddingRight: "1rem" }}
               onClick={openSettings}
             >
-              Settings
+              Preferences
             </Menu.Item>
-
-            {/* <Menu.Item
-              leftSection={<IconMessageCircle size={16} />}
-              style={{ fontSize: "0.95rem", paddingRight: "1rem" }}
-            >
-              Messages
-            </Menu.Item>
-
-            <Menu.Item
-              leftSection={<IconPhoto size={16} />}
-              style={{ fontSize: "0.95rem", paddingRight: "1rem" }}
-            >
-              Gallery
-            </Menu.Item>
-
-            <Menu.Item
-              leftSection={<IconSearch size={16} />}
-              rightSection={
-                <Text size="xs" c="dimmed">
-                  ⌘K
-                </Text>
-              }
-              style={{ fontSize: "0.95rem", paddingRight: "1rem" }}
-            >
-              Search
-            </Menu.Item> */}
 
             <Divider />
             <Space h="0.1rem" />
@@ -103,6 +93,11 @@ export default function ProfileDropdown() {
           </Stack>
         </Menu.Dropdown>
       </Menu>
+
+      <DisplaySettings
+        opened={openedDisplaySettings}
+        onClose={closeDisplaySettings}
+      />
 
       <SettingsModal
         opened={openedSettings}
