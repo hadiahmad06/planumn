@@ -2,9 +2,10 @@
 
 import { useEffect, useState, useContext } from "react";
 import { PlanContext } from "@/contexts/PlanContext";
-import { CourseDetails, CourseStub, Plan, PlannedCourse, PlanNullable } from "@/types/plan";
+import { CourseStub, Plan, PlannedCourse, PlanNullable } from "@/types/plan";
 import { getCourseDetails } from "@/types/planHandlers";
 import { UserSessionContext } from "@/contexts/UserSessionContext";
+import { useRouter } from "next/navigation";
 
 /**
  * Cache the planned courses for a plan.
@@ -26,6 +27,8 @@ export const cachePlannedCourses = async (
 };
 
 export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
+    const router = useRouter();
+
     const [remotePlan, setRemotePlan] = useState<PlanNullable | null>(null);
 
     const [plan, setPlan] = useState<PlanNullable | null>(null);
@@ -88,6 +91,7 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
         if (changesSaved === false && retryCount < 6 && plan) {
+            const planId = plan.id;
             fetch("/api/plan/", {
                 method: "POST",
                 headers: {
@@ -106,7 +110,11 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
                         });
                         setRemotePlan(JSON.parse(JSON.stringify(plan)));
                         setChangesSaved(true);
+                        if(!planId && !!data.id) {
+                            router.replace(`/plan/${data.id}`);
+                        }
                     });
+                    
                     return;
                 } else {
                     setRetryCount(prev => prev + 1);

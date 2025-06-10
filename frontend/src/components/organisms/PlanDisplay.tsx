@@ -62,12 +62,12 @@ export default function PlanDisplay() {
   const { plan, setPlan, cachedCourses } = useContext(PlanContext);
 
   // Accordion control open/closed state for bottom border radius
-  const [openAccordion, setOpenAccordion] = useState<string[]>([]);
+  const [closedAccordion, setClosedAccordion] = useState<string[]>([]);
 
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
       if (!plan) return;
-      setOpenAccordion(plan.semesters.map((sem) => sem.index))
+      // setClosedAccordion([]);
       if (event.data.type === 'DRAG_END') {
         console.log("Received drag end event:", event.data.result);
         const { source, destination } = event.data.result;
@@ -237,8 +237,12 @@ export default function PlanDisplay() {
                                 return (
                                     <Accordion
                                       multiple
-                                      value={openAccordion}
-                                      onChange={setOpenAccordion}
+                                      value={plan.semesters.map(sem => sem.index).filter(index => !closedAccordion.includes(index))}
+                                      onChange={(newValues) => {
+                                        const allIndices = plan.semesters.map(sem => sem.index);
+                                        const newlyClosed = allIndices.filter(index => !newValues.includes(index));
+                                        setClosedAccordion(newlyClosed);
+                                      }}
                                       key={`${year}-${season}`}
                                       style={{
                                         width: '100%',
@@ -271,8 +275,8 @@ export default function PlanDisplay() {
                                           paddingBottom: 12,
                                           borderTopLeftRadius: '1rem',
                                           borderTopRightRadius: '1rem',
-                                          borderBottomLeftRadius: openAccordion.includes(sem.index) ? '0' : '1rem',
-                                          borderBottomRightRadius: openAccordion.includes(sem.index) ? '0' : '1rem',
+                                          borderBottomLeftRadius: !closedAccordion.includes(sem.index) ? '0' : '1rem',
+                                          borderBottomRightRadius: !closedAccordion.includes(sem.index) ? '0' : '1rem',
                                         },
                                         panel: { 
                                           padding: 0, 

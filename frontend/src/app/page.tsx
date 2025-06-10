@@ -8,10 +8,12 @@ import { UserSessionContext } from "@/contexts/UserSessionContext";
 import "@/styles/global.css"; // make sure this path is correct
 import { Container, Flex, Button, Box, Stack, Text, Title, Group, Center, Space } from "@mantine/core";
 import { IconEdit, IconEye, IconPlayerPlay, IconUpload, IconPlayerPlayFilled } from "@tabler/icons-react";
+import { useRouter } from "next/navigation";
 import { useContext } from "react";
 
 export default function Home() {
   const { user, session } = useContext(UserSessionContext);
+  const router = useRouter();
   return (
     <Flex
       w="100vw"
@@ -136,20 +138,24 @@ export default function Home() {
           >
             <Button
               component="a"
-              href="/info/privacy"
               variant="subtle"
               style={{
                 color: "#811331",
+              }}
+              onClick={() => {
+                router.push("/info/privacy")
               }}
             >
               Privacy
             </Button>
             <Button
               component="a"
-              href="/info/contact"
               variant="subtle"
               style={{
                 color: "#811331",
+              }}
+              onClick={() => {
+                router.push("/info/contact")
               }}
             >
               Contact

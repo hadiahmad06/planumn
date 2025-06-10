@@ -4,8 +4,10 @@ import VideoPopup from "@/components/atoms/landing/VideoPopup";
 import { Button, Group, Stack } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { IconEdit, IconUpload, IconBook2, IconFolderOpen } from "@tabler/icons-react";
+import { useRouter } from "next/navigation";
 
 export default function LoggedInLandingButtons() {
+    const router = useRouter();
     return (
         <Stack gap="sm" justify="center" align="center">
             <Group justify="center" gap="lg" style={{ paddingTop: "1rem" }}>
@@ -23,7 +25,9 @@ export default function LoggedInLandingButtons() {
                             marginRight: "0.2rem",
                             boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3)",
                         }}
-                        onClick={() => (window.location.href = "/plan/import")}
+                        onClick={() => (
+                            router.push("/plan/import")
+                        )}
                     >
                         Import Transcript
                     </Button>
@@ -59,7 +63,9 @@ export default function LoggedInLandingButtons() {
                             borderBottomLeftRadius: "0.25rem",
                             boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3)",
                         }}
-                        onClick={() => (window.location.href = "/plan")}
+                        onClick={() => (
+                            router.push("/plan/new")
+                        )}
                     >
                         Start from Scratch
                     </Button>

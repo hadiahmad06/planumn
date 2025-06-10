@@ -3,9 +3,11 @@
 import VideoPopup from "@/components/atoms/landing/VideoPopup";
 import { Button, Group } from "@mantine/core";
 import { IconEdit, IconUpload } from "@tabler/icons-react";
+import { useRouter } from "next/navigation";
 
 
 export default function LoggedOutLandingButtons() {
+    const router = useRouter();
     return (
         <Group
         justify="center"
@@ -26,7 +28,9 @@ export default function LoggedOutLandingButtons() {
                 marginRight: "0.2rem",
                 boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3)",
             }}
-            onClick={() => (window.location.href = "/plan/import")}
+            onClick={() => (
+                router.push("/plan/import")
+            )}
             >
             Import Transcript
             </Button>
@@ -42,7 +46,9 @@ export default function LoggedOutLandingButtons() {
                 borderBottomLeftRadius: "0.25rem",
                 boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3)",
             }}
-            onClick={() => (window.location.href = "/plan")}
+            onClick={() => (
+                router.push("/plan/new")
+            )}
             >
             Start from Scratch
             </Button>
