@@ -16,10 +16,13 @@ import { DisplaySettingsContext } from "@/contexts/DisplaySettingsContext";
 import { PlanContext } from "@/contexts/PlanContext";
 import SearchLayout from "@/components/organisms/SearchLayout";
 import CoursePreviewPanel from "./CoursePreviewPanel";
-import { IconPlus } from "@tabler/icons-react";
-import SemesterModal from "../molecules/SemesterModal";
+import { IconMinus, IconPlus } from "@tabler/icons-react";
+// import SemesterModal, { semesterModalOpened, openSemesterModal, closeSemesterModal } from "../molecules/SemesterModal";
 import { useDisclosure } from "@mantine/hooks";
-
+import { DeleteLeftmostYear } from "../molecules/YearManipulator/DeleteLeftmostYear";
+import { AddLeftmostYear } from "../molecules/YearManipulator/AddLeftmostyear";
+import { AddRightmostYear } from "../molecules/YearManipulator/AddRightMostYear";
+import { DeleteRightmostYear } from "../molecules/YearManipulator/DeleteRightmostyear";
 
 const ALWAYS_VISIBLE_CREDITS = 4;
 const COURSE_VERTICAL_GAP = 0;
@@ -65,6 +68,7 @@ export default function PlanDisplay() {
   const [semesterModalOpened, { open: openSemesterModal, close: closeSemesterModal }] = useDisclosure(false);
 
   const { plan, setPlan, cachedCourses, setCachedCourses} = useContext(PlanContext);
+
   if (!plan) {
     return <Skeleton height="100%" />; // Handle loading state
   }
@@ -127,10 +131,6 @@ export default function PlanDisplay() {
 
   return (
     <>
-      <SemesterModal
-        opened={semesterModalOpened}
-        onClose={closeSemesterModal}
-      />
       <Group
         w="100vw"
         h="100vh"
@@ -145,11 +145,12 @@ export default function PlanDisplay() {
           <SearchLayout />
         </Box>
         <Box
-          w="60%"
           style={{
             display: 'flex',
             flexDirection: 'column',
             height: '100%',
+            flex: 1,
+            overflowX: 'auto',
           }}
         >
           {/* CENTERED SEMESTER CONTAINER */}
@@ -161,6 +162,8 @@ export default function PlanDisplay() {
               alignItems: 'center',
               paddingTop: '4em',
               paddingBottom: '2rem',
+              paddingLeft: '2rem',
+              paddingRight: '2rem',
             }}
           >
             
@@ -188,14 +191,17 @@ export default function PlanDisplay() {
               </Box>
             </Flex>
               <Box
-              style={{
-                width: '100%',
-                maxWidth: '1200px',
-                background: 'rgba(129, 19, 49, 0.1)',
-                borderRadius: '1rem',
-                padding: '2rem',
-                boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
-              }}
+                style={{
+                  width: '100%',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                  flexGrow: 1,
+                  background: 'rgba(129, 19, 49, 0.1)',
+                  borderRadius: '1rem',
+                  padding: '2rem',
+                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
+                  position: 'relative',
+                }}
               >
               <ScrollArea
                 style={{
@@ -203,56 +209,97 @@ export default function PlanDisplay() {
                   overflow: 'auto',
                 }}
                 type="scroll"
-                scrollbars="y"
+                scrollbars="xy"
                 offsetScrollbars
                 scrollHideDelay={0}
               >
-                <ActionIcon 
-                  variant="light"
-                  color="red"
-                  size="lg"
-                  style={{ 
-                    position: 'absolute',  
-                    zIndex: 1000,
-                  }} 
-                  onClick={openSemesterModal} 
-                >
-                  <IconPlus />
-                </ActionIcon>
                 <Flex
-                direction="row"
-                align="flex-start"
-                justify="center"
-                gap={theme.planDisplayStyles.container.gap}
-                wrap="wrap"
+                  direction="row"
+                  align="flex-start"
+                  justify="center"
+                  gap={theme.planDisplayStyles.container.gap}
+                  wrap="nowrap"
+                  style={{ paddingLeft: '3rem', paddingRight: '3rem' }}
                 >
-                {(() => {
-                  // Group semesters by year, only Fall and Spring
-                  const groupedByAcademicYear: Record<string, { Fall?: Semester; Spring?: Semester; Summer?: Semester }> = {};
-                  const seasonLabels: Record<string, string> = { '9': 'Fall', '3': 'Spring', '5': 'Summer' };
+                  {/* Add year before leftmost year button */}
+                  <Box style={{ position: 'absolute', left: '0rem', zIndex: 1000 }}>
+                    <ActionIcon 
+                      variant="light"
+                      color="green"
+                      size="lg"
+                      onClick={() => AddLeftmostYear(plan, setPlan)}
+                    >
+                      <IconPlus />
+                    </ActionIcon>
+                  </Box>
                   
-                  // Accordion control open/closed state for bottom border radius
-                  const [openAccordion, setOpenAccordion] = useState<string[]>(() =>
-                    plan.semesters.map((sem) => sem.index)
-                  );
+                  {/* Delete this leftmost year button */}
+                  <Box style={{ position: 'absolute', left: '0rem', top: '3rem', zIndex: 1000 }}>
+                    <ActionIcon
+                      variant="light"
+                      color="red"
+                      size="lg"
+                      onClick={() => {
+                        if (plan && setPlan) {
+                          DeleteLeftmostYear(plan, setPlan);
+                        }
+                      }}
+                    >
+                      <IconMinus />
+                    </ActionIcon>
+                  </Box>
 
-                    plan.semesters.forEach((sem) => {
-                      const seasonCode = sem.index[3];
-                      const season = seasonLabels[seasonCode];
-                      if (!season) return;
-                      let year = parseInt('20' + sem.index.slice(1, 3), 10);
-                      // For Spring and Summer, assign to previous year
-                      if (season === 'Spring' || season === 'Summer') year -= 1;
-                      const yearStr = year.toString();
-                      if (!groupedByAcademicYear[yearStr]) groupedByAcademicYear[yearStr] = {};
-                      (groupedByAcademicYear[yearStr] as any)[season] = sem;
-                    });
+                  {/* Add year after rightmost year button */}
+                  <Box style={{  position: 'absolute', right: '0rem', zIndex: 1000 }}>
+                    <ActionIcon 
+                      variant="light"
+                      color="green"
+                      size="lg"
+                      onClick={() => AddRightmostYear(plan, setPlan)}
+                    >
+                      <IconPlus />
+                    </ActionIcon>
+                  </Box>
+                  
+                  {/* Delete this rightmost year button */}
+                  <Box style={{ position: 'absolute', right: '0rem', top: '3rem', zIndex: 1000 }}>
+                    <ActionIcon
+                      variant="light"
+                      color="red"
+                      size="lg"
+                      onClick={() => DeleteRightmostYear(plan, setPlan)}
+                    >
+                      <IconMinus />
+                    </ActionIcon>
+                  </Box>
 
-                    return (
-                      <>
-                        {Object.entries(groupedByAcademicYear)
-                          .sort(([a], [b]) => a.localeCompare(b))
-                          .map(([year, semGroupRaw]) => {
+                  {(() => {
+                    // Group semesters by year, only Fall and Spring
+                    const groupedByAcademicYear: Record<string, { Fall?: Semester; Spring?: Semester; Summer?: Semester }> = {};
+                    const seasonLabels: Record<string, string> = { '9': 'Fall', '3': 'Spring', '5': 'Summer' };
+                    
+                    // Accordion control open/closed state for bottom border radius
+                    const [openAccordion, setOpenAccordion] = useState<string[]>(() =>
+                      plan.semesters.map((sem) => sem.index)
+                    );
+
+                      plan.semesters.forEach((sem) => {
+                        const seasonCode = sem.index[3];
+                        const season = seasonLabels[seasonCode];
+                        if (!season) return;
+                        let year = parseInt('20' + sem.index.slice(1, 3), 10);
+                        // For Spring and Summer, assign to previous year
+                        if (season === 'Spring' || season === 'Summer') year -= 1;
+                        const yearStr = year.toString();
+                        if (!groupedByAcademicYear[yearStr]) groupedByAcademicYear[yearStr] = {};
+                        (groupedByAcademicYear[yearStr] as any)[season] = sem;
+                      });
+
+                      return (
+                        <>
+                          {Object.entries(groupedByAcademicYear)
+                            .sort(([a], [b]) => a.localeCompare(b))
+                            .map(([year, semGroupRaw]) => {
 
                           const semGroup = semGroupRaw as Record<'Fall' | 'Spring' | 'Summer', Semester | undefined>;
                           return (
