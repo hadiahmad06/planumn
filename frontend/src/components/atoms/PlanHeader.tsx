@@ -1,14 +1,31 @@
 import { PlanContext } from "@/contexts/PlanContext";
 import { Box, Flex, Skeleton, Title, Text } from "@mantine/core";
-import { useContext } from "react";
-import { formatDistance, formatDistanceToNow, isAfter, isValid } from "date-fns";
+import { useContext, useState, useEffect, useRef } from "react";
+import { formatDistance, isAfter } from "date-fns";
 import { UserSessionContext } from "@/contexts/UserSessionContext";
 
 export default function PlanHeader() {
-    const { plan, changesSaved, retryCount, setRetryCount, error } = useContext(PlanContext);
+    const planContext = useContext(PlanContext);
+    if (!planContext.plan) return <Skeleton w="90%"/>;
+
+    const { plan, setPlan, changesSaved, retryCount, setRetryCount, error } = planContext;
     const { session } = useContext(UserSessionContext);
 
-    if(!plan) return <Skeleton w="90%"/>
+    const [titleLocal, setTitleLocal] = useState('');
+    const [inputWidth, setInputWidth] = useState(1);
+    const [hoveredInput, setHoveredInput] = useState(false);
+    const spanRef = useRef<HTMLSpanElement>(null);
+    const placeholder = "Edit Plan Title";
+
+    useEffect(() => {
+      if (plan) {
+        setTitleLocal(plan.title);
+      }
+    }, [plan]);
+
+    useEffect(() => {
+      if (spanRef.current) setInputWidth(spanRef.current.offsetWidth + 2);
+    }, [titleLocal]);
 
     return (
         <Flex
@@ -19,9 +36,63 @@ export default function PlanHeader() {
             }}
             >
             <Box style={{ textAlign: 'right' }}>
-                <Title order={2} style={{ marginBottom: "0.25rem", fontWeight: 700 }}>
-                {plan.title}
-                </Title>
+                <form>
+                  <div style={{ position: "relative", width: "100%" }}>
+                    <div
+                      onMouseEnter={() => setHoveredInput(true)}
+                      onMouseLeave={() => setHoveredInput(false)}
+                    >
+                      <input 
+                        type="text" 
+                        name="title"
+                        placeholder={placeholder}
+                        value={titleLocal}
+                        onChange={(e) => setTitleLocal(e.target.value)}
+                        onBlur={() => setPlan({ ...plan, title: titleLocal })}
+                        maxLength={32}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          boxShadow: "none",
+                          outline: "none",
+                          margin: 0,
+                          font: "inherit",
+                          color: "inherit",
+                          maxWidth: "100%",
+                          minWidth: "1ch",
+                          marginBottom: "0.25rem",
+                          fontWeight: 700,
+                          fontSize: "1.5rem",
+                          cursor: "text",
+                          borderBottom: "1px dashed gray",
+                          paddingBottom: "2px",
+                          padding: 0,
+                          textAlign: "right",
+                          width: inputWidth,
+                          transition: "transform 0.2s ease",
+                          transform: hoveredInput ? "scale(1.05)" : "none",
+                        }}
+                      />
+                    </div>
+                    <span
+                      ref={spanRef}
+                      style={{
+                        visibility: "hidden",
+                        position: "absolute",
+                        whiteSpace: "pre",
+                        font: "inherit",
+                        fontWeight: 700,
+                        fontSize: "1.5rem",
+                        padding: 0,
+                        margin: 0,
+                        border: "none",
+                        boxSizing: "content-box",
+                      }}
+                    >
+                      {titleLocal || placeholder}
+                    </span>
+                  </div>
+                </form>
                 <Text size="md" c="dimmed" style={{marginBottom: "0.5rem"}}>
                     Program{plan.programs && plan.programs.length>0
                         ? (plan.programs.length === 1 

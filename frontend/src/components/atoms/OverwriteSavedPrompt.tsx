@@ -56,7 +56,7 @@ export default function OverwriteSavedPrompt({ setPromptVisible, onOverwrite, me
                   </Button>
                   <Button variant="subtle" onClick={() => {
                     setPromptVisible(false);
-                    router.push("/plan");
+                    router.push("/plan/autosave");
                   }}>
                     Don't Overwrite
                   </Button>
