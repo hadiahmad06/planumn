@@ -39,7 +39,9 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
     const [changesSaved, setChangesSaved] = useState<boolean>(true);
     const [retryCount, setRetryCount] = useState<number>(0);
 
-    const { user } = useContext(UserSessionContext);
+    const [error, setError] = useState<string>("");
+
+    const { user, session } = useContext(UserSessionContext);
 
     // Load from localStorage on mount
     useEffect(() => {
@@ -54,7 +56,7 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            if (!changesSaved) {
+            if (!changesSaved && session) {
                 e.preventDefault();
             }
         };
@@ -63,14 +65,17 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
         return () => {
             window.removeEventListener('beforeunload', handleBeforeUnload);
         };
-    }, [changesSaved]);
+    }, [changesSaved, session]);
 
     // Save to localStorage, update cache, and trigger changesSaved status on update.
     useEffect(() => {
         if (!plan) {
-            setCachedCourses({});
-            setChangesSaved(true);
-            localStorage.removeItem("plan");
+            if(planFetched) {
+                setCachedCourses({});
+                setChangesSaved(true);
+                localStorage.removeItem("plan");
+            }
+            // wait until plan is fetched at least bro
             return;
         }
         
@@ -84,13 +89,16 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (semestersChanged || titleChanged || programsChanged) {
             setChangesSaved(false);
+            localStorage.setItem("plan", JSON.stringify(plan));
             if (retryCount > 0) setRetryCount(0);
+        } else {
+            localStorage.removeItem("plan");
         }
-        console.log(semestersChanged, changesSaved, retryCount)
+        // console.log(semestersChanged, changesSaved, retryCount)
     }, [plan]);
 
     useEffect(() => {
-        if (changesSaved === false && retryCount < 6 && plan) {
+        if (changesSaved === false && retryCount < 6 && plan && !!session) {
             const planId = plan.id;
             fetch("/api/plan/", {
                 method: "POST",
@@ -108,6 +116,7 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
                             created_at: plan.created_at || data.last_updated, 
                             last_updated: data.last_updated 
                         });
+                        setError("");
                         setRemotePlan(JSON.parse(JSON.stringify(plan)));
                         setChangesSaved(true);
                         if(!planId && !!data.id) {
@@ -117,16 +126,16 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
                     
                     return;
                 } else {
-                    setRetryCount(prev => prev + 1);
+                    setError("Failed to save plan. Click to retry.")
                     console.error("Failed to save plan");
                 }
             })
             .catch(err => {
-                setRetryCount(prev => prev + 1);
+                setError("Check network connection. Click to retry.")
                 console.error("Error saving plan:", err);
             });
         }
-    }, [changesSaved, retryCount, plan]);
+    }, [changesSaved, retryCount, plan, session]);
 
     return (
         <PlanContext.Provider
@@ -141,7 +150,9 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
                 cachedSearchResults,
                 setCachedSearchResults,
                 changesSaved,
-                retryCount
+                retryCount,
+                setRetryCount,
+                error
             }}
         >
             {children}

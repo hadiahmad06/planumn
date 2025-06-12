@@ -38,13 +38,13 @@ const createEmptyPlan = (): PlanNullable => {
 
 export default function NewPlanPage() {
   const [promptVisible, setPromptVisible] = useState(true);
-  const { setPlan } = useContext(PlanContext);
+  const { setPlan, setRemotePlan } = useContext(PlanContext);
 
   // logic behind checking if plan already exists is in child component
   return promptVisible ? 
     <OverwriteSavedPrompt
       setPromptVisible={setPromptVisible}
-      onOverwrite={() => setPlan(createEmptyPlan())}
+      onOverwrite={() => { setPlan(createEmptyPlan()); setRemotePlan(null); }}
       message="An autosave was found. Continuing wil replace it with an empty plan."
       /> 
       : <PlanDisplay/>;

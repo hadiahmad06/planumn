@@ -15,6 +15,8 @@ export const PlanContext = createContext<{
     planFetched: boolean;
     changesSaved: boolean;
     retryCount: number;
+    setRetryCount: (retryCount: number) => void;
+    error: string;
 }>({
     plan: null,
     setPlan: () => {
@@ -35,4 +37,8 @@ export const PlanContext = createContext<{
     planFetched: false,
     changesSaved: true,
     retryCount: 0,
+    setRetryCount: () => {
+        console.warn("setRetryCount not implemented in context");
+    },
+    error: ""
 });
