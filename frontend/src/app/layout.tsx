@@ -11,6 +11,7 @@ import { Notifications } from "@mantine/notifications";
 import { UserSessionProvider } from "@/contexts/UserSessionProvider";
 import { PlanProvider } from "@/contexts/PlanProvider";
 import { DisplaySettingsProvider } from "@/contexts/DisplaySettingsProvider";
+import { MobileProvider } from "@/contexts/MobileProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,15 +54,17 @@ export default function RootLayout({
       <body>
         <MantineProvider>
           <Notifications autoClose={4000}/>
-          <UserSessionProvider>
-            <PlanProvider>
-              <DisplaySettingsProvider>
-                <ClientLayout>
-                  {children}
-                </ClientLayout>
-              </DisplaySettingsProvider>
-            </PlanProvider>
-          </UserSessionProvider>
+          <MobileProvider>
+            <UserSessionProvider>
+              <PlanProvider>
+                <DisplaySettingsProvider>
+                  <ClientLayout>
+                    {children}
+                  </ClientLayout>
+                </DisplaySettingsProvider>
+              </PlanProvider>
+            </UserSessionProvider>
+          </MobileProvider>
           {/* {children} */}
         </MantineProvider>
       </body>

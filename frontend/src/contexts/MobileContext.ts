@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import { createContext } from "react";
 
 interface MobileContextType {
   isMobile: boolean;
