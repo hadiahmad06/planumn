@@ -64,7 +64,7 @@ export default function Home() {
           <Text
             style={{
               fontSize: "1.25rem",
-              maxWidth: "40rem",
+              maxWidth: "min(40rem, 85vw)",
               color: "#334155",
               textAlign: "center",
             }}

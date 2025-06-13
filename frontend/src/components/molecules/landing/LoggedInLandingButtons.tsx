@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import VideoPopup from "@/components/atoms/landing/VideoPopup";
 import { Button, Group, Stack } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
@@ -8,6 +9,8 @@ import { useRouter } from "next/navigation";
 
 export default function LoggedInLandingButtons() {
     const router = useRouter();
+    const [hovered, setHovered] = useState([false, false, false]);
+    const [hoveredPlans, setHoveredPlans] = useState(false);
     return (
         <Stack gap="sm" justify="center" align="center">
             <Group justify="center" gap="lg" style={{ paddingTop: "1rem" }}>
@@ -22,12 +25,28 @@ export default function LoggedInLandingButtons() {
                             borderBottomLeftRadius: "1rem",
                             borderTopRightRadius: "0.25rem",
                             borderBottomRightRadius: "0.25rem",
-                            marginRight: "0.2rem",
+                            marginRight: hovered[0] ? "0.6rem" : "0.2rem",
                             boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3)",
+                            transform: hovered[0] ? "scale(1.05)" : "scale(1)",
+                            transition: "transform 0.2s ease, margin-right 0.2s ease",
                         }}
                         onClick={() => (
                             router.push("/plan/import")
                         )}
+                        onMouseEnter={() => {
+                            setHovered(prev => {
+                                const updated = [...prev];
+                                updated[0] = true;
+                                return updated;
+                            });
+                        }}
+                        onMouseLeave={() => {
+                            setHovered(prev => {
+                                const updated = [...prev];
+                                updated[0] = false;
+                                return updated;
+                            });
+                        }}
                     >
                         Import Transcript
                     </Button>
@@ -39,7 +58,10 @@ export default function LoggedInLandingButtons() {
                         style={{
                             borderRadius: "0.25rem",
                             boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3)",
-                            marginRight: "0.2rem",
+                            marginLeft: hovered[1] ? "0.4rem" : undefined,
+                            marginRight: hovered[1] ? "0.6rem" : "0.2rem",
+                            transform: hovered[1] ? "scale(1.05)" : "scale(1)",
+                            transition: "transform 0.2s ease, margin-left 0.2s ease, margin-right 0.2s ease",
                         }}
                         onClick={() =>
                             notifications.show({
@@ -48,6 +70,20 @@ export default function LoggedInLandingButtons() {
                             message: 'We are working on the program catalog page. Please check back later!',
                             })
                         }
+                        onMouseEnter={() => {
+                            setHovered(prev => {
+                                const updated = [...prev];
+                                updated[1] = true;
+                                return updated;
+                            });
+                        }}
+                        onMouseLeave={() => {
+                            setHovered(prev => {
+                                const updated = [...prev];
+                                updated[1] = false;
+                                return updated;
+                            });
+                        }}
                     >
                         View Program Catalog
                     </Button>
@@ -62,10 +98,27 @@ export default function LoggedInLandingButtons() {
                             borderTopLeftRadius: "0.25rem",
                             borderBottomLeftRadius: "0.25rem",
                             boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3)",
+                            marginLeft: hovered[2] ? "0.4rem" : undefined,
+                            transform: hovered[2] ? "scale(1.05)" : "scale(1)",
+                            transition: "transform 0.2s ease, margin-left 0.2s ease",
                         }}
                         onClick={() => (
                             router.push("/plan/new")
                         )}
+                        onMouseEnter={() => {
+                            setHovered(prev => {
+                                const updated = [...prev];
+                                updated[2] = true;
+                                return updated;
+                            });
+                        }}
+                        onMouseLeave={() => {
+                            setHovered(prev => {
+                                const updated = [...prev];
+                                updated[2] = false;
+                                return updated;
+                            });
+                        }}
                     >
                         Start from Scratch
                     </Button>
@@ -78,7 +131,10 @@ export default function LoggedInLandingButtons() {
                     size="lg"
                     style={{ 
                     borderRadius: "1rem", 
-                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.15)" }}
+                    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.15)",
+                    transform: hoveredPlans ? "scale(1.05)" : "scale(1)",
+                    transition: "transform 0.2s ease"
+                    }}
                     onClick={() =>
                         notifications.show({
                         color: "#811331",
@@ -86,6 +142,8 @@ export default function LoggedInLandingButtons() {
                         message: 'High priority feature! Will be added very soon twin',
                         })
                     }
+                    onMouseEnter={() => setHoveredPlans(true)}
+                    onMouseLeave={() => setHoveredPlans(false)}
                 >
                     My Plans
                 </Button>

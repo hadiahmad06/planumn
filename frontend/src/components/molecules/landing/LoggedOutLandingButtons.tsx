@@ -4,10 +4,14 @@ import VideoPopup from "@/components/atoms/landing/VideoPopup";
 import { Button, Group } from "@mantine/core";
 import { IconEdit, IconUpload } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 
 export default function LoggedOutLandingButtons() {
     const router = useRouter();
+    const [hoverLeft, setHoverLeft] = useState(false);
+    const [hoverRight, setHoverRight] = useState(false);
+
     return (
         <Group
         justify="center"
@@ -25,12 +29,16 @@ export default function LoggedOutLandingButtons() {
                 borderBottomLeftRadius: "1rem",
                 borderTopRightRadius: "0.25rem",
                 borderBottomRightRadius: "0.25rem",
-                marginRight: "0.2rem",
+                marginRight: hoverLeft ? "0.6rem" : "0.2rem",
                 boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3)",
+                transform: hoverLeft ? "scale(1.05)" : "scale(1)",
+                transition: "transform 0.3s ease, margin-right 0.3s ease",
             }}
             onClick={() => (
                 router.push("/plan/import")
             )}
+            onMouseEnter={() => setHoverLeft(true)}
+            onMouseLeave={() => setHoverLeft(false)}
             >
             Import Transcript
             </Button>
@@ -45,10 +53,15 @@ export default function LoggedOutLandingButtons() {
                 borderTopLeftRadius: "0.25rem",
                 borderBottomLeftRadius: "0.25rem",
                 boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3)",
+                marginLeft: hoverRight ? "0.4rem" : undefined,
+                transform: hoverRight ? "scale(1.05)" : "scale(1)",
+                transition: "transform 0.3s ease, margin-left 0.3s ease",
             }}
             onClick={() => (
                 router.push("/plan/new")
             )}
+            onMouseEnter={() => setHoverRight(true)}
+            onMouseLeave={() => setHoverRight(false)}
             >
             Start from Scratch
             </Button>
