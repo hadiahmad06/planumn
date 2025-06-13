@@ -1,6 +1,6 @@
 import { Anchor, Box } from "@mantine/core";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/compat/router";
+import { useRouter } from "next/navigation";
 
 
 export default function AnimatedTypingText({ blink = true }: { blink?: boolean }) {
@@ -11,6 +11,7 @@ export default function AnimatedTypingText({ blink = true }: { blink?: boolean }
   const delays = [150, 85, 105, 70, 80, 120, 95, 60];
 
   useEffect(() => {
+    setDisplayed("");      // reset displayed text to avoid double append in StrictMode
     let i = -1;
     let timeout: any;
     let stopBlinkTimeout: any;

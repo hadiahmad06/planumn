@@ -13,7 +13,7 @@ import OverwriteSavedPrompt from '@/components/atoms/OverwriteSavedPrompt';
 
 
 export default function PlanPage() {
-  const { plan, setPlan } = useContext(PlanContext);
+  const { plan, setPlan, setRemotePlan } = useContext(PlanContext);
 
   const [promptVisible, setPromptVisible] = useState(true);
   const [showPlanDisplay, setShowPlanDisplay] = useState(true);
@@ -54,6 +54,7 @@ export default function PlanPage() {
         // } as Plan;
 
         setPlan(plan);
+        setRemotePlan(null);
         setShowPlanDisplay(true);
       } catch (error) {
         console.error(error);

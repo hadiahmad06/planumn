@@ -3,7 +3,11 @@ import { Modal, Button, Title, Stack, Paper } from '@mantine/core';
 import { IconPlayerPlayFilled } from '@tabler/icons-react';
 import ReactPlayer from 'react-player';
 
-export default function VideoPopup() {
+interface VideoPopupProps {
+  buttonSize?: string;
+}
+
+export default function VideoPopup({ buttonSize }: VideoPopupProps) {
   const [opened, { open, close }] = useDisclosure(false);
 
   return (
@@ -19,7 +23,7 @@ export default function VideoPopup() {
         transitionProps={{ transition: 'fade', duration: 200 }}
       >
         <ReactPlayer
-            url="/videos/video-modal.mp4"
+            url={"/videos/video-modal.mp4"}
             controls
             width="100%"
             height="100%"
@@ -34,12 +38,12 @@ export default function VideoPopup() {
         leftSection={<IconPlayerPlayFilled size={18} />}
         variant="outline"
         color="#334155"
-        size="lg"
+        size={buttonSize ?? "lg"}
         style={{
           borderRadius: "1rem",
         }}
       >
-        Watch Demo
+        {"Watch Demo"}
       </Button>
     </>
   );

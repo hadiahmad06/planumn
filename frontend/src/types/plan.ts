@@ -50,7 +50,7 @@ export type PlannedCourse = Metadata & CourseDetails;
 
 
 
-export type Semester = {
+export type Semester ={
   index: string;
   courses: CourseMetadata[];
 }

@@ -2,6 +2,7 @@ import { isPlanEmpty, Plan } from "@/types/plan";
 import { Button, Center, Stack, Text, Title, Paper } from "@mantine/core";
 import { PlanContext } from "@/contexts/PlanContext"
 import { useContext, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 type OverwriteSavedPromptProps = { 
     setPromptVisible: (promptVisible: boolean) => void, 
@@ -10,6 +11,7 @@ type OverwriteSavedPromptProps = {
 };
 
 export default function OverwriteSavedPrompt({ setPromptVisible, onOverwrite, message }: OverwriteSavedPromptProps) {
+    const router = useRouter();
     const { plan, planFetched } = useContext(PlanContext);
 
     useEffect(() => {
@@ -52,7 +54,10 @@ export default function OverwriteSavedPrompt({ setPromptVisible, onOverwrite, me
                   >
                     Overwrite Plan
                   </Button>
-                  <Button variant="subtle" onClick={() => setPromptVisible(false)}>
+                  <Button variant="subtle" onClick={() => {
+                    setPromptVisible(false);
+                    router.push("/plan/autosave");
+                  }}>
                     Don't Overwrite
                   </Button>
                 </Stack>

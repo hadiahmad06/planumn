@@ -4,14 +4,18 @@ import AnimatedTypingText from "@/components/atoms/landing/AnimatedTypingTest";
 import VideoPopup from "@/components/atoms/landing/VideoPopup";
 import LoggedInLandingButtons from "@/components/molecules/landing/LoggedInLandingButtons";
 import LoggedOutLandingButtons from "@/components/molecules/landing/LoggedOutLandingButtons";
+import { useMobile } from "@/contexts/MobileProvider";
 import { UserSessionContext } from "@/contexts/UserSessionContext";
 import "@/styles/global.css"; // make sure this path is correct
-import { Container, Flex, Button, Box, Stack, Text, Title, Group, Center, Space } from "@mantine/core";
-import { IconEdit, IconEye, IconPlayerPlay, IconUpload, IconPlayerPlayFilled } from "@tabler/icons-react";
+import { Container, Flex, Button, Box, Stack, Text, Title, Group, Center, Space, Paper } from "@mantine/core";
+import { IconEdit, IconEye, IconPlayerPlay, IconUpload, IconPlayerPlayFilled, IconDeviceMobile } from "@tabler/icons-react";
+import { useRouter } from "next/navigation";
 import { useContext } from "react";
 
 export default function Home() {
   const { user, session } = useContext(UserSessionContext);
+  const { isMobile } = useMobile();
+  const router = useRouter();
   return (
     <Flex
       w="100vw"
@@ -62,7 +66,7 @@ export default function Home() {
           <Text
             style={{
               fontSize: "1.25rem",
-              maxWidth: "40rem",
+              maxWidth: "min(40rem, 85vw)",
               color: "#334155",
               textAlign: "center",
             }}
@@ -99,7 +103,7 @@ export default function Home() {
                   borderRadius: "50%",
                 }}
               />
-              <Text color="#334155">SRT scores included</Text>
+              <Text color="#334155">Past grade distributions</Text>
             </Group>
             <Group gap="xs">
               <Box
@@ -112,6 +116,27 @@ export default function Home() {
               />
               <Text color="#334155">Built by students</Text>
             </Group>
+            {isMobile && (
+              <Paper
+                shadow="xs"
+                p="md"
+                withBorder
+                style={{
+                  margin: "1rem 0",
+                  backgroundColor: "#F8E8EA",
+                  color: "#811331",
+                  textAlign: "center",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  borderRadius: "0.5rem",
+                  fontWeight: 500,
+                }}
+              >
+                <IconDeviceMobile size={20} />
+                Mobile version coming soon
+              </Paper>
+            )}
           </Group>
           <Space h="8vh" />
           <Box
@@ -136,20 +161,24 @@ export default function Home() {
           >
             <Button
               component="a"
-              href="/info/privacy"
               variant="subtle"
               style={{
                 color: "#811331",
+              }}
+              onClick={() => {
+                router.push("/info/privacy")
               }}
             >
               Privacy
             </Button>
             <Button
               component="a"
-              href="/info/contact"
               variant="subtle"
               style={{
                 color: "#811331",
+              }}
+              onClick={() => {
+                router.push("/info/contact")
               }}
             >
               Contact

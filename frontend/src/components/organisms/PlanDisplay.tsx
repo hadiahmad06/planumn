@@ -16,6 +16,7 @@ import { DisplaySettingsContext } from "@/contexts/DisplaySettingsContext";
 import { PlanContext } from "@/contexts/PlanContext";
 import SearchLayout from "@/components/organisms/SearchLayout";
 import CoursePreviewPanel from "./CoursePreviewPanel";
+import PlanHeader from "../atoms/PlanHeader";
 
 const ALWAYS_VISIBLE_CREDITS = 4;
 const COURSE_VERTICAL_GAP = 0;
@@ -58,15 +59,15 @@ const SEMESTER_TITLE_MARGIN = 1;
 
 
 export default function PlanDisplay() {
-  const { plan, setPlan, cachedCourses, setCachedCourses} = useContext(PlanContext);
-  if (!plan) {
-    return <Skeleton height="100%" />; // Handle loading state
-  }
+  const { plan, setPlan, cachedCourses } = useContext(PlanContext);
 
-  const { colorKey } = useContext(DisplaySettingsContext);
+  // Accordion control open/closed state for bottom border radius
+  const [closedAccordion, setClosedAccordion] = useState<string[]>([]);
 
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
+      if (!plan) return;
+      // setClosedAccordion([]);
       if (event.data.type === 'DRAG_END') {
         console.log("Received drag end event:", event.data.result);
         const { source, destination } = event.data.result;
@@ -117,8 +118,13 @@ export default function PlanDisplay() {
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [plan]);
+  }, [plan, setPlan]);
 
+
+  if (!plan) {
+    return <Skeleton height="100%" />; // Handle loading state
+  }
+  
   return (
     <Group
       w="100vw"
@@ -152,38 +158,17 @@ export default function PlanDisplay() {
             paddingBottom: '2rem',
           }}
         >
-          <Flex
-            style={{
-              width: '90%',
-              maxWidth: 1200,
-              marginBottom: '1.5rem',
-              justifyContent: 'flex-end',
-              alignItems: 'flex-end',
-            }}
+          <PlanHeader/>
+          <Box
+          style={{
+            width: '100%',
+            maxWidth: '1200px',
+            background: 'rgba(129, 19, 49, 0.1)',
+            borderRadius: '1rem',
+            padding: '2rem',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
+          }}
           >
-            <Box style={{ textAlign: 'right' }}>
-              <Title order={2} style={{ marginBottom: "0.5rem", fontWeight: 700 }}>
-                {plan.title}
-              </Title>
-              <Text size="md" c="dimmed">
-                Program{plan.programs && plan.programs.length>0
-                  ? (plan.programs.length === 1 
-                    ? ": " + plan.programs[0] 
-                    : "s: " + plan.programs.join(', ')) 
-                  : ": Unknown"}
-              </Text>
-            </Box>
-          </Flex>
-            <Box
-            style={{
-              width: '100%',
-              maxWidth: '1200px',
-              background: 'rgba(129, 19, 49, 0.1)',
-              borderRadius: '1rem',
-              padding: '2rem',
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
-            }}
-            >
             <ScrollArea
               style={{
                 height: 'calc(100vh - 20rem)', // adjust to leave space for headers
@@ -201,15 +186,12 @@ export default function PlanDisplay() {
               gap={theme.planDisplayStyles.container.gap}
               wrap="wrap"
               >
-              {(() => {
-                // Group semesters by year, only Fall and Spring
-                const groupedByAcademicYear: Record<string, { Fall?: Semester; Spring?: Semester; Summer?: Semester }> = {};
-                const seasonLabels: Record<string, string> = { '9': 'Fall', '3': 'Spring', '5': 'Summer' };
-                
-                // Accordion control open/closed state for bottom border radius
-                const [openAccordion, setOpenAccordion] = useState<string[]>(() =>
-                  plan.semesters.map((sem) => sem.index)
-                );
+                {(() => {
+                  // Group semesters by year, only Fall and Spring
+                  const groupedByAcademicYear: Record<string, { Fall?: Semester; Spring?: Semester; Summer?: Semester }> = {};
+                  const seasonLabels: Record<string, string> = { '9': 'Fall', '3': 'Spring', '5': 'Summer' };
+                  
+                  // Accordion control open/closed state for bottom border radius
 
                   plan.semesters.forEach((sem) => {
                     const seasonCode = sem.index[3];
@@ -255,8 +237,12 @@ export default function PlanDisplay() {
                                 return (
                                     <Accordion
                                       multiple
-                                      value={openAccordion}
-                                      onChange={setOpenAccordion}
+                                      value={plan.semesters.map(sem => sem.index).filter(index => !closedAccordion.includes(index))}
+                                      onChange={(newValues) => {
+                                        const allIndices = plan.semesters.map(sem => sem.index);
+                                        const newlyClosed = allIndices.filter(index => !newValues.includes(index));
+                                        setClosedAccordion(newlyClosed);
+                                      }}
                                       key={`${year}-${season}`}
                                       style={{
                                         width: '100%',
@@ -289,8 +275,8 @@ export default function PlanDisplay() {
                                           paddingBottom: 12,
                                           borderTopLeftRadius: '1rem',
                                           borderTopRightRadius: '1rem',
-                                          borderBottomLeftRadius: openAccordion.includes(sem.index) ? '0' : '1rem',
-                                          borderBottomRightRadius: openAccordion.includes(sem.index) ? '0' : '1rem',
+                                          borderBottomLeftRadius: !closedAccordion.includes(sem.index) ? '0' : '1rem',
+                                          borderBottomRightRadius: !closedAccordion.includes(sem.index) ? '0' : '1rem',
                                         },
                                         panel: { 
                                           padding: 0, 
