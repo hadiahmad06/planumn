@@ -192,37 +192,22 @@ export default function PlanDisplay() {
             </Flex>
               <Box
                 style={{
+                  overflow: 'visible',
                   width: '100%',
                   whiteSpace: 'nowrap',
                   flexShrink: 0,
                   flexGrow: 1,
                   background: 'rgba(129, 19, 49, 0.1)',
                   borderRadius: '1rem',
-                  padding: '2rem',
+                  justifyContent: 'center',
+                  padding: '3.5rem',
                   boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
                   position: 'relative',
                 }}
               >
-              <ScrollArea
-                style={{
-                  height: 'calc(100vh - 20rem)', // adjust to leave space for headers
-                  overflow: 'auto',
-                }}
-                type="scroll"
-                scrollbars="xy"
-                offsetScrollbars
-                scrollHideDelay={0}
-              >
-                <Flex
-                  direction="row"
-                  align="flex-start"
-                  justify="center"
-                  gap={theme.planDisplayStyles.container.gap}
-                  wrap="nowrap"
-                  style={{ paddingLeft: '3rem', paddingRight: '3rem' }}
-                >
-                  {/* Add year before leftmost year button */}
-                  <Box style={{ position: 'absolute', left: '0rem', zIndex: 1000 }}>
+
+                {/* Add year before leftmost year button */}
+                <Box style={{ position: 'absolute', left: '1rem', top: '1rem', zIndex: 1000 }}>
                     <ActionIcon 
                       variant="light"
                       color="green"
@@ -234,7 +219,7 @@ export default function PlanDisplay() {
                   </Box>
                   
                   {/* Delete this leftmost year button */}
-                  <Box style={{ position: 'absolute', left: '0rem', top: '3rem', zIndex: 1000 }}>
+                  <Box style={{ position: 'absolute', left: '4rem', top: '1rem', zIndex: 1000 }}>
                     <ActionIcon
                       variant="light"
                       color="red"
@@ -250,7 +235,7 @@ export default function PlanDisplay() {
                   </Box>
 
                   {/* Add year after rightmost year button */}
-                  <Box style={{  position: 'absolute', right: '0rem', zIndex: 1000 }}>
+                  <Box style={{  position: 'absolute', right: '4rem', top: '1rem', zIndex: 1000 }}>
                     <ActionIcon 
                       variant="light"
                       color="green"
@@ -262,7 +247,7 @@ export default function PlanDisplay() {
                   </Box>
                   
                   {/* Delete this rightmost year button */}
-                  <Box style={{ position: 'absolute', right: '0rem', top: '3rem', zIndex: 1000 }}>
+                  <Box style={{ position: 'absolute', right: '1rem', top: '1rem', zIndex: 1000 }}>
                     <ActionIcon
                       variant="light"
                       color="red"
@@ -272,6 +257,29 @@ export default function PlanDisplay() {
                       <IconMinus />
                     </ActionIcon>
                   </Box>
+
+              <ScrollArea
+                style={{
+                  height: 'calc(100vh - 20rem)',
+                  width: '65vh',
+                  justifyContent: 'center',
+                }}
+                scrollbars="xy"
+                type="auto"
+                offsetScrollbars
+                scrollHideDelay={0}
+                
+              >
+                <Box style={{ minWidth: '100%', width: 'max-content', boxSizing: 'border-box' }}>
+                  <Flex
+                    direction="row"
+                   
+                    gap={theme.planDisplayStyles.container.gap}
+                    wrap="nowrap"
+                    style={{  alignItems: 'center',
+                      justifyContent: 'center',paddingLeft: '3rem', paddingRight: '3rem' }}
+                  >
+                 
 
                   {(() => {
                     // Group semesters by year, only Fall and Spring
@@ -307,8 +315,9 @@ export default function PlanDisplay() {
                               key={year}
                               direction="column"
                               align="center"
+
                               gap={theme.planDisplayStyles.container.gap + 10}
-                              style={{ width: '150px' }}
+                              style={{ alignItems: 'center', width: '150px' }}
                             >
                               <Title>
                                 {/* {year}–{(parseInt(year) + 1).toString().slice(-2)} */}
@@ -459,7 +468,8 @@ export default function PlanDisplay() {
                       </>
                     );
                   })()}
-                </Flex>
+                  </Flex>
+                </Box>
               </ScrollArea>
             </Box>
           </Box>
