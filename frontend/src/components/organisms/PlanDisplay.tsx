@@ -1,7 +1,7 @@
 "use client";
 
 import { Droppable } from "@hello-pangea/dnd";
-import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal, Stack, Space, Accordion, ScrollArea, Container, Group } from '@mantine/core';
+import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal, Stack, Space, Accordion, ScrollArea, Container, Group, ActionIcon } from '@mantine/core';
 // Accordion control open/closed styles
 // You may move these to a CSS module or stylesheet if preferred
 const SEMESTER_BACKGROUND = 'linear-gradient(135deg, rgba(221, 208, 208, 0.8), rgba(245, 245, 255, 0.6))';
@@ -17,6 +17,7 @@ import { PlanContext } from "@/contexts/PlanContext";
 import SearchLayout from "@/components/organisms/SearchLayout";
 import CoursePreviewPanel from "./CoursePreviewPanel";
 import PlanHeader from "../atoms/PlanHeader";
+import { IconMinus, IconPlus } from "@tabler/icons-react";
 
 const ALWAYS_VISIBLE_CREDITS = 4;
 const COURSE_VERTICAL_GAP = 0;
@@ -63,6 +64,7 @@ export default function PlanDisplay() {
 
   // Accordion control open/closed state for bottom border radius
   const [closedAccordion, setClosedAccordion] = useState<string[]>([]);
+
 
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
@@ -179,6 +181,23 @@ export default function PlanDisplay() {
               offsetScrollbars
               scrollHideDelay={0}
             >
+              <Box>
+              <ActionIcon  bg="green" left='5rem'>
+                <IconPlus/>
+              </ActionIcon>
+
+              <ActionIcon bg="red">
+                <IconMinus/>
+              </ActionIcon>
+
+              <ActionIcon  bg="green" left='38rem' >
+                <IconPlus/>
+              </ActionIcon>
+
+              <ActionIcon bg="red" left='39.5rem'>
+                <IconMinus/>
+              </ActionIcon>
+              </Box>
               <Flex
               direction="row"
               align="flex-start"
@@ -207,6 +226,7 @@ export default function PlanDisplay() {
 
                   return (
                     <>
+
                       {Object.entries(groupedByAcademicYear)
                         .sort(([a], [b]) => a.localeCompare(b))
                         .map(([year, semGroupRaw]) => {
@@ -214,11 +234,12 @@ export default function PlanDisplay() {
                         const semGroup = semGroupRaw as Record<'Fall' | 'Spring' | 'Summer', Semester | undefined>;
                         return (
                           <Flex
+                            // bg="blue"
                             key={year}
-                            direction="column"
+                            direction="row"
                             align="center"
                             gap={theme.planDisplayStyles.container.gap + 10}
-                            style={{ width: '150px' }}
+                            // style={{ width: '150px' }}
                           >
                             <Title>
                               {/* {year}–{(parseInt(year) + 1).toString().slice(-2)} */}
