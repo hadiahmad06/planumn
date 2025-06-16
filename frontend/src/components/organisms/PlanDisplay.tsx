@@ -6,6 +6,7 @@ import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal, Stack, Space, A
 // You may move these to a CSS module or stylesheet if preferred
 const SEMESTER_BACKGROUND = 'linear-gradient(135deg, rgba(221, 208, 208, 0.8), rgba(245, 245, 255, 0.6))';
 
+import ManipulateYear from "./ManipulateYear";
 import { FiSave, FiShare } from "react-icons/fi";
 import CourseCard from "../molecules/CourseCard";
 import { ColorKey, Course, CourseDetails, CourseMetadata, Plan, QueriedCourse, Semester } from "@/types/plan";
@@ -66,7 +67,7 @@ export default function PlanDisplay() {
   // Accordion control open/closed state for bottom border radius
   const [closedAccordion, setClosedAccordion] = useState<string[]>([]);
 
-  const [yearManipulate, setYearManipulate] = useState<string>()
+  const [yearManipulate, setYearManipulate] = useState<string>('')
 
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
@@ -152,6 +153,7 @@ export default function PlanDisplay() {
         }}
       >
         {/* CENTERED SEMESTER CONTAINER */}
+        
         <Box
           style={{
             width: '100%',
@@ -184,19 +186,19 @@ export default function PlanDisplay() {
               scrollHideDelay={0}
             >
               <Box>
-              <ActionIcon  bg="green" left='5rem'>
+              <ActionIcon  bg="green" left='5rem' onClick={() => (ManipulateYear(plan, "AddTopYear"))}>
                 <IconPlus />
               </ActionIcon>
 
-              <ActionIcon bg="red">
+              <ActionIcon bg="blue" onClick={() => (ManipulateYear(plan, "DeleteTopYear"))}>
                 <IconMinus/>
               </ActionIcon>
 
-              <ActionIcon  bg="green" left='38rem' >
+              <ActionIcon  bg="Yellow" left='38rem' onClick={() => (ManipulateYear(plan, "AddBottomYear"))}>
                 <IconPlus/>
               </ActionIcon>
 
-              <ActionIcon bg="red" left='39.5rem'>
+              <ActionIcon bg="red" left='39.5rem' onClick={() => ManipulateYear(plan, "RemoveBottomYear")}>
                 <IconMinus/>
               </ActionIcon>
               </Box>
@@ -208,6 +210,7 @@ export default function PlanDisplay() {
               wrap="wrap"
               >
                 {(() => {
+                  console.log(plan.semesters)
                   // Group semesters by year, only Fall and Spring
                   const groupedByAcademicYear: Record<string, { Fall?: Semester; Spring?: Semester; Summer?: Semester }> = {};
                   const seasonLabels: Record<string, string> = { '9': 'Fall', '3': 'Spring', '5': 'Summer' };
