@@ -18,6 +18,7 @@ import SearchLayout from "@/components/organisms/SearchLayout";
 import CoursePreviewPanel from "./CoursePreviewPanel";
 import PlanHeader from "../atoms/PlanHeader";
 import { IconMinus, IconPlus } from "@tabler/icons-react";
+import { setYear } from "date-fns";
 
 const ALWAYS_VISIBLE_CREDITS = 4;
 const COURSE_VERTICAL_GAP = 0;
@@ -65,6 +66,7 @@ export default function PlanDisplay() {
   // Accordion control open/closed state for bottom border radius
   const [closedAccordion, setClosedAccordion] = useState<string[]>([]);
 
+  const [yearManipulate, setYearManipulate] = useState<string>()
 
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
@@ -183,7 +185,7 @@ export default function PlanDisplay() {
             >
               <Box>
               <ActionIcon  bg="green" left='5rem'>
-                <IconPlus/>
+                <IconPlus />
               </ActionIcon>
 
               <ActionIcon bg="red">
