@@ -80,11 +80,7 @@ export default function LoggedInLandingButtons() {
                         transform: hoveredPlans ? "scale(1.05)" : "scale(1)",
                         transition: "transform 0.2s ease"
                     }}
-                    onClick={() => notifications.show({
-                        color: "#811331",
-                        title: 'Unadded Feature',
-                        message: 'High priority feature! Will be added very soon twin',
-                    })}
+                    onClick={() => router.push("/plan")}
                     onMouseEnter={() => setHoveredPlans(true)}
                     onMouseLeave={() => setHoveredPlans(false)}
                 />
