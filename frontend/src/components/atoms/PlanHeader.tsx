@@ -1,7 +1,7 @@
 import { PlanContext } from "@/contexts/PlanContext";
 import { Box, Flex, Skeleton, Title, Text } from "@mantine/core";
 import { useContext, useState, useEffect, useRef } from "react";
-import { formatDistance, isAfter } from "date-fns";
+import { formatDistance, formatDistanceToNow, isAfter } from "date-fns";
 import { UserSessionContext } from "@/contexts/UserSessionContext";
 
 export default function PlanHeader() {
@@ -123,12 +123,12 @@ export default function PlanHeader() {
                       {error}
                     </Text>
                   ) : changesSaved && plan.last_updated !== null ? (() => {
-                    const offset = new Date().getTimezoneOffset();
-                    const now = new Date(Date.now() + offset * 60 * 1000);
-                    
-                    // console.log(now, plan.last_updated)
-                    return isAfter(now, plan.last_updated)
-                      ? `Saved ${formatDistance(plan.last_updated, now, { addSuffix: true })}`
+
+                    // now using TIMESTAMPTZ instead of TIMESTAMP, so no manual logic required.
+                    // const offset = new Date().getTimezoneOffset();
+                    // const now = new Date(Date.now() + offset * 60 * 1000);
+                    return isAfter(Date.now(), plan.last_updated)
+                      ? `Saved ${formatDistanceToNow(plan.last_updated, { addSuffix: true })}`
                       : "Saved just now."
                   })() 
                     : "Saving..." 

@@ -3,25 +3,16 @@ import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import path from "path";
 
-export async function GET(request: Request) {
+export async function POST(request: Request) {
   const { searchParams } = new URL(request.url);
-  const idsParam = searchParams.get("ids");
+  const { ids } = await request.json();
 
-  if (!idsParam) {
-    return NextResponse.json(
-      { error: "ids parameter is required" },
-      { status: 400 }
-    );
-  }
-
-  // Parse comma-separated IDs
-  const ids = idsParam.split(",").map((s) => s.trim()).filter((s) => s);
-  if (ids.length === 0) {
-    return NextResponse.json(
-      { error: "No valid ids provided" },
-      { status: 400 }
-    );
-  }
+if (!ids || !Array.isArray(ids) || ids.length === 0) {
+  return NextResponse.json(
+    { error: "ids parameter is required" },
+    { status: 400 }
+  );
+}
 
   try {
     const db = await open({
