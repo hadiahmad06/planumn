@@ -133,6 +133,7 @@ export default function PlanDisplay() {
       align="stretch"
       wrap="nowrap"
       grow
+      style={{padding:"16px"}}
     >
       <Box
         w="40%"

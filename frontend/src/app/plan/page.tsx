@@ -66,7 +66,7 @@ export default function PlanPage() {
   if (deletedPlans.length === 0 && showDeleted) setShowDeleted(false);
 
   return (
-        <Stack w="100vw">
+        <Stack w="100vw" style={{padding:"16px"}}>
             <Title
                 style={{
                     fontSize: "1.5rem",
