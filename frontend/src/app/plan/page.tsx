@@ -8,9 +8,12 @@ import { IconTrash, IconChevronDown } from "@tabler/icons-react";
 import { CourseMetadata, Plan, PlanNullable, Semester } from "@/types/plan";
 import AnimatedTypingText from "@/components/atoms/landing/AnimatedTypingTest";
 import PlanRow from "@/components/molecules/PlanRow";
+import { MobileContext } from "@/contexts/MobileContext";
 
 export default function PlanPage() {
+  const { isMobile } = useContext(MobileContext);
   const { user } = useContext(UserSessionContext);
+
   const [plans, setPlans] = useState<PlanNullable[]>([]);
   const [creditMap, setCreditMap] = useState<Record<string, {id: number, cred_min: number, cred_max: number}>>({});
   const router = useRouter();
@@ -36,7 +39,7 @@ export default function PlanPage() {
                 })
             });
         });
-        console.log(allCourseIds);
+        // console.log(allCourseIds);
         const creditRes = await fetch(`/api/course/credits`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -48,7 +51,7 @@ export default function PlanPage() {
         creditData.forEach((course: any) => {
           creditMap[course.id] = course;
         });
-        console.log(creditMap);
+        // console.log(creditMap);
         setCreditMap(creditMap);
 
       })
@@ -81,25 +84,31 @@ export default function PlanPage() {
             >
                 {/* Plans Section (not deleted) */}
                 <Paper
-                    radius="md"
-                    shadow="sm"
-                    bg= "rgba(129, 19, 49, 0.125)"
-                    style={{
-                        display: "grid",
-                        alignItems: "center",
-                        padding: "20px",
-                        gridTemplateColumns: "30% 15% 5% 10% 10% 10% 10% 5% 5%",
-                    }}
+                radius="md"
+                shadow="sm"
+                bg="rgba(129, 19, 49, 0.125)"
+                style={{
+                    display: "grid",
+                    alignItems: "center",
+                    padding: isMobile ? "10px" : "20px",
+                    gridTemplateColumns: isMobile ? "27.5% 2.5% 25% 5% 30% 7.5% 2.5%" : "27.5% 2.5% 15% 5% 10% 10% 10% 10% 5% 5%",
+                }}
                 >
-                    <Text c="black" size="lg" fw={800}>Plan Title</Text>
-                    <Text c="black" fw={600}>Credit Completion</Text>
+                    <Text c="black" size={isMobile ? "sm" : "lg"} fw={800}>Plan Title</Text>
                     <Space/>
-                    <Text c="black" fw={600}># of Courses</Text>
-                    <Text c="black" fw={600}># of Credits</Text>
-                    <Text c="black" fw={600}>Last Updated</Text>
-                    <Text c="black" fw={600}>Created At</Text>
+                    <Text c="black" size={isMobile ? "xs" : "md"} fw={600}>{isMobile ? "Credits Bar" : "Credit Completion"}</Text>
+                    <Space/>
+                    {!isMobile && <>
+                        <Text c="black" size="md" fw={600}># of Courses</Text>
+                        <Text c="black" size="md" fw={600}># of Credits</Text>
+                    </>}
+                    <Text c="black" size={isMobile ? "xs" : "md"} fw={600}>Last Updated</Text>
+                    {!isMobile &&
+                        <Text c="black" size="md" fw={600}>Created At</Text>
+                    }
+                    <Space/>
                 </Paper>
-                <Stack gap="xs" style={{ padding: "8px" }}>
+                <Stack gap={isMobile ? "4px" : "8px"} style={{ padding: isMobile ? "4px" : "8px" }}>
                     {activePlans.map((plan, index) => (
                       <PlanRow
                         key={plan.id}
@@ -142,36 +151,40 @@ export default function PlanPage() {
                   style={{
                     display: "grid",
                     alignItems: "center",
-                    paddingBlock: showDeleted ? "20px" : "10px",
+                    paddingBlock: isMobile ? (showDeleted ? "12px" : "8px") : (showDeleted ? "20px" : "10px"),
                     paddingInline: "20px",
-                    gridTemplateColumns: "30% 15% 5% 10% 10% 10% 10% 5% 5%",
+                    gridTemplateColumns: isMobile ? "27.5% 2.5% 25% 5% 30% 7.5% 2.5%" : "27.5% 2.5% 15% 5% 10% 10% 10% 10% 5% 5%",
                     cursor: "pointer",
                     userSelect: "none",
                     transition: "padding-block 0.2s ease",
                   }}
                   onClick={() => setShowDeleted((prev) => !prev)}
                 >
-                    <Text c="black" size="lg" fw={800} style={{
+                    <Text c="black" size={isMobile ? "xs" : "lg"} fw={800} style={{
                         display: "flex",
                         alignItems: "center",
                         gap: "0.5rem",
                     }}>
-                        Deleted Plans ({deletedPlans.length})
+                        {isMobile ? `${deletedPlans.length} Deleted` : `Deleted Plans (${deletedPlans.length})`}
                         <IconChevronDown
-                        size={20}
+                        size={isMobile ? 12 : 20}
                         style={{
                             transform: showDeleted ? "rotate(180deg)" : "rotate(0deg)",
                             transition: "transform 0.2s ease",
                         }}
                         />
                     </Text>
-                    <Text c="black" fw={600}
+                    <Space/>
+                    <Text 
+                        size={isMobile ? "xs" : "md"}
+                        c="black" 
+                        fw={600}
                         style={{
                             opacity: showDeleted ? 1 : 0,
                             transition: "opacity 0.2s ease",
                         }}
                     >
-                        Will Be Deleted On
+                        {isMobile ? "Deleted On" :"Will Be Deleted On"}
                     </Text>
                     
                 </Paper>
