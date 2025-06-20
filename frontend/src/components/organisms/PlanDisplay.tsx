@@ -6,6 +6,7 @@ import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal, Stack, Space, A
 // You may move these to a CSS module or stylesheet if preferred
 const SEMESTER_BACKGROUND = 'linear-gradient(135deg, rgba(221, 208, 208, 0.8), rgba(245, 245, 255, 0.6))';
 
+import { PlanProvider } from "@/contexts/PlanProvider";
 import ManipulateYear from "./ManipulateYear";
 import { FiSave, FiShare } from "react-icons/fi";
 import CourseCard from "../molecules/CourseCard";
@@ -20,6 +21,7 @@ import CoursePreviewPanel from "./CoursePreviewPanel";
 import PlanHeader from "../atoms/PlanHeader";
 import { IconMinus, IconPlus } from "@tabler/icons-react";
 import { setYear } from "date-fns";
+import {blue} from "next/dist/lib/picocolors";
 
 const ALWAYS_VISIBLE_CREDITS = 4;
 const COURSE_VERTICAL_GAP = 0;
@@ -129,7 +131,7 @@ export default function PlanDisplay() {
   if (!plan) {
     return <Skeleton height="100%" />; // Handle loading state
   }
-  
+
   return (
     <Group
       w="100vw"
@@ -153,7 +155,7 @@ export default function PlanDisplay() {
         }}
       >
         {/* CENTERED SEMESTER CONTAINER */}
-        
+
         <Box
           style={{
             width: '100%',
@@ -167,6 +169,7 @@ export default function PlanDisplay() {
           <PlanHeader/>
           <Box
           style={{
+
             width: '100%',
             maxWidth: '1200px',
             background: 'rgba(129, 19, 49, 0.1)',
@@ -175,6 +178,23 @@ export default function PlanDisplay() {
             boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
           }}
           >
+
+              <ActionIcon  variant='light' radius='xl' bg='rgba(129, 19, 49, 0.1)' left='1.71rem' onClick={() => {ManipulateYear(plan, setPlan, "AddPreviousYear")}}>
+                <IconPlus color={'Green'}/>
+              </ActionIcon>
+
+              <ActionIcon  bg='rgba(129, 19, 49, 0.1)' radius='xl' top='1rem' onClick={() => {ManipulateYear(plan, setPlan,"DeleteCurrentYear")}}>
+                <IconMinus color={'Red'}/>
+              </ActionIcon>
+
+              <ActionIcon  bg='rgba(129, 19, 49, 0.1)' radius='xl' left='41.71rem' onClick={() => {ManipulateYear(plan, setPlan, "AddLatest+1Year")}}>
+                <IconPlus color={'Green'}/>
+              </ActionIcon>
+
+              <ActionIcon bg='rgba(129, 19, 49, 0.1)'  radius='xl' left='40rem' top='3rem' onClick={() => {ManipulateYear(plan, setPlan, "RemoveLatestYear")}}>
+                <IconMinus color={'Red'}/>
+              </ActionIcon>
+
             <ScrollArea
               style={{
                 height: 'calc(100vh - 20rem)', // adjust to leave space for headers
@@ -185,23 +205,7 @@ export default function PlanDisplay() {
               offsetScrollbars
               scrollHideDelay={0}
             >
-              <Box>
-              <ActionIcon  bg="green" left='5rem' onClick={() => (ManipulateYear(plan, "AddTopYear"))}>
-                <IconPlus />
-              </ActionIcon>
 
-              <ActionIcon bg="blue" onClick={() => (ManipulateYear(plan, "DeleteTopYear"))}>
-                <IconMinus/>
-              </ActionIcon>
-
-              <ActionIcon  bg="Yellow" left='38rem' onClick={() => (ManipulateYear(plan, "AddBottomYear"))}>
-                <IconPlus/>
-              </ActionIcon>
-
-              <ActionIcon bg="red" left='39.5rem' onClick={() => ManipulateYear(plan, "RemoveBottomYear")}>
-                <IconMinus/>
-              </ActionIcon>
-              </Box>
               <Flex
               direction="row"
               align="flex-start"
@@ -214,7 +218,7 @@ export default function PlanDisplay() {
                   // Group semesters by year, only Fall and Spring
                   const groupedByAcademicYear: Record<string, { Fall?: Semester; Spring?: Semester; Summer?: Semester }> = {};
                   const seasonLabels: Record<string, string> = { '9': 'Fall', '3': 'Spring', '5': 'Summer' };
-                  
+
                   // Accordion control open/closed state for bottom border radius
 
                   plan.semesters.forEach((sem) => {
@@ -242,19 +246,22 @@ export default function PlanDisplay() {
                             // bg="blue"
                             key={year}
                             direction="row"
-                            align="center"
+                            align="left"
+                            justify="flex-start"
                             gap={theme.planDisplayStyles.container.gap + 10}
+                            wrap="nowrap"
                             // style={{ width: '150px' }}
                           >
-                            <Title>
-                              {/* {year}–{(parseInt(year) + 1).toString().slice(-2)} */}
-                            </Title>
+                            {/*<Title>*/}
+                            {/*  /!* {year}–{(parseInt(year) + 1).toString().slice(-2)} *!/*/}
+                            {/*</Title>*/}
                             {(() => {
                               const { Fall, Spring, Summer } = semGroup as { Fall?: Semester; Spring?: Semester; Summer?: Semester };
                               return (['🍂 Fall', '🌱 Spring', '☀️ Summer'] as const).map((season) => {
                                 const sem = season === '🍂 Fall' ? Fall : season === '🌱 Spring' ? Spring : Summer;
                                 if (!sem) {
-                                  return <Box key={`${year}-${season}`} style={{ width: SEMESTER_BOX_WIDTH, minHeight: SEMESTER_BOX_MIN_HEIGHT }} />;
+                                  return;
+                                  // return <Box key={`${year}-${season}`} style={{ width: SEMESTER_BOX_WIDTH, minHeight: SEMESTER_BOX_MIN_HEIGHT }} />;
                                 }
                                 const totalCredits = Math.max(
                                   ALWAYS_VISIBLE_CREDITS,
@@ -294,7 +301,7 @@ export default function PlanDisplay() {
                                           background: SEMESTER_BACKGROUND,
                                           border: '1px solid rgba(128, 128, 128, 0.2)',
                                           padding: 12,
-                                          width: '100%',
+                                          width: SEMESTER_BOX_WIDTH,
                                           boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
                                           display: 'block',
                                           marginBottom: 0,
@@ -304,8 +311,8 @@ export default function PlanDisplay() {
                                           borderBottomLeftRadius: !closedAccordion.includes(sem.index) ? '0' : '1rem',
                                           borderBottomRightRadius: !closedAccordion.includes(sem.index) ? '0' : '1rem',
                                         },
-                                        panel: { 
-                                          padding: 0, 
+                                        panel: {
+                                          padding: 0,
                                           margin: 0,
                                           background: 'transparent',
                                           boxShadow: 'none',
