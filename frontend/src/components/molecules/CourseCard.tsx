@@ -19,7 +19,7 @@ export default function CourseCard({
   courseId,
   index = 0,
   semName = '',
-  updateLock,
+  showPreview = true,
   isDraggable = true,
   className = '',
   fixedWidth = false,
@@ -30,8 +30,7 @@ export default function CourseCard({
   courseId: number;
   index?: number;
   semName?: string;
-  updateLock?: () => void;
-  // colorKey?: ColorKey;
+  showPreview?: boolean;
   isDraggable?: boolean;
   className?: string;
   fixedWidth?: boolean;
@@ -75,9 +74,9 @@ export default function CourseCard({
       backgroundColor: courseColor,
       transition: 'transform 0.2s',
       }}
-      onClick={() => setPersistPreview?.(course, source === "search" ? "bottom-right" : "bottom-left")}
-      onPointerEnter={() => setTempPreview?.(course, source === "search" ? "bottom-right" : "bottom-left")}
-      onPointerLeave={() => setTempPreview?.(null, null)}
+      onClick={() => showPreview ? setPersistPreview?.(course, source === "search" ? "bottom-right" : "bottom-left") : {}}
+      onPointerEnter={() => showPreview ? setTempPreview?.(course, source === "search" ? "bottom-right" : "bottom-left") : {}}
+      onPointerLeave={() => showPreview ? setTempPreview?.(null, null) : {}}
       className={className}
     >
       {course.dept_abbr} {course.course_num}

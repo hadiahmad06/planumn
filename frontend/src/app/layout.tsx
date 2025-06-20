@@ -4,6 +4,7 @@ import "./globals.css";
 import ClientLayout from "./client-layout";
 
 
+import '@mantine/carousel/styles.css';
 import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import { ColorSchemeScript, MantineProvider, mantineHtmlProps } from '@mantine/core';
