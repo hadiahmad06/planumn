@@ -15,6 +15,7 @@ type SlideItem =
 
 export default function PlanDisplayMobile() {
   const { plan, cachedCourses } = useContext(PlanContext);
+  const [initialSlide, setInitialSlide] = useState(0);
   const [activeSlide, setActiveSlide] = useState(0);
 
   useEffect(() => {
@@ -36,6 +37,7 @@ export default function PlanDisplayMobile() {
 
     const targetIdx = plan.semesters.findIndex(s => s.index >= currentIndex);
     setActiveSlide(targetIdx === -1 ? 0 : targetIdx);
+    setInitialSlide(targetIdx === -1 ? 0 : targetIdx);
   }, [plan]);
 
   if (!plan) {
@@ -64,7 +66,7 @@ export default function PlanDisplayMobile() {
             viewport: { overflow: 'hidden' },
         }}
         onSlideChange={setActiveSlide}
-        initialSlide={activeSlide}
+        initialSlide={initialSlide}
       >
         {(() => {
           return slideItems.map((item, idx) => {
@@ -126,28 +128,39 @@ export default function PlanDisplayMobile() {
                       {sem.courses.map((course, j) => {
                       const details = cachedCourses[course.id];
                       return (
-                          <Flex key={`${sem.index}-${j}`} align="start" justify="space-between" style={{ width: '100%' }}>
-                              <CourseCard
-                                  courseId={course.id}
-                                  index={j}
-                                  semName={sem.index}
-                                  isDraggable={false}
-                                  showPreview={false}
-                                  fixedWidth
-                                  fontSize="1rem"
-                                  source="plan"
-                              />
-                              {/* {details && (
-                                <Box ml="sm" style={{ textAlign: 'right' }}>
-                                    <Text size="xs" color="dimmed">
-                                      {details.class_desc}
-                                    </Text>
-                                    <Text size="xs" color="dimmed">
-                                      {details.campus}
-                                    </Text>
-                                </Box>
-                              )} */}
-                          </Flex>
+                        <Flex key={`${sem.index}-${j}`} align="start" style={{ width: '100%' }}>
+                          {/* CourseCard with fixed size */}
+                          <Box style={{ flex: '0 0 auto' }}>
+                            <CourseCard
+                              courseId={course.id}
+                              index={j}
+                              semName={sem.index}
+                              isDraggable={false}
+                              showPreview={false}
+                              fixedWidth
+                              fontSize="1rem"
+                              source="plan"
+                            />
+                          </Box>
+                          {/* Details box takes remaining space */}
+                          {details && (
+                            <Box
+                              ml="sm"
+                              style={{
+                                flex: '1 1 0',
+                                minWidth: 0,
+                                textAlign: 'right',
+                              }}
+                            >
+                              <Text size="xs" color="dimmed">
+                                {details.class_desc}
+                              </Text>
+                              {/* <Text size="xs" color="dimmed">
+                                {details.campus}
+                              </Text> */}
+                            </Box>
+                          )}
+                        </Flex>
                       );
                       })}
                   </Flex>
