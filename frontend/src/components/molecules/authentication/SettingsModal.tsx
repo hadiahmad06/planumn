@@ -1,4 +1,3 @@
-import { supabase } from "@/lib/supabase";
 import { Modal, Text, Stack, Button } from "@mantine/core";
 import { User } from "@supabase/supabase-js";
 

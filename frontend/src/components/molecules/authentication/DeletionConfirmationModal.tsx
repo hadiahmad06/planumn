@@ -1,4 +1,3 @@
-import { supabase } from "@/lib/supabase";
 import { Modal, Text, Stack, Button, TextInput, PasswordInput } from "@mantine/core";
 import { User } from "@supabase/supabase-js";
 import { useState } from "react";
