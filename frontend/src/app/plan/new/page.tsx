@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext, useEffect, useState } from "react";
-import PlanDisplay from "@/components/organisms/PlanDisplay";
+import PlanDisplay from "@/components/organisms/plan-display/PlanDisplay";
 import { Plan, PlanNullable, Semester } from "@/types/plan";
 import { PlanContext } from "@/contexts/PlanContext";
 import { Skeleton } from "@mantine/core";

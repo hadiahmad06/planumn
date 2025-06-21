@@ -2,10 +2,9 @@
 
 import { Box, Text, Title, Container } from "@mantine/core";
 import { useState, useEffect, useContext } from "react";
-import { createBrowserClient } from "@supabase/ssr";
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/utils/supabase/client";
 import { useParams, notFound } from "next/navigation";
-import PlanDisplay from "@/components/organisms/PlanDisplay";
+import PlanDisplay from "@/components/organisms/plan-display/PlanDisplay";
 import { LockType, Plan, PlanNullable } from "@/types/plan";
 // import { getPlanDetails } from "@/types/planHandlers";
 import { PlanContext } from "@/contexts/PlanContext";
@@ -21,7 +20,7 @@ export default function PlanPage() {
 
   const loadRemotePlan = async () => {
     if (!planId) return;
-
+    const supabase = createClient();
     const { data, error } = await supabase
       .from("plans")
       .select("*")

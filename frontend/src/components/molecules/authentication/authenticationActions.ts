@@ -1,6 +1,8 @@
 'use client';
 
+import { PlanNullable } from "@/types/plan";
 import { createClient } from "@/utils/supabase/client";
+import { Session, User } from "@supabase/supabase-js";
 
 interface LoginActionParams {
     email: string;
@@ -31,8 +33,8 @@ interface RegisterActionParams {
     email: string;
     password: string;
     confirmPassword: string;
-    setUser: (user: any) => void;
-    setSession: (session: any) => void;
+    setUser: (user: User | null) => void;
+    setSession: (session: Session | null) => void;
     setRegisterError: (error: string) => void;
     setResendCooldown: (value: number) => void;
 }
@@ -79,5 +81,22 @@ export async function handleResend({ email, setResendCooldown }: ResendActionPar
         console.error("Resend error:", error.message);
     } else {
         setResendCooldown(60);
+    }
+}
+
+interface LogoutActionParams { 
+    setUser: (user: User | null) => void;
+    setPlan: (plan: PlanNullable | null) => void;
+    changesSaved: boolean;
+}
+
+
+export async function handleLogout({ setUser, setPlan, changesSaved }: LogoutActionParams ): Promise<void> {
+    const supabase = await createClient();
+    await supabase.auth.signOut();
+    setUser(null);
+    if(changesSaved) {
+        setPlan(null);
+        localStorage.removeItem("plan");
     }
 }

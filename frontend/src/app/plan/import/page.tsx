@@ -1,6 +1,6 @@
 "use client";
 
-import PlanDisplay from '@/components/organisms/PlanDisplay';
+import PlanDisplay from '@/components/organisms/plan-display/PlanDisplay';
 import { Plan, PlanNullable } from '@/types/plan';
 // import { getPlanDetails } from '@/types/planHandlers';
 import { Box, Group, Text, Button, FileButton, Container, Center, Stack, Space } from '@mantine/core';

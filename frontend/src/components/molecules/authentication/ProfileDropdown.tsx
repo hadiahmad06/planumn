@@ -1,11 +1,6 @@
-import { supabase } from "@/lib/supabase";
-import { User } from "@supabase/supabase-js";
 import { Menu, Button, Group, Text, Divider, Stack, Space } from "@mantine/core";
 import {
   IconSettings,
-  IconMessageCircle,
-  IconPhoto,
-  IconSearch,
   IconRefresh,
   IconTrash,
   IconUser
@@ -17,6 +12,7 @@ import { UserSessionContext } from "@/contexts/UserSessionContext";
 import { useContext } from "react";
 import { PlanContext } from "@/contexts/PlanContext";
 import DisplaySettings from "../DisplaySettings";
+import { handleLogout } from "./authenticationActions";
 
 export default function ProfileDropdown() {
   const { user, setUser } = useContext(UserSessionContext);
@@ -70,14 +66,7 @@ export default function ProfileDropdown() {
             <Menu.Item
               leftSection={<IconRefresh size={16} />}
               style={{ fontSize: "0.95rem", paddingRight: "1rem" }}
-              onClick={async () => {
-                await supabase.auth.signOut();
-                setUser(null);
-                if(changesSaved) {
-                  setPlan(null);
-                  localStorage.removeItem("plan");
-                }
-              }}
+              onClick={() => {handleLogout({ setUser, setPlan, changesSaved})}}
             >
               Log out
             </Menu.Item>

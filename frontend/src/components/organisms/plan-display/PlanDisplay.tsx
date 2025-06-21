@@ -6,19 +6,14 @@ import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal, Stack, Space, A
 // You may move these to a CSS module or stylesheet if preferred
 const SEMESTER_BACKGROUND = 'linear-gradient(135deg, rgba(221, 208, 208, 0.8), rgba(245, 245, 255, 0.6))';
 
-import { PlanProvider } from "@/contexts/PlanProvider";
-import ManipulateYear from "./ManipulateYear";
-import { FiSave, FiShare } from "react-icons/fi";
-import CourseCard from "../molecules/CourseCard";
+import ManipulateYear from "@/lib/ManipulateYear";
+import CourseCard from "../../molecules/CourseCard";
 import { ColorKey, Course, CourseDetails, CourseMetadata, Plan, QueriedCourse, Semester } from "@/types/plan";
 import { useContext, useEffect, useState } from "react";
-import { updateLock } from "@/types/planHandlers";
 import theme from "@/styles/theme";
-import { DisplaySettingsContext } from "@/contexts/DisplaySettingsContext";
 import { PlanContext } from "@/contexts/PlanContext";
 import SearchLayout from "@/components/organisms/SearchLayout";
-import CoursePreviewPanel from "./CoursePreviewPanel";
-import PlanHeader from "../atoms/PlanHeader";
+import PlanHeader from "../../atoms/PlanHeader";
 import { IconMinus, IconPlus } from "@tabler/icons-react";
 import { MobileContext } from "@/contexts/MobileContext";
 import PlanDisplayMobile from "./PlanDisplayMobile";
@@ -183,7 +178,7 @@ export function PlanDisplayDesktop() {
             boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
           }}
           >
-
+            <Box style={{ position: 'absolute'}}>
               <ActionIcon  variant='light' radius='xl' bg='rgba(129, 19, 49, 0.1)' left='1.71rem' onClick={() => {ManipulateYear(plan, setPlan, "AddPreviousYear")}}>
                 <IconPlus color={'Green'}/>
               </ActionIcon>
@@ -199,7 +194,8 @@ export function PlanDisplayDesktop() {
               <ActionIcon bg='rgba(129, 19, 49, 0.1)'  radius='xl' left='40rem' top='3rem' onClick={() => {ManipulateYear(plan, setPlan, "RemoveLatestYear")}}>
                 <IconMinus color={'Red'}/>
               </ActionIcon>
-
+            </Box>
+            
             <ScrollArea
               style={{
                 height: 'calc(100vh - 20rem)', // adjust to leave space for headers
@@ -210,7 +206,6 @@ export function PlanDisplayDesktop() {
               offsetScrollbars
               scrollHideDelay={0}
             >
-
               <Flex
               direction="row"
               align="flex-start"

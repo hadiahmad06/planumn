@@ -6,7 +6,6 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { Analytics } from '@vercel/analytics/next';
 import AuthButton from '@/components/molecules/authentication/AuthenticationModal';
 import { useContext, useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
 import { User, Session } from '@supabase/supabase-js';
 import ProfileDropdown from '@/components/molecules/authentication/ProfileDropdown';
 import { UserSessionProvider } from "@/contexts/UserSessionProvider";
