@@ -15,7 +15,7 @@ function generatePrevYear(firstIndex: string) {
     // ex 1259 --> 1249
     const idx = parseInt(firstIndex);
     let prev_fall_index = (idx-10).toString()
-    let prev_Spring_index = (idx-8).toString()
+    let prev_Spring_index = (idx-6).toString()
     let prev_Summer_index = (idx-4).toString()
 
     // Make a semester array with index being prev year and courses being an empty array
@@ -26,8 +26,8 @@ function generateNextYear(lastIndex: string) {
     // ex 1259 --> 1269
     const idx = parseInt(lastIndex);
     console.log(idx);
-    let next_fall_index = (idx+4).toString()
-    let next_Spring_index = (idx+8).toString()
+    let next_fall_index = (idx+6).toString()
+    let next_Spring_index = (idx+12).toString()
     let next_Summer_index = (idx+10).toString()
 
     // Make a semester array with index being prev year and courses being an empty array
@@ -53,16 +53,17 @@ export default function ManipulateYear(plan: PlanNullable | null,setPlan: (plan:
 
     }
     else if (manipulation == "RemovePrecedingYear") {
-        sems.length == 0 ? error_message() : updated = sems.slice(3)
+        sems.length == 0 ? error_message() : sems.length == 3 ? updated = [] : updated = sems.slice(3)
 
 
     } else if (manipulation == "AddLatestYear") {
         sems.length == 0 ? updated = generateCurrentYear() : updated = sems.concat(generateNextYear(sems[sems.length-1].index))
 
     } else if (manipulation == "RemoveLatestYear") {
-        sems.length == 0 ? error_message() : updated = sems.slice(0, sems.length - 3)
+        sems.length == 0 ? error_message() : sems.length == 3 ? updated = [] : updated = sems.slice(0, sems.length - 3)
     }
     setPlan({...plan, semesters: updated})
+    console.log(sems)
     // }
 
         // },[plan, setPlan])

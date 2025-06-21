@@ -196,7 +196,7 @@ export function PlanDisplayDesktop() {
               wrap="wrap"
               >
                 {(() => {
-                  // console.log(plan.semesters)
+                  console.log(plan.semesters)
                   // Group semesters by year, only Fall and Spring
                   const groupedByAcademicYear: Record<string, { Fall?: Semester; Spring?: Semester; Summer?: Semester }> = {};
                   const seasonLabels: Record<string, string> = { '9': 'Fall', '3': 'Spring', '5': 'Summer' };
