@@ -26,8 +26,8 @@ function generateNextYear(lastIndex: string) {
     // ex 1259 --> 1269
     const idx = parseInt(lastIndex);
     console.log(idx);
-    let next_fall_index = (idx+6).toString()
-    let next_Spring_index = (idx+12).toString()
+    let next_fall_index = (idx+4).toString()
+    let next_Spring_index = (idx+8).toString()
     let next_Summer_index = (idx+10).toString()
 
     // Make a semester array with index being prev year and courses being an empty array
@@ -57,7 +57,8 @@ export default function ManipulateYear(plan: PlanNullable | null,setPlan: (plan:
 
 
     } else if (manipulation == "AddLatestYear") {
-        sems.length == 0 ? updated = generateCurrentYear() : updated = sems.concat(generateNextYear(sems[sems.length-1].index))
+        const maxIndex = sems.reduce((max, s) => parseInt(s.index) > max ? parseInt(s.index) : max, -Infinity);
+        sems.length === 0 ? updated = generateCurrentYear() : updated = sems.concat(generateNextYear(maxIndex.toString()));
 
     } else if (manipulation == "RemoveLatestYear") {
         sems.length == 0 ? error_message() : sems.length == 3 ? updated = [] : updated = sems.slice(0, sems.length - 3)

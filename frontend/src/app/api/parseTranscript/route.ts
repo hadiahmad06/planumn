@@ -4,6 +4,7 @@ import path from "path";
 import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import { Course, PlanNullable } from "@/types/plan";
+import { normalizeSemesters } from "@/types/planHandlers";
 
 
 export const POST = async (req: NextRequest) => {
@@ -96,10 +97,11 @@ export const POST = async (req: NextRequest) => {
     can_view: [],
     title: "",
     programs: [], // will update this once we have major data
-    semesters: Object.entries(semesters).map(([index, ids]) => ({
-      index,
-      courses: ids.map((id) => ({ id, lock: "locked" })),
-    })),
+    semesters: normalizeSemesters(
+        Object.entries(semesters).map(
+          ([index, ids]) => ({ index, courses: ids.map((id) => ({ id, lock: "locked" })),})
+        )
+    ),
   } as PlanNullable;
 
   return NextResponse.json(formatted);
