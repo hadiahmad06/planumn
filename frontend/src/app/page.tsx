@@ -118,23 +118,23 @@ export default function Home() {
             </Group>
             {isMobile && (
               <Paper
-                shadow="xs"
-                p="md"
+                shadow="sm"
                 withBorder
+                p="md"
                 style={{
-                  margin: "1rem 0",
+                  margin: "0",
                   backgroundColor: "#F8E8EA",
                   color: "#811331",
+                  borderColor: "#e4a5b2",
                   textAlign: "center",
                   display: "inline-flex",
                   alignItems: "center",
                   gap: "0.5rem",
-                  borderRadius: "0.5rem",
                   fontWeight: 500,
                 }}
               >
                 <IconDeviceMobile size={20} />
-                Mobile version coming soon
+                Limited Mobile Version: Plan editing on desktop
               </Paper>
             )}
           </Group>

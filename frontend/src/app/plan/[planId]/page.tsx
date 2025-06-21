@@ -38,6 +38,7 @@ export default function PlanPage() {
       id: data.id,
       created_at: new Date(data.created_at),
       last_updated: new Date(data.last_updated),
+      deletion_scheduled_at: null,
       can_view: data.can_view,
       title: data.title,
       programs: data.programs,
