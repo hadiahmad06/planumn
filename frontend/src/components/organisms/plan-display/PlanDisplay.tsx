@@ -32,7 +32,7 @@ const SEMESTER_BOX_PADDING = 3;
 const CREDIT_NUMBER_PADDING = 0;
 
 // Dimensions
-const SEMESTER_BOX_WIDTH = "150px";
+const SEMESTER_BOX_WIDTH = "160px";
 const SEMESTER_BOX_MIN_HEIGHT = "90px";
 const CREDIT_LINE_HEIGHT = "20px";
 
@@ -169,33 +169,15 @@ export function PlanDisplayDesktop() {
           <PlanHeader/>
           <Box
           style={{
-
+            position: 'relative',
             width: '100%',
-            maxWidth: '1200px',
+            height: '100%',
             background: 'rgba(129, 19, 49, 0.1)',
             borderRadius: '1rem',
             padding: '2rem',
             boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
           }}
           >
-            <Box style={{ position: 'absolute'}}>
-              <ActionIcon  variant='light' radius='xl' bg='rgba(129, 19, 49, 0.1)' left='1.71rem' onClick={() => {ManipulateYear(plan, setPlan, "AddPreviousYear")}}>
-                <IconPlus color={'Green'}/>
-              </ActionIcon>
-
-              <ActionIcon  bg='rgba(129, 19, 49, 0.1)' radius='xl' top='1rem' onClick={() => {ManipulateYear(plan, setPlan,"DeleteCurrentYear")}}>
-                <IconMinus color={'Red'}/>
-              </ActionIcon>
-
-              <ActionIcon  bg='rgba(129, 19, 49, 0.1)' radius='xl' left='41.71rem' onClick={() => {ManipulateYear(plan, setPlan, "AddLatest+1Year")}}>
-                <IconPlus color={'Green'}/>
-              </ActionIcon>
-
-              <ActionIcon bg='rgba(129, 19, 49, 0.1)'  radius='xl' left='40rem' top='3rem' onClick={() => {ManipulateYear(plan, setPlan, "RemoveLatestYear")}}>
-                <IconMinus color={'Red'}/>
-              </ActionIcon>
-            </Box>
-            
             <ScrollArea
               style={{
                 height: 'calc(100vh - 20rem)', // adjust to leave space for headers
@@ -214,7 +196,7 @@ export function PlanDisplayDesktop() {
               wrap="wrap"
               >
                 {(() => {
-                  console.log(plan.semesters)
+                  // console.log(plan.semesters)
                   // Group semesters by year, only Fall and Spring
                   const groupedByAcademicYear: Record<string, { Fall?: Semester; Spring?: Semester; Summer?: Semester }> = {};
                   const seasonLabels: Record<string, string> = { '9': 'Fall', '3': 'Spring', '5': 'Summer' };
@@ -407,6 +389,58 @@ export function PlanDisplayDesktop() {
                 })()}
               </Flex>
             </ScrollArea>
+            <Box
+              style={{
+                display: "flex",
+                flexDirection: 'column',
+                gap: '0.5rem',
+                position: 'absolute',
+                left: '5%',
+                top: '10%',
+                transform: 'translateY(-50%)',
+              }}
+            >
+              <ActionIcon 
+                bg='rgba(129, 19, 49, 0.1)' 
+                radius='md'  
+                onClick={() => {ManipulateYear(plan, setPlan, "AddPrecedingYear")}}
+              >
+                <IconPlus color={'Green'}/>
+              </ActionIcon>
+              <ActionIcon  
+                bg='rgba(129, 19, 49, 0.1)'
+                radius='md'
+                onClick={() => {ManipulateYear(plan, setPlan,"RemovePrecedingYear")}}
+              >
+                <IconMinus color={'Red'}/>
+              </ActionIcon>
+            </Box>
+            <Box style={{
+                display: "flex",
+                flexDirection: 'column',
+                gap: '0.5rem',
+                position: 'absolute',
+                right: '5%',
+                top: '10%',
+                transform: 'translateY(-50%)',
+              }}
+            >
+              <ActionIcon 
+                bg='rgba(129, 19, 49, 0.1)'
+                radius='md'
+                onClick={() => {ManipulateYear(plan, setPlan, "AddLatestYear")}}
+              >
+                <IconPlus color={'Green'}/>
+              </ActionIcon>
+
+              <ActionIcon 
+                bg='rgba(129, 19, 49, 0.1)'  
+                radius='md'
+                onClick={() => {ManipulateYear(plan, setPlan, "RemoveLatestYear")}}
+              >
+                <IconMinus color={'Red'}/>
+              </ActionIcon>
+            </Box>
           </Box>
         </Box>
       </Box>
