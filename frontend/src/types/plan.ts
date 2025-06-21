@@ -63,23 +63,25 @@ export type Semester ={
 export interface Plan {
   id: string;
   user_id: string;
-  created_at: Date;
-  last_updated: Date;
   can_view: string[]
   title: string;
   programs: string[];
   semesters: Semester[];
+  created_at: Date;
+  last_updated: Date;
+  deletion_scheduled_at: Date | null
 } 
 
 export interface PlanNullable {
   id: string | null;
   user_id: string | null;
-  created_at: Date;
-  last_updated: Date;
   can_view: string[]
   title: string;
   programs: string[];
   semesters: Semester[];
+  created_at: Date;
+  last_updated: Date;
+  deletion_scheduled_at: Date | null
 }
 
 // export interface PlanDetails {

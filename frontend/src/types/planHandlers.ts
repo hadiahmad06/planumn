@@ -4,7 +4,7 @@ import { DialogCssVariables } from "@mantine/core";
 import { useContext, useEffect } from "react";
 
 export async function getCourseDetails(id:string) {
-  const response = await fetch(`/api/courses?id=${id}`);
+  const response = await fetch(`/api/course/full?id=${id}`);
   if (!response.ok) {
     throw new Error(`Failed to fetch course details: ${response.statusText}`);
   }

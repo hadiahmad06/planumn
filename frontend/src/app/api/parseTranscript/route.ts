@@ -92,9 +92,10 @@ export const POST = async (req: NextRequest) => {
     user_id: null,
     created_at: new Date(),
     last_updated: new Date(),
+    deletion_scheduled_at: null,
     can_view: [],
-    title: "Imported Plan",
-    programs: ["Unknown"], // will update this once we have major data
+    title: "",
+    programs: [], // will update this once we have major data
     semesters: Object.entries(semesters).map(([index, ids]) => ({
       index,
       courses: ids.map((id) => ({ id, lock: "locked" })),

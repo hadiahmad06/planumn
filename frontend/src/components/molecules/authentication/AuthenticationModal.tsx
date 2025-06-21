@@ -2,9 +2,9 @@
 "use client";
 import { Button, Modal, Text, TextInput, Stack, SegmentedControl, Center, Loader } from "@mantine/core";
 import { useContext, useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase";
 import { IconLogin, IconUserPlus } from "@tabler/icons-react";
 import { UserSessionContext } from "@/contexts/UserSessionContext";
+import { handleLogin, handleRegister, handleResend } from "./authenticationActions";
 
 const PRIMARY_COLOR = "#811331";
 
@@ -21,43 +21,6 @@ export default function AuthButton() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const [resendCooldown, setResendCooldown] = useState(0);
-
-  const handleLogin = async () => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-    if (error) {
-      console.error("Login error:", error.message);
-      setLoginError(`Login failed: ${error.message}`);
-    } else {
-      console.log("Logged in user:", data.user);
-      setUser(data.user);
-      setSession(data.session);
-    }
-  };
-
-  const handleRegister = async () => {
-    const isValidPassword = /^(?=.*[A-Z])(?=.*[!@#$&*])(?=.*[0-9]).{8,}$/.test(password);
-    if (!isValidPassword) {
-      setRegisterError("Please ensure your password meets the requirements");
-      return;
-    }
-    if(password !== confirmPassword) {
-      setRegisterError("Passwords do not match");
-      return;
-    }
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) {
-      setRegisterError(`${error.message}`);
-    } else {
-      setUser(data.user);
-      setSession(data.session);
-      setResendCooldown(60);
-    }
-  }
-
 
   useEffect(() => {
     if (resendCooldown === 0) return;
@@ -93,11 +56,7 @@ export default function AuthButton() {
               disabled={resendCooldown > 0}
               onClick={() => {
                 if (resendCooldown > 0) return;
-                supabase.auth.resend({
-                  type: 'signup',
-                  email: email,
-                });
-                setResendCooldown(60);
+                handleResend( {email, setResendCooldown });
               }}
             >
               {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : "Resend"}
@@ -198,9 +157,9 @@ export default function AuthButton() {
                 setRegisterError("");
                 setLoginError("");
                 if (authType === "register") {
-                  handleRegister();
+                  handleRegister({ email, password, confirmPassword, setUser, setSession, setRegisterError, setResendCooldown});
                 } else {
-                  handleLogin();
+                  handleLogin({ email, password, setUser, setSession, setLoginError });
                 }
               }}
             >

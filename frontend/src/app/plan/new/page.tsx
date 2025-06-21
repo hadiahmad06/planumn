@@ -29,9 +29,10 @@ const createEmptyPlan = (): PlanNullable => {
     user_id: null,
     created_at: new Date(),
     last_updated: new Date(),
+    deletion_scheduled_at: null,
     can_view: [],
-    title: "New Plan",
-    programs: ["Computer Science B.S."],
+    title: "",
+    programs: [],
     semesters: semesters
   };
 };

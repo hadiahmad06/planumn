@@ -63,7 +63,11 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
           <Flex
             justify="space-between"
             align="center"
-            style={{ padding: '16px', position: 'relative', zIndex: 1 }}
+            style={{ 
+              // padding: '16px', 
+              position: 'relative', 
+              zIndex: 1 
+            }}
           >
             {children}
             <Box style={{ position: 'absolute', top: '16px', right: '16px' }}>

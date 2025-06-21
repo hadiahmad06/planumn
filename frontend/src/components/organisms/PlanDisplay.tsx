@@ -20,8 +20,8 @@ import SearchLayout from "@/components/organisms/SearchLayout";
 import CoursePreviewPanel from "./CoursePreviewPanel";
 import PlanHeader from "../atoms/PlanHeader";
 import { IconMinus, IconPlus } from "@tabler/icons-react";
-import { setYear } from "date-fns";
-import {blue} from "next/dist/lib/picocolors";
+import { MobileContext } from "@/contexts/MobileContext";
+import PlanDisplayMobile from "./PlanDisplayMobile";
 
 const ALWAYS_VISIBLE_CREDITS = 4;
 const COURSE_VERTICAL_GAP = 0;
@@ -62,8 +62,12 @@ const HEADING_MARGIN = 4;
 const MAJOR_TEXT_MARGIN = 6;
 const SEMESTER_TITLE_MARGIN = 1;
 
-
 export default function PlanDisplay() {
+  const { isMobile } = useContext(MobileContext);
+  return isMobile ? <PlanDisplayMobile/> : <PlanDisplayDesktop/>;
+}
+
+export function PlanDisplayDesktop() {
   const { plan, setPlan, cachedCourses } = useContext(PlanContext);
 
   // Accordion control open/closed state for bottom border radius
@@ -140,6 +144,7 @@ export default function PlanDisplay() {
       align="stretch"
       wrap="nowrap"
       grow
+      style={{padding:"16px"}}
     >
       <Box
         w="40%"
@@ -383,7 +388,6 @@ export default function PlanDisplay() {
                                                       courseId={course.id}
                                                       index={j}
                                                       semName={sem.index}
-                                                      updateLock={() => updateLock(sem.index, j)}
                                                       fixedWidth
                                                       fontSize="15px"
                                                       source="plan"/>
