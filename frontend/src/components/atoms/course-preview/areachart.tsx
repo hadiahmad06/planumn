@@ -39,9 +39,8 @@ export const letterToGpa = (letter: string) => {
   return GPA_MAP[letter as keyof typeof GPA_MAP];
 };
 
-export const AreaChart = ({ distribution, averageGPA, isMobile = true }: { distribution: Distribution, averageGPA: number, isMobile: boolean }) => {
-    const { isSummary } = distribution;
-    const { grades } = distribution;
+export const AreaChart = ({ distribution, isMobile = true }: { distribution: Distribution, isMobile: boolean }) => {
+    const { isSummary, grades } = distribution;
     // Check if there are no letter grades (A, B, C, D, F) in the grades object
     const letterGradeKeys = ['A', 'B', 'C', 'D', 'F'];
     const noLetterGrades = !grades || !letterGradeKeys.some(grade => grades[grade] > 0);
@@ -59,6 +58,14 @@ export const AreaChart = ({ distribution, averageGPA, isMobile = true }: { distr
         </div>
       );
     }
+
+    const totalWeightedGPA = Object.entries(grades ?? {}).reduce((sum, [letter, count]) => {
+      return sum + (letterToGpa(letter) * count);
+    }, 0);
+
+    const totalStudents = Object.values(grades ?? {}).reduce((sum, count) => sum + count, 0);
+
+    const averageGPA = totalStudents > 0 ? totalWeightedGPA / totalStudents : 0;
   
     let scale = isSummary ? 1.3 : 1;
     if (isMobile) scale = 0.8;
@@ -114,10 +121,6 @@ export const AreaChart = ({ distribution, averageGPA, isMobile = true }: { distr
   
     const numGrades = GRADE_ORDER.length - (hasAPlus ? 0 : 1);
   
-    const totalStudents = Object.values(grades).reduce(
-      (total, gradeCount) => total + gradeCount,
-      0
-    );
   
     const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
       const { x, y } = getMouseCoords(e);
@@ -139,7 +142,7 @@ export const AreaChart = ({ distribution, averageGPA, isMobile = true }: { distr
           gradeCount,
           gpa,
         });
-        setHovered(false);
+        // setHovered(false);
       }
     };
     const handleMouseEnter = () => setHovered(true);

@@ -24,7 +24,7 @@ export interface CourseDetails extends CourseStub {
   campus: string;
   class_desc: string;
   total_students: number;
-  total_grades: number;
+  total_grades: string;
   onestop: string;
   onestop_desc: string;
   cred_min: number;

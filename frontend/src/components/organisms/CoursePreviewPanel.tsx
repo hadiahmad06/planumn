@@ -166,7 +166,7 @@ export default function CoursePreviewPanel() {
               : course.total_grades, isSummary: false }} isMobile={false} />
             <AreaChart distribution={{ grades: typeof course.total_grades === 'string'
               ? JSON.parse(course.total_grades)
-              : course.total_grades, isSummary: false }} isMobile={false} averageGPA={course.total_grades} />
+              : course.total_grades, isSummary: false }} isMobile={false} />
           </Group>
         </Group>
 
