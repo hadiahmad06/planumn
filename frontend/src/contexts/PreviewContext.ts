@@ -10,6 +10,11 @@ export type CoursePreview = {
   pos: PreviewPosition;
 }
 
+export type HydratedPreview = {
+  course: CourseDetails;
+  pos: PreviewPosition;
+};
+
 interface PreviewContextType {
   tempCourse: CoursePreview | null;
   persistCourses: CoursePreview[];
