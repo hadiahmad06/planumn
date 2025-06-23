@@ -5,26 +5,29 @@ export type PreviewPosition = "top-left" | "top-right" | "bottom-left" | "bottom
 
 export type PreviewSource = "search" | "plan" | null;
 
+export type CoursePreview = {
+  course: CourseDetails | Course;
+  pos: PreviewPosition;
+}
+
 interface PreviewContextType {
-  tempCourse: CourseDetails | Course | null;
-  tempPos: PreviewPosition | null;
-  persistCourse: CourseDetails | Course | null;
-  persistPos: PreviewPosition | null;
+  tempCourse: CoursePreview | null;
+  persistCourses: CoursePreview[];
   setTempPreview: (
     course: CourseDetails | Course | null,
-    pos: PreviewPosition | null,
+    pos?: PreviewPosition,
   ) => void;
-  setPersistPreview: (
-    course: CourseDetails | Course | null,
-    pos: PreviewPosition | null,
+  addPersistPreview: (
+    course: CourseDetails | Course,
+    initialPos: PreviewPosition | null
   ) => void;
+  removePersistPreview: (id: number) => void;
 }
 
 export const PreviewContext = createContext<PreviewContextType>({
   tempCourse: null,
-  tempPos: null,
-  persistCourse: null,
-  persistPos: null,
+  persistCourses: [],
   setTempPreview: () => {},
-  setPersistPreview: () => {},
+  addPersistPreview: () => {},
+  removePersistPreview: () => {},
 });

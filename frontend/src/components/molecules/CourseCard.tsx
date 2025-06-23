@@ -43,7 +43,7 @@ export default function CourseCard({
 }: CourseCardProps) {
   const { cachedCourses, cachedSearchResults } = useContext(PlanContext);
   const { colorKey } = useContext(DisplaySettingsContext);
-  const { setTempPreview, setPersistPreview } = useContext(PreviewContext);
+  const { setTempPreview, addPersistPreview } = useContext(PreviewContext);
 
   const course: PlannedCourse | CourseStub =
     cachedCourses[courseId] || cachedSearchResults[courseId];
@@ -126,7 +126,7 @@ export default function CourseCard({
       }}
       onClick={() => {
         if (showPreview) {
-          setPersistPreview?.(course, source === "search" ? "bottom-right" : "bottom-left");
+          addPersistPreview?.(course, source === "search" ? "bottom-right" : "bottom-left");
         }
       }}
       onPointerEnter={() => {
@@ -136,7 +136,7 @@ export default function CourseCard({
       }}
       onPointerLeave={() => {
         if (showPreview) {
-          setTempPreview?.(null, null);
+          setTempPreview?.(null);
         }
       }}
     >
