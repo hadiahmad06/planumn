@@ -9,11 +9,11 @@ import Draggable from 'react-draggable';
 import { CoursePreviewEntry, CoursePreviewSkeleton, mapPositionToCoords } from './CoursePreview';
 
 export default function CoursePreviewPanel() {
-  const { persistCourses, tempCourse } = useContext(PreviewContext);
+  const { persistCourses, tempCourse, focusPersistPreview } = useContext(PreviewContext);
 
   // Combine persistent and temporary previews
   const allPreviews = [
-    ...persistCourses,
+    ...Object.values(persistCourses).sort((a, b) => a.zIndex - b.zIndex),
     ...(tempCourse ? [tempCourse] : []),
   ];
 
@@ -52,7 +52,12 @@ export default function CoursePreviewPanel() {
         if (!('campus' in course)) {
           // skeleton inside Draggable
           return (
-            <Draggable nodeRef={nodeRef} defaultPosition={{ x: initialX, y: initialY }} key={`skeleton-persist-${course.id}`}>
+            <Draggable 
+              nodeRef={nodeRef} 
+              defaultPosition={{ x: initialX, y: initialY }} 
+              key={`skeleton-persist-${course.id}`}
+              // bounds="parent"
+            >
               <div
                 ref={nodeRef}
                 style={{
@@ -61,6 +66,7 @@ export default function CoursePreviewPanel() {
                   ...coords,
                   width: '100%',
                 }}
+                onMouseDownCapture={() => focusPersistPreview(course.id)}
               >
                 <CoursePreviewSkeleton entry={entry} temp={false}/>
               </div>
@@ -70,7 +76,12 @@ export default function CoursePreviewPanel() {
 
         // full details inside Draggable
         return (
-          <Draggable nodeRef={nodeRef} defaultPosition={{ x: initialX, y: initialY }} key={`preview-persist-${course.id}`}>
+          <Draggable 
+            nodeRef={nodeRef} 
+            defaultPosition={{ x: initialX, y: initialY }} 
+            key={`preview-persist-${course.id}`}
+            // bounds="parent"
+          >
             <div
               ref={nodeRef}
               style={{
@@ -79,6 +90,7 @@ export default function CoursePreviewPanel() {
                 ...coords,
                 width: '100%',
               }}
+              onMouseDownCapture={() => focusPersistPreview(course.id)}
             >
               <CoursePreviewEntry entry={entry as HydratedPreview} temp={false}/>
             </div>

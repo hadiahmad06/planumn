@@ -1,11 +1,13 @@
 import { Course, CourseDetails } from "@/types/plan";
 import { ReactNode, useState } from "react";
-import { CoursePreview, PreviewContext, PreviewPosition } from "./PreviewContext";
+import { CoursePreview, CoursePreviewIndexed, PreviewContext, PreviewPosition } from "./PreviewContext";
 import { getCourseDetails } from "@/types/planHandlers";
 
 export function PreviewProvider({ children }: { children: ReactNode }) {
+  const [zIndexCounter, setZIndexCounter] = useState(1);
+
   const [tempPreview, setTempPreviewState] = useState<CoursePreview | null>(null);
-  const [persistCourses, setPersistCourses] = useState<CoursePreview[]>([]);
+  const [persistCourses, setPersistCourses] = useState<Record<number, CoursePreviewIndexed>>({});
 
   const setTempPreview = (course: CourseDetails | Course | null, pos: PreviewPosition = "bottom") => {
     if (course === null || pos === null) {
@@ -28,26 +30,54 @@ export function PreviewProvider({ children }: { children: ReactNode }) {
   const addPersistPreview = (course: CourseDetails | Course, initialPos: PreviewPosition | null) => {
     const pos = initialPos ?? "bottom";
 
-    // Add placeholder preview immediately
-    setPersistCourses(prev => [...prev, { course, pos }]);
+    const nextZIndex = zIndexCounter + 1;
+    setZIndexCounter(nextZIndex);
+    setPersistCourses(prev => ({
+      ...prev,
+      [course.id]: {
+        zIndex: nextZIndex,
+        course: course,
+        pos: pos
+      },
+    }));
 
     if (!("campus" in course)) {
       getCourseDetails(String(course.id)).then((fullCourse: CourseDetails) => {
-        setPersistCourses(prev =>
-          prev.map(entry =>
-            "id" in entry.course && entry.course.id === course.id
-              ? { ...entry, course: fullCourse }
-              : entry
-          )
-        );
+        setPersistCourses(prev => {
+          const entry = prev[course.id];
+          if (!entry) return prev;
+          return {
+            ...prev,
+            [course.id]: {
+              ...entry,
+              course: fullCourse
+            },
+          };
+        });
       });
     }
   };
 
+  const focusPersistPreview = (id: number) => {
+    if (!(id in persistCourses)) return;
+    
+    const nextZIndex = zIndexCounter + 1;
+    setZIndexCounter(nextZIndex);
+    setPersistCourses(prev => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        zIndex: nextZIndex,
+      },
+    }))
+  };
+
   const removePersistPreview = (id: number) => {
-    setPersistCourses(prev =>
-      prev.filter(entry => 'id' in entry.course && entry.course.id !== id)
-    );
+    setPersistCourses(prev => {
+      const updated = { ...prev };
+      delete updated[id];
+      return updated;
+    });
   };
 
   return (
@@ -57,6 +87,7 @@ export function PreviewProvider({ children }: { children: ReactNode }) {
         persistCourses,
         setTempPreview,
         addPersistPreview,
+        focusPersistPreview,
         removePersistPreview,
       }}
     >

@@ -119,7 +119,7 @@ export function CoursePreviewEntry({ entry, temp,}: CoursePreviewEntryProps) {
         onPointerLeave={disableHover}
       >
         <Group justify="space-between" align="center" style={{ width: '100%', flexWrap: "nowrap" }}>
-          <Stack gap="0.2rem" style={{ minWidth: '40%'}}>
+          <Stack gap="0.2rem" style={{ minWidth: '40%', width: temp ? '' : '100%'}}>
             <Group justify="space-between" style={{ width: '100%' }}>
               <Group gap="0">
                 <Text style={{ fontSize: '1.375rem', fontWeight: 700, color: '#800000' }}>
@@ -144,7 +144,7 @@ export function CoursePreviewEntry({ entry, temp,}: CoursePreviewEntryProps) {
           </Stack>
           {temp && <GradeChartsRow course={course} temp={temp} />}
         </Group>
-        <Box style={{ width: '100%', height: '1px', backgroundColor: '#E5E5E5' }} />
+        {temp && <Box style={{ width: '100%', height: '1px', backgroundColor: '#E5E5E5' }} />}
 
         <Group 
           justify="space-between" 
@@ -155,7 +155,7 @@ export function CoursePreviewEntry({ entry, temp,}: CoursePreviewEntryProps) {
         >
           {!temp && <GradeChartsRow course={course} temp={temp} />}
           <Box style={{ width: '100%' }}>
-            <Group justify="flex-start" onClick={temp ? undefined : toggle} style={{ cursor: 'pointer' }}>
+            <Group justify="flex-start" onClick={temp ? undefined : toggle} style={{ alignItems: "center", cursor: 'pointer' }}>
               <Text style={{
                   fontSize: '0.95rem', 
                   color: '#555', 
@@ -165,13 +165,26 @@ export function CoursePreviewEntry({ entry, temp,}: CoursePreviewEntryProps) {
                   gap: "0.2rem",
               }}>
                   Description:
-                  {!temp && <IconChevronUp
-                  size={16}
-                  style={{
-                      transform: opened ? "rotate(180deg)" : "rotate(0deg)",
-                      transition: "transform 0.2s ease",
-                  }}
-                  />}
+                  {!temp && 
+                  <>
+                    <IconChevronDown
+                      size={16}
+                      style={{
+                          transform: opened ? "rotate(180deg)" : "rotate(0deg)",
+                          transition: "transform 0.2s ease",
+                      }}
+                    />
+                    <Text
+                      style={{
+                        fontSize: '0.7rem',
+                        fontWeight: 300,
+                        color: '#555'
+                      }}
+                    >
+                      ... click to keep description open!
+                    </Text>
+                  </>
+                  }
               </Text>
             </Group>
             <Collapse in={temp || opened || descHover} transitionDuration={500} transitionTimingFunction="ease">

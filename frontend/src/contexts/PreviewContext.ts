@@ -15,9 +15,15 @@ export type HydratedPreview = {
   pos: PreviewPosition;
 };
 
+type zIndex = {
+  zIndex: number
+}
+
+export type CoursePreviewIndexed = CoursePreview & zIndex;
+
 interface PreviewContextType {
   tempCourse: CoursePreview | null;
-  persistCourses: CoursePreview[];
+  persistCourses: Record<number, CoursePreviewIndexed>;
   setTempPreview: (
     course: CourseDetails | Course | null,
     pos?: PreviewPosition,
@@ -26,13 +32,15 @@ interface PreviewContextType {
     course: CourseDetails | Course,
     initialPos: PreviewPosition | null
   ) => void;
+  focusPersistPreview: (id: number) => void;
   removePersistPreview: (id: number) => void;
 }
 
 export const PreviewContext = createContext<PreviewContextType>({
   tempCourse: null,
-  persistCourses: [],
+  persistCourses: {},
   setTempPreview: () => {},
   addPersistPreview: () => {},
+  focusPersistPreview: () => {},
   removePersistPreview: () => {},
 });
