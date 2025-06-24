@@ -111,12 +111,18 @@ export const AreaChart = ({ distribution, isMobile = true }: { distribution: Dis
   
     const maxGPA = hasAPlus ? 4.333 : 4;
   
-    // get mouse coordinates relative to the graph
+    // get mouse coordinates relative to the SVG, accounting for scaling
     const getMouseCoords = (e: React.MouseEvent<SVGSVGElement>) => {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      return { x, y };
+      const svg = e.currentTarget;
+      const point = svg.createSVGPoint();
+      point.x = e.clientX;
+      point.y = e.clientY;
+      const ctm = svg.getScreenCTM();
+      if (ctm) {
+        const transformed = point.matrixTransform(ctm.inverse());
+        return { x: transformed.x, y: transformed.y };
+      }
+      return { x: 0, y: 0 };
     };
   
     const numGrades = GRADE_ORDER.length - (hasAPlus ? 0 : 1);
@@ -164,8 +170,11 @@ export const AreaChart = ({ distribution, isMobile = true }: { distribution: Dis
   
     return (
       <svg
-        height={AREA_GRAPH_HEIGHT + BOTTOM_MARGIN}
-        width={AREA_GRAPH_WIDTH}
+        viewBox={`0 0 ${AREA_GRAPH_WIDTH} ${AREA_GRAPH_HEIGHT + BOTTOM_MARGIN}`}
+        preserveAspectRatio="xMidYMid meet"
+        style={{ width: '100%', height: '100%'}}
+        // height={AREA_GRAPH_HEIGHT + BOTTOM_MARGIN}
+        // width={AREA_GRAPH_WIDTH}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}

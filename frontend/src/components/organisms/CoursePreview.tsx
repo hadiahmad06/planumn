@@ -1,5 +1,5 @@
 import { CourseDetails } from "@/types/plan"
-import { Dialog, Stack, Text, Box, Group, Button } from "@mantine/core"
+import { Stack, Text, Box, Group, CloseButton, Collapse } from "@mantine/core"
 import { BarChart } from "../atoms/course-preview/barchart"
 import { AreaChart } from "../atoms/course-preview/areachart"
 import { CoursePreview, HydratedPreview, PreviewContext, PreviewPosition } from "@/contexts/PreviewContext"
@@ -33,8 +33,8 @@ function getPreviewStyle(pos: PreviewPosition, temp: boolean): React.CSSProperti
   const coords = mapPositionToCoords(pos);
   return {
     position: 'fixed',
-    ...coords,
-    width: '47.5%',
+    ...(temp ? coords : {}),
+    width: temp ? '47.5%' : '25%',
     backgroundColor: 'white',
     padding: '20px',
     borderRadius: '12px',
@@ -50,6 +50,45 @@ function getPreviewStyle(pos: PreviewPosition, temp: boolean): React.CSSProperti
   };
 }
 
+function GradeChartsRow({ course, temp }: { course: CourseDetails; temp: boolean }) {
+  return (
+    <Group
+      justify="flex-end"
+      style={{
+        display: "flex",
+        flexWrap: 'nowrap',
+        width: temp ? '80%' : '100%',
+        height: temp ? 70 : 50,
+        gap: 16,
+        alignItems: 'stretch'
+      }}
+    >
+      <Box style={{ height: '100%', display: 'flex', alignItems: 'center' }}>
+        <BarChart
+          distribution={{
+            grades: typeof course.total_grades === 'string'
+              ? JSON.parse(course.total_grades)
+              : course.total_grades,
+            isSummary: false,
+          }}
+          isMobile={false}
+        />
+      </Box>
+      <Box style={{ height: '100%', display: 'flex', alignItems: 'center' }}>
+        <AreaChart
+          distribution={{
+            grades: typeof course.total_grades === 'string'
+              ? JSON.parse(course.total_grades)
+              : course.total_grades,
+            isSummary: false,
+          }}
+          isMobile={false}
+        />
+      </Box>
+    </Group>
+  );
+}
+
 type CoursePreviewEntryProps = {
   entry: HydratedPreview;
   temp: boolean;
@@ -60,67 +99,88 @@ export function CoursePreviewEntry({ entry, temp,}: CoursePreviewEntryProps) {
   const { removePersistPreview } = useContext(PreviewContext);
   const { course, pos } = entry;
   const commonStyle = getPreviewStyle(pos, temp);
+  const [descHover, setDescHover] = useState(false);
+
+  function enableHover() {
+    setDescHover(true);
+  }
+
+  function disableHover() {
+    setDescHover(false);
+  }
+  const [ opened, { toggle } ] = useDisclosure(false);
 
   return (
     <Box key={`preview-${temp ? "temp-" : "persist-"}${course.id}`} className="drag-handle" style={commonStyle}>
-      <Stack gap="md" style={{ alignItems: 'flex-start' }}>
-        {/* {!temp && (
-          <Group justify="space-between" style={{ width: '100%' }}>
-            <Button
-              onClick={() => removePersistPreview(course.id)}
-              variant="light"
-              color="red"
-              size="xs"
-            >
-              Close
-            </Button>
-          </Group>
-        )} */}
-        <Text style={{ fontSize: '1.375rem', fontWeight: 700, color: '#800000' }}>
-          {course.dept_abbr} {course.course_num}
-        </Text>
-        <Text style={{ fontSize: '1.125rem', fontWeight: 500, color: '#333' }}>
-          {course.class_desc}
-        </Text>
+      <Stack 
+        gap="sm" 
+        style={{ alignItems: 'flex-start' }} 
+        onPointerOver={enableHover}
+        onPointerLeave={disableHover}
+      >
+        <Group justify="space-between" align="center" style={{ width: '100%', flexWrap: "nowrap" }}>
+          <Stack gap="0.2rem" style={{ minWidth: '40%'}}>
+            <Group justify="space-between" style={{ width: '100%' }}>
+              <Group gap="0">
+                <Text style={{ fontSize: '1.375rem', fontWeight: 700, color: '#800000' }}>
+                  {course.dept_abbr} {course.course_num} 
+                </Text>
+                {!temp && (
+                  <Text style={{ fontSize: '1.125rem', fontWeight: 600, color: '#800000' }}>
+                    &nbsp;– {course.cred_min === course.cred_max ? course.cred_min : `${course.cred_min}-${course.cred_max}`} cr
+                  </Text>
+                )}
+              </Group>
+              {!temp && (
+              <CloseButton
+                onClick={() => removePersistPreview(course.id)}
+                size="lg"
+              />
+              )}
+            </Group>
+            <Text style={{ fontSize: '1.125rem', fontWeight: 500, color: '#333' }}>
+              {course.class_desc}
+            </Text>
+          </Stack>
+          {temp && <GradeChartsRow course={course} temp={temp} />}
+        </Group>
         <Box style={{ width: '100%', height: '1px', backgroundColor: '#E5E5E5' }} />
 
-        <Group justify="space-between" style={{ width: '100%' }}>
-        <Stack gap="xs" style={{ flexGrow: 1 }}>
-          <Text style={{ fontSize: '0.95rem', color: '#555' }}>
-            <strong>Credits:</strong>{' '}
-            {course.cred_min === course.cred_max
-                ? course.cred_min
-                : `${course.cred_min} - ${course.cred_max}`}
-          </Text>
-          <Text style={{ fontSize: '0.95rem', color: '#555' }}>
-            <strong>Total # of Students:</strong> {course.total_students}
-          </Text>
-        </Stack>
-        <Group align="center" style={{ flexShrink: 0 }}>
-          <BarChart
-            distribution={{
-              grades: typeof course.total_grades === 'string'
-              ? JSON.parse(course.total_grades)
-              : course.total_grades,
-              isSummary: false,
-            }}
-            isMobile={false}
-          />
-          <AreaChart
-            distribution={{
-              grades: typeof course.total_grades === 'string'
-              ? JSON.parse(course.total_grades)
-              : course.total_grades,
-              isSummary: false,
-            }}
-            isMobile={false}
-          />
+        <Group 
+          justify="space-between" 
+          style={{ 
+            width: '100%', 
+            flexWrap: temp ? 'wrap' : 'wrap'
+          }}
+        >
+          {!temp && <GradeChartsRow course={course} temp={temp} />}
+          <Box style={{ width: '100%' }}>
+            <Group justify="flex-start" onClick={temp ? undefined : toggle} style={{ cursor: 'pointer' }}>
+              <Text style={{
+                  fontSize: '0.95rem', 
+                  color: '#555', 
+                  fontWeight: 600,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.2rem",
+              }}>
+                  Description:
+                  {!temp && <IconChevronUp
+                  size={16}
+                  style={{
+                      transform: opened ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: "transform 0.2s ease",
+                  }}
+                  />}
+              </Text>
+            </Group>
+            <Collapse in={temp || opened || descHover} transitionDuration={500} transitionTimingFunction="ease">
+              <Text style={{ fontSize: '0.95rem', color: '#555' }}>
+                {course.onestop_desc}
+              </Text>
+            </Collapse>
+          </Box>
         </Group>
-        </Group>
-
-        <Text style={{ fontSize: '0.95rem', color: '#555' }}>
-          <strong>Description:</strong> {course.onestop_desc}
-        </Text>
       </Stack>
     </Box>
     // </div>
@@ -128,7 +188,10 @@ export function CoursePreviewEntry({ entry, temp,}: CoursePreviewEntryProps) {
 }
 
 import { Skeleton } from "@mantine/core";
-import { RefObject, useContext } from "react"
+import { RefObject, useContext, useState } from "react"
+import { useDisclosure } from "@mantine/hooks"
+import { FiChevronDown } from "react-icons/fi"
+import { IconChevronDown, IconChevronUp } from "@tabler/icons-react"
 
 type CoursePreviewSkeletonProps = {
   entry: CoursePreview;

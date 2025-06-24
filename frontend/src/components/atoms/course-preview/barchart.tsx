@@ -59,18 +59,27 @@ export const BarChart = ({ distribution, isMobile = true }: { distribution: Dist
     setHoveredGrade(null);
   };
 
-  const handleMouseMove = (event: React.MouseEvent<SVGSVGElement>) => {
-    const { clientX } = event;
-    const { left } = event.currentTarget.getBoundingClientRect();
-    const x = clientX - left;
-    const barIndex = Math.floor(x / barWidth);
-    setHoveredGrade(barIndex);
+  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    const svg = e.currentTarget;
+    const point = svg.createSVGPoint();
+    point.x = e.clientX;
+    point.y = e.clientY;
+    const ctm = svg.getScreenCTM();
+    if (ctm) {
+      const transformed = point.matrixTransform(ctm.inverse());
+      const x = transformed.x;
+      const barIndex = Math.floor(x / barWidth);
+      setHoveredGrade(barIndex);
+    }
   };
 
   return (
     <svg
-      height={BAR_GRAPH_HEIGHT + BOTTOM_MARGIN}
-      width={BAR_GRAPH_WIDTH}
+      viewBox={`0 0 ${BAR_GRAPH_WIDTH} ${BAR_GRAPH_HEIGHT + BOTTOM_MARGIN}`}
+      preserveAspectRatio="xMidYMid meet"
+      style={{ width: '100%', height: '100%'}}
+      // height={BAR_GRAPH_HEIGHT + BOTTOM_MARGIN}
+      // width={BAR_GRAPH_WIDTH}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onMouseMove={handleMouseMove}

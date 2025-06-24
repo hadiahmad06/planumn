@@ -18,7 +18,7 @@ export default function CoursePreviewPanel() {
   ];
 
   // Persist refs for each course.id across renders
-  const nodeRefs = useRef<Record<string, RefObject<HTMLDivElement | null>>>({});
+  const nodeRefs = useRef<Record<string, RefObject<HTMLDivElement>>>({});
 
   return (
     <>
@@ -26,7 +26,7 @@ export default function CoursePreviewPanel() {
         const { course, pos } = entry;
         // Ensure nodeRef for this course.id exists
         if (!nodeRefs.current[course.id]) {
-          nodeRefs.current[course.id] = createRef<HTMLDivElement>();
+          nodeRefs.current[course.id] = createRef() as RefObject<HTMLDivElement>;
         }
         const nodeRef = nodeRefs.current[course.id];
         const coords = mapPositionToCoords(pos);
@@ -53,7 +53,15 @@ export default function CoursePreviewPanel() {
           // skeleton inside Draggable
           return (
             <Draggable nodeRef={nodeRef} defaultPosition={{ x: initialX, y: initialY }} key={`skeleton-persist-${course.id}`}>
-              <div ref={nodeRef} style={{ position: 'fixed', zIndex: 1000, width: '100%' }}>
+              <div
+                ref={nodeRef}
+                style={{
+                  position: 'fixed',
+                  zIndex: 1000,
+                  ...coords,
+                  width: '100%',
+                }}
+              >
                 <CoursePreviewSkeleton entry={entry} temp={false}/>
               </div>
             </Draggable>
@@ -63,7 +71,15 @@ export default function CoursePreviewPanel() {
         // full details inside Draggable
         return (
           <Draggable nodeRef={nodeRef} defaultPosition={{ x: initialX, y: initialY }} key={`preview-persist-${course.id}`}>
-            <div ref={nodeRef} style={{ position: 'fixed', zIndex: 1000, width: '100%'}}>
+            <div
+              ref={nodeRef}
+              style={{
+                position: 'fixed',
+                zIndex: 1000,
+                ...coords,
+                width: '100%',
+              }}
+            >
               <CoursePreviewEntry entry={entry as HydratedPreview} temp={false}/>
             </div>
           </Draggable>

@@ -126,7 +126,7 @@ export default function CourseCard({
       }}
       onClick={() => {
         if (showPreview) {
-          addPersistPreview?.(course, source === "search" ? "bottom-right" : "bottom-left");
+          addPersistPreview?.(course, source === "search" ? "right" : "left");
         }
       }}
       onPointerEnter={() => {
