@@ -4,6 +4,35 @@ import { BarChart } from "../atoms/course-preview/barchart"
 import { AreaChart } from "../atoms/course-preview/areachart"
 import { CoursePreview, HydratedPreview, PreviewContext, PreviewPosition } from "@/contexts/PreviewContext"
 
+
+export function getXYFromCoords(coords: {
+  top?: number | string;
+  left?: number | string;
+  bottom?: number | string;
+  right?: number | string;
+  transform?: string;
+}): { x: number; y: number } {
+  let x = 0;
+  let y = 0;
+
+  // Use top and left as primary references
+  if (typeof coords.left === 'number') x = coords.left;
+  else if (typeof coords.right === 'number') x = window.innerWidth * 0.75 - coords.right;
+
+  if (typeof coords.top === 'number') y = coords.top;
+  else if (typeof coords.bottom === 'number') y = window.innerHeight - coords.bottom;
+
+  // Apply transform adjustments
+  if (coords.transform?.includes('translateY(-50%)')) {
+    y += window.innerHeight * 0.5;
+  }
+  if (coords.transform?.includes('translateX(-50%)')) {
+    x -= window.innerWidth * 0.5;
+  }
+
+  return { x, y };
+}
+
 export const mapPositionToCoords = (pos: PreviewPosition | null) => {
   const DEFAULT_MARGIN = 20;
   
@@ -111,12 +140,16 @@ export function CoursePreviewEntry({ entry, temp,}: CoursePreviewEntryProps) {
   const [ opened, { toggle } ] = useDisclosure(false);
 
   return (
-    <Box key={`preview-${temp ? "temp-" : "persist-"}${course.id}`} className="drag-handle" style={commonStyle}>
+    <Box 
+      key={`preview-${temp ? "temp-" : "persist-"}${course.id}`} 
+      className="drag-handle" 
+      style={commonStyle} 
+      onPointerOver={enableHover}
+      onPointerLeave={disableHover}
+    >
       <Stack 
         gap="sm" 
         style={{ alignItems: 'flex-start' }} 
-        onPointerOver={enableHover}
-        onPointerLeave={disableHover}
       >
         <Group justify="space-between" align="center" style={{ width: '100%', flexWrap: "nowrap" }}>
           <Stack gap="0.2rem" style={{ minWidth: '40%', width: temp ? '' : '100%'}}>
@@ -165,27 +198,27 @@ export function CoursePreviewEntry({ entry, temp,}: CoursePreviewEntryProps) {
                   gap: "0.2rem",
               }}>
                   Description:
-                  {!temp && 
-                  <>
-                    <IconChevronDown
-                      size={16}
-                      style={{
-                          transform: opened ? "rotate(180deg)" : "rotate(0deg)",
-                          transition: "transform 0.2s ease",
-                      }}
-                    />
-                    <Text
-                      style={{
-                        fontSize: '0.7rem',
-                        fontWeight: 300,
-                        color: '#555'
-                      }}
-                    >
-                      ... click to keep description open!
-                    </Text>
-                  </>
-                  }
               </Text>
+              {!temp && 
+              <>
+                <IconChevronDown
+                  size={16}
+                  style={{
+                      transform: opened ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: "transform 0.2s ease",
+                  }}
+                />
+                <Text
+                  style={{
+                    fontSize: '0.7rem',
+                    fontWeight: 300,
+                    color: '#555'
+                  }}
+                >
+                  ... click to keep description open!
+                </Text>
+              </>
+              }
             </Group>
             <Collapse in={temp || opened || descHover} transitionDuration={500} transitionTimingFunction="ease">
               <Text style={{ fontSize: '0.95rem', color: '#555' }}>

@@ -6,7 +6,7 @@ import { AreaChart } from '../atoms/course-preview/areachart';
 import { HydratedPreview, PreviewContext, PreviewPosition } from '@/contexts/PreviewContext';
 import { getCourseDetails } from '@/types/planHandlers';
 import Draggable from 'react-draggable';
-import { CoursePreviewEntry, CoursePreviewSkeleton, mapPositionToCoords } from './CoursePreview';
+import { CoursePreviewEntry, CoursePreviewSkeleton, getXYFromCoords, mapPositionToCoords } from './CoursePreview';
 
 export default function CoursePreviewPanel() {
   const { persistCourses, tempCourse, focusPersistPreview } = useContext(PreviewContext);
@@ -46,8 +46,8 @@ export default function CoursePreviewPanel() {
         }
 
         // Persistent preview: draggable
-        const initialX = typeof coords.left === 'number' ? coords.left : 0;
-        const initialY = typeof coords.top === 'number' ? coords.top : 0;
+        const { x: initialX, y: initialY } = getXYFromCoords(coords);
+        console.log(`${initialX}, ${initialY}`)
 
         if (!('campus' in course)) {
           // skeleton inside Draggable
@@ -80,14 +80,20 @@ export default function CoursePreviewPanel() {
             nodeRef={nodeRef} 
             defaultPosition={{ x: initialX, y: initialY }} 
             key={`preview-persist-${course.id}`}
-            // bounds="parent"
+            bounds=
+            {{
+              left: 0,
+              top: 0,
+              right: window.innerWidth*0.75,
+              bottom: window.innerHeight*0.9
+            }}
           >
             <div
               ref={nodeRef}
               style={{
                 position: 'fixed',
                 zIndex: 1000,
-                ...coords,
+                // ...coords,
                 width: '100%',
               }}
               onMouseDownCapture={() => focusPersistPreview(course.id)}
