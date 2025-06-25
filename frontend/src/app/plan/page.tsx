@@ -109,7 +109,7 @@ export default function PlanPage() {
           <Space/>
         </Paper>
         <Stack gap={isMobile ? "4px" : "8px"} style={{ padding: isMobile ? "4px" : "8px" }}>
-          {activePlans.length === 0 ? activePlans.map((plan, index) => (
+          {activePlans.length !== 0 ? activePlans.map((plan, index) => (
             <PlanRow
               key={plan.id}
               plan={plan}
