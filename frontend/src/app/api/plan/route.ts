@@ -1,34 +1,54 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { createClient } from "@/utils/supabase/server";
+import { Plan } from "@/types/plan";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
-export async function POST(req: NextRequest) {
+/**
+ * Handles POST requests to insert or upsert a plan into the Supabase `plans` table.
+ * 
+ * - If a plan ID is provided, the function performs an upsert (update or insert).
+ * - If no ID is provided, it performs a new insert with an auto-generated ID.
+ * - Ignores user-supplied `user_id` to prevent spoofing.
+ * 
+ * @param {NextRequest} req - The incoming request containing the plan data in the body.
+ * @returns {Promise<NextResponse>} A JSON response containing the plan ID and `last_updated` timestamp, or an error message and appropriate status code.
+ */
+export async function POST(req: NextRequest): Promise<NextResponse> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
   try {
-    const body = await req.json();
-    if (!body || !body.user_id) {
+
+    // user not authenticated
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+
+    // parses plan from request body
+    const body = await req.json() as Plan;
+
+    // TODO: validate body with Zod in production
+    // minor check for now
+    if (!body) {
       return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
     }
 
     let data, error;
-    if (body.id) {
+
+    if (body.id) { 
       // existing plan → upsert (replace)
-      const { ...rest } = body;
+
+      const { user_id, ...rest } = body; // ignore user_id in body, to prevent spoofing
       ({ data, error } = await supabase
         .from("plans")
-        .upsert(rest, { onConflict: "id" })
+        .upsert({ ...rest, user_id: user.id }, { onConflict: "id" })
         .select("id, last_updated")
         .single());
-    } else {
-      // removes null id from body
-      const { id, created_at, ...rest } = body;
+    } else { 
       // new plan → insert (let DB generate id)
+
+      const { id, user_id, created_at, ...rest } = body; // removes null id and created_at from body
       ({ data, error } = await supabase
         .from("plans")
-        .insert(rest)
+        .insert({ ...rest, user_id: user.id })
         .select("id, last_updated")
         .single());
     }
@@ -41,7 +61,9 @@ export async function POST(req: NextRequest) {
     if (!data) {
       return NextResponse.json({ error: "No data returned from Supabase" }, { status: 500 });
     }
-
+    
+    // return plan ID for client-side redirects
+    // return last_updated to handle potential race conditions
     return NextResponse.json({ id: data.id, last_updated: data.last_updated }, { status: 200 });
 
   } catch (err: any) {
