@@ -49,43 +49,16 @@ export default function CoursePreviewPanel() {
         const { x: initialX, y: initialY } = getXYFromCoords(coords);
         console.log(`${initialX}, ${initialY}`)
 
-        if (!('campus' in course)) {
-          // skeleton inside Draggable
-          return (
-            <Draggable 
-              nodeRef={nodeRef} 
-              defaultPosition={{ x: initialX, y: initialY }} 
-              key={`skeleton-persist-${course.id}`}
-              // bounds="parent"
-            >
-              <div
-                ref={nodeRef}
-                style={{
-                  position: 'fixed',
-                  zIndex: 1000,
-                  ...coords,
-                  width: '100%',
-                }}
-                onMouseDownCapture={() => focusPersistPreview(course.id)}
-              >
-                <CoursePreviewSkeleton entry={entry} temp={false}/>
-              </div>
-            </Draggable>
-          );
-        }
-
-        // full details inside Draggable
         return (
-          <Draggable 
-            nodeRef={nodeRef} 
-            defaultPosition={{ x: initialX, y: initialY }} 
+          <Draggable
+            nodeRef={nodeRef}
+            defaultPosition={{ x: initialX, y: initialY }}
             key={`preview-persist-${course.id}`}
-            bounds=
-            {{
+            bounds={{
               left: 0,
               top: 0,
-              right: window.innerWidth*0.75,
-              bottom: window.innerHeight*0.9
+              right: window.innerWidth * 0.75,
+              bottom: window.innerHeight * 0.9,
             }}
           >
             <div
@@ -93,12 +66,15 @@ export default function CoursePreviewPanel() {
               style={{
                 position: 'fixed',
                 zIndex: 1000,
-                // ...coords,
                 width: '100%',
               }}
               onMouseDownCapture={() => focusPersistPreview(course.id)}
             >
-              <CoursePreviewEntry entry={entry as HydratedPreview} temp={false}/>
+              {'campus' in course ? (
+                <CoursePreviewEntry entry={entry as HydratedPreview} temp={false} />
+              ) : (
+                <CoursePreviewSkeleton entry={entry} temp={false} />
+              )}
             </div>
           </Draggable>
         );

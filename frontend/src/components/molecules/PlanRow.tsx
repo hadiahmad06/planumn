@@ -1,4 +1,4 @@
-import { Paper, Text, Box, Loader, Progress, Space } from "@mantine/core";
+import { Paper, Text, Box, Loader, Progress, Space, Skeleton } from "@mantine/core";
 import { IconTrash, IconRecycle } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { PlanNullable } from "@/types/plan";
@@ -176,6 +176,48 @@ export default function PlanRow({ plan, index, creditMap, onDelete, isDeleted = 
           </Box>
         )}
       </Box>
+    </Paper>
+  );
+}
+
+export function PlanRowSkeleton({index}: {index: number}) {
+  const { isMobile } = useContext(MobileContext);
+
+  const bgColor = index % 2 === 0
+    ? "rgba(255,255,255,0.3)"
+    : "rgba(220,220,220,0.3)";
+
+  return (
+    <Paper
+      radius="md"
+      style={{
+        boxShadow: "0 0px 4px rgba(0,0,0,0.1)",
+        display: "grid",
+        alignItems: "center",
+        padding: isMobile ? "6px 6px" : "12px 12px",
+        backgroundColor: bgColor,
+        transition: "padding 0.25s, box-shadow 0.25s, background-color 0.25s",
+        cursor: "default",
+        gridTemplateColumns: isMobile ? "27.5% 2.5% 25% 5% 30% 7.5% 2.5%" : "27.5% 2.5% 15% 5% 10% 10% 10% 10% 5% 5%",
+      }}
+    >
+      <Skeleton height={18} width={`calc(80%/${index+1})`} />
+      <Space />
+      <Box style={{ margin: "4px 0", display: "flex", alignItems: "center", gap: 8 }}>
+        <Skeleton height={16} width={32} />
+        <Skeleton height={20} style={{ flex: 1 }} />
+      </Box>
+      <Space />
+      {!isMobile &&
+      <>
+        <Skeleton height={16} width="60%" />
+        <Skeleton height={16} width="60%" />
+        <Skeleton height={16} width="80%" />
+      </>
+      }
+      <Skeleton height={16} width="80%" />
+      <Space />
+      <Skeleton height={isMobile ? 20 : 32} circle />
     </Paper>
   );
 }
