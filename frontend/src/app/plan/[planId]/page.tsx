@@ -112,56 +112,68 @@ export default function PlanPage() {
 
   if (!planId) return notFound();
 
-  if (loginPrompt) {
-    return (
-      <UnauthorizedPrompt/>
-    )
-  }
+  // if (loginPrompt) {
+  //   return (
+  //     <UnauthorizedPrompt/>
+  //   )
+  // }
 
-  if (noAccessVisible) {
-    return (
-      <NoAccessPrompt/>
-    )
-  }
+  // if (noAccessVisible) {
+  //   return (
+  //     <NoAccessPrompt/>
+  //   )
+  // }
 
-  if (loadFailed) {
-    return (
-      <UnknownErrorPrompt/>
-    )
-  }
+  // if (loadFailed) {
+  //   return (
+  //     <UnknownErrorPrompt/>
+  //   )
+  // }
 
-  if (promptVisible) {
-    return (
-      <OverwriteSavedPrompt
-        setPromptVisible={setPromptVisible}
-        onOverwrite={() => {
-          setPromptVisible(false);
-          loadRemotePlan().then((remotePlan) => { if(remotePlan) setPlan(remotePlan)});
-        }}
-        message="An autosave was found for a different plan. Overwrite and load this plan?"
-      />
-    );
-  }
+  // if (promptVisible) {
+  //   return (
+  //     <OverwriteSavedPrompt
+  //       setPromptVisible={setPromptVisible}
+  //       onOverwrite={() => {
+  //         setPromptVisible(false);
+  //         loadRemotePlan().then((remotePlan) => { if(remotePlan) setPlan(remotePlan)});
+  //       }}
+  //       message="An autosave was found for a different plan. Overwrite and load this plan?"
+  //     />
+  //   );
+  // }
 
   return (
     <>
       <PlanDisplay />
-
-      {loginPrompt && <UnauthorizedPrompt />}
-      {noAccessVisible && <NoAccessPrompt />}
-      {loadFailed && <UnknownErrorPrompt />}
-      {promptVisible && (
-        <OverwriteSavedPrompt
-          setPromptVisible={setPromptVisible}
-          onOverwrite={() => {
-            setPromptVisible(false);
-            loadRemotePlan().then((remotePlan) => {
-              if (remotePlan) setPlan(remotePlan);
-            });
-          }}
-          message="An autosave was found for a different plan. Overwrite and load this plan?"
-        />
-      )}
+      <div 
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%"
+        }}
+      >
+        {loginPrompt ? (
+          <UnauthorizedPrompt />
+        ) : noAccessVisible ? (
+          <NoAccessPrompt />
+        ) : loadFailed ? (
+          <UnknownErrorPrompt />
+        ) : promptVisible ? (
+          <OverwriteSavedPrompt
+            setPromptVisible={setPromptVisible}
+            onOverwrite={() => {
+              setPromptVisible(false);
+              loadRemotePlan().then((remotePlan) => {
+                if (remotePlan) setPlan(remotePlan);
+              });
+            }}
+            message="An autosave was found for a different plan. Overwrite and load this plan?"
+          />
+        ) : null}
+      </div>
     </>
   );
 }
