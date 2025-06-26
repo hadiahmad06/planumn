@@ -71,3 +71,45 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
+
+/**
+ * Retrieves a specific plan if it belongs to or is shared with the authenticated user.
+ *
+ * @param req - HTTP GET request with `planId` passed as a search param.
+ * @returns JSON response with plan data if authorized, or error.
+ */
+export async function GET(req: Request): Promise<NextResponse> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // user not authenticated
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // extracts plan id from request parameters
+  const { searchParams } = new URL(req.url);
+  const planId = searchParams.get("planId");
+
+  if (!planId) {
+    return NextResponse.json({ error: "Missing planId" }, { status: 400 });
+  }
+
+  // attempts to fetch plan data with access control: either owner or shared user
+  const { data, error } = await supabase
+    .from("plans")
+    .select("*")
+    .eq("id", planId)
+    .or(`user_id.eq.${user.id},can_view.cs.[\"${user.id}\"]`)
+    .single();
+
+  if (!data) {
+    return NextResponse.json({ error: "You do not have access to this plan." }, { status: 403 });
+  }
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ plan: data });
+}

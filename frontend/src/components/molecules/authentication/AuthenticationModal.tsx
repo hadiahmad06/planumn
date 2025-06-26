@@ -172,9 +172,9 @@ export default function AuthButton() {
       <Button
         onClick={() => setOpened(true)}
         color={PRIMARY_COLOR}
-        size="lg"
+        size="md"
         variant="filled"
-        radius="xl"
+        radius="md"
         style={{ boxShadow: "sm" }}
       >
         LOGIN

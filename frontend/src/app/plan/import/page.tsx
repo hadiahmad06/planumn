@@ -9,7 +9,7 @@ import { useContext, useEffect, useState } from 'react';
 import { IconUpload, IconPhoto, IconX, IconFileText } from '@tabler/icons-react';
 import { error } from 'console';
 import { PlanContext } from '@/contexts/PlanContext';
-import OverwriteSavedPrompt from '@/components/atoms/OverwriteSavedPrompt';
+import OverwriteSavedPrompt from '@/components/atoms/plan-loading/OverwriteSavedPrompt';
 
 
 export default function PlanPage() {
