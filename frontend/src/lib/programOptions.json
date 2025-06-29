@@ -1,0 +1,3374 @@
+[
+  {
+    "label": "Accountancy M.Acc",
+    "value": "215639702"
+  },
+  {
+    "label": "Accounting B.S.B.",
+    "value": "000420502"
+  },
+  {
+    "label": "Accounting Minor",
+    "value": "0004MIN02"
+  },
+  {
+    "label": "Acting B.F.A.",
+    "value": "205220917"
+  },
+  {
+    "label": "Addictions Counseling M.P.S.",
+    "value": "234930I18"
+  },
+  {
+    "label": "Addictions Minor",
+    "value": "2423MING18"
+  },
+  {
+    "label": "Additional Licensure Other",
+    "value": "232600006"
+  },
+  {
+    "label": "Additional Licensure Teaching",
+    "value": "204552006"
+  },
+  {
+    "label": "Adult Education M.Ed.",
+    "value": "000335006"
+  },
+  {
+    "label": "Adult Education Postbaccalaureate Certificate",
+    "value": "000355306"
+  },
+  {
+    "label": "Adult Education Undergraduate Certificate",
+    "value": "000357806"
+  },
+  {
+    "label": "Adult Gerontological Acute Care Nurse Practitioner Post-Graduate Certificate",
+    "value": "25105Q214"
+  },
+  {
+    "label": "Adult Health/Gerontological Clinical Nurse Specialist Postgraduate Certificate",
+    "value": "22215D714"
+  },
+  {
+    "label": "Adult Literacy Postbaccalaureate Certificate",
+    "value": "212055606"
+  },
+  {
+    "label": "Adult/Gerontological Primary Care Nurse Practitioner Postgraduate Certificate",
+    "value": "22225D814"
+  },
+  {
+    "label": "Advanced Practices in Second Language Teaching Postbaccalaureate Certificate",
+    "value": "22085D106"
+  },
+  {
+    "label": "Advanced Sexual Health Education Postbaccalaureate Certificate",
+    "value": "rEecqBFaqt1fRNglXlRQ"
+  },
+  {
+    "label": "Advanced Wearable Products Post-Baccalaureate Certificate",
+    "value": "23825K722"
+  },
+  {
+    "label": "Aerospace Engineering and Mechanics B.A.E.M.",
+    "value": "000821107"
+  },
+  {
+    "label": "Aerospace Engineering and Mechanics M.S.",
+    "value": "214831507"
+  },
+  {
+    "label": "Aerospace Engineering and Mechanics Minor",
+    "value": "2148MING07"
+  },
+  {
+    "label": "Aerospace Engineering and Mechanics Ph.D.",
+    "value": "214860207"
+  },
+  {
+    "label": "African American and African Studies B.A.",
+    "value": "000920217"
+  },
+  {
+    "label": "African American and African Studies Minor",
+    "value": "0009MIN17"
+  },
+  {
+    "label": "Agricultural & Food Education Minor",
+    "value": "2492MIN30"
+  },
+  {
+    "label": "Agricultural and Environmental Science Communication Minor",
+    "value": "2491MIN30"
+  },
+  {
+    "label": "Agricultural and Food Business Management B.S.",
+    "value": "009420130"
+  },
+  {
+    "label": "Agricultural and Food Business Management Minor",
+    "value": "0094MIN30"
+  },
+  {
+    "label": "Agricultural Communication and Marketing B.S.",
+    "value": "001920130"
+  },
+  {
+    "label": "Agricultural Education & Communication MS",
+    "value": "252031530"
+  },
+  {
+    "label": "Agricultural Education B.S.",
+    "value": "002020130"
+  },
+  {
+    "label": "Agronomy Minor",
+    "value": "0040MIN30"
+  },
+  {
+    "label": "American Indian and Indigenous Studies Minor",
+    "value": "2390MING17"
+  },
+  {
+    "label": "American Indian and Indigenous Studies PhD",
+    "value": "BOiZnNxm9bNqoIKjrR8v"
+  },
+  {
+    "label": "American Indian Public Health and Wellness Minor",
+    "value": "2404MING20"
+  },
+  {
+    "label": "American Indian Public Health and Wellness Post-Baccalaureate Certificate",
+    "value": "24265L620"
+  },
+  {
+    "label": "American Indian Studies B.A.",
+    "value": "005420217"
+  },
+  {
+    "label": "American Indian Studies Minor",
+    "value": "0054MIN17"
+  },
+  {
+    "label": "American Studies B.A.",
+    "value": "005620217"
+  },
+  {
+    "label": "American Studies M.A.",
+    "value": "005630417"
+  },
+  {
+    "label": "American Studies Minor",
+    "value": "0056MING17"
+  },
+  {
+    "label": "American Studies Minor",
+    "value": "0056MIN17"
+  },
+  {
+    "label": "American Studies Ph.D.",
+    "value": "005660217"
+  },
+  {
+    "label": "Animal Science B.S.",
+    "value": "210420130"
+  },
+  {
+    "label": "Animal Science Minor",
+    "value": "2104MIN30"
+  },
+  {
+    "label": "Animal Sciences M.S.",
+    "value": "006931530"
+  },
+  {
+    "label": "Animal Sciences Minor",
+    "value": "0069MING30"
+  },
+  {
+    "label": "Animal Sciences Ph.D.",
+    "value": "006960230"
+  },
+  {
+    "label": "Anthropology B.A.",
+    "value": "008020217"
+  },
+  {
+    "label": "Anthropology B.S.",
+    "value": "008020117"
+  },
+  {
+    "label": "Anthropology M.A.",
+    "value": "008030417"
+  },
+  {
+    "label": "Anthropology Minor",
+    "value": "0080MIN17"
+  },
+  {
+    "label": "Anthropology Minor",
+    "value": "0080MING17"
+  },
+  {
+    "label": "Anthropology Ph.D.",
+    "value": "008060217"
+  },
+  {
+    "label": "Apparel Design B.S.",
+    "value": "014320122"
+  },
+  {
+    "label": "Applied Biostatistics Postbaccalaureate Certificate",
+    "value": "22725G920"
+  },
+  {
+    "label": "Applied Business Analytics M.A.B.A.",
+    "value": "243230X02"
+  },
+  {
+    "label": "Applied Business Certificate",
+    "value": "009352918"
+  },
+  {
+    "label": "Applied Child and Adolescent Development M.A.",
+    "value": "236030406"
+  },
+  {
+    "label": "Applied Data Science and Statistics M. S.",
+    "value": "NCgH2mHyhgNutb5eGeop"
+  },
+  {
+    "label": "Applied Economics B.S.",
+    "value": "008320130"
+  },
+  {
+    "label": "Applied Economics M.S.",
+    "value": "008331530"
+  },
+  {
+    "label": "Applied Economics Minor",
+    "value": "0083MING30"
+  },
+  {
+    "label": "Applied Economics Minor",
+    "value": "0083MIN30"
+  },
+  {
+    "label": "Applied Economics Ph.D.",
+    "value": "008360230"
+  },
+  {
+    "label": "Applied Plant Sciences M.S.",
+    "value": "115031530"
+  },
+  {
+    "label": "Applied Plant Sciences Ph.D.",
+    "value": "115060230"
+  },
+  {
+    "label": "Applied Psychology in Educational and Community Settings Minor",
+    "value": "2189MIN06"
+  },
+  {
+    "label": "Applied Sciences Leadership M.P.S.",
+    "value": "243930I18"
+  },
+  {
+    "label": "Architecture B.D.A.",
+    "value": "214623122"
+  },
+  {
+    "label": "Architecture B.S.",
+    "value": "008820122"
+  },
+  {
+    "label": "Architecture M.Arch.",
+    "value": "008830322"
+  },
+  {
+    "label": "Architecture M.S.",
+    "value": "008831522"
+  },
+  {
+    "label": "Architecture Minor",
+    "value": "0088MIN22"
+  },
+  {
+    "label": "Art B.A.",
+    "value": "009620217"
+  },
+  {
+    "label": "Art B.F.A.",
+    "value": "009620917"
+  },
+  {
+    "label": "Art History B.A.",
+    "value": "010420217"
+  },
+  {
+    "label": "Art History M.A.",
+    "value": "010430417"
+  },
+  {
+    "label": "Art History Minor",
+    "value": "0104MIN17"
+  },
+  {
+    "label": "Art History Minor",
+    "value": "0104MING17"
+  },
+  {
+    "label": "Art History Ph.D.",
+    "value": "010460217"
+  },
+  {
+    "label": "Art M.F.A.",
+    "value": "009630817"
+  },
+  {
+    "label": "Art Minor",
+    "value": "0096MING17"
+  },
+  {
+    "label": "Art Minor",
+    "value": "0096MIN17"
+  },
+  {
+    "label": "Arts and Cultural Leadership M.P.S.",
+    "value": "224530I18"
+  },
+  {
+    "label": "Arts and Cultural Leadership Minor",
+    "value": "qImaDFPx6XXMEWtJBYTb"
+  },
+  {
+    "label": "Asian American Studies Minor",
+    "value": "2083MIN17"
+  },
+  {
+    "label": "Asian and Middle Eastern Cultures and Media MA",
+    "value": "247530417"
+  },
+  {
+    "label": "Asian and Middle Eastern Cultures and Media Minor",
+    "value": "2475MING17"
+  },
+  {
+    "label": "Asian and Middle Eastern Cultures and Media PhD",
+    "value": "247560217"
+  },
+  {
+    "label": "Asian and Middle Eastern Studies B.A.",
+    "value": "202620217"
+  },
+  {
+    "label": "Asian and Middle Eastern Studies MA",
+    "value": "247830417"
+  },
+  {
+    "label": "Asian and Middle Eastern Studies Minor",
+    "value": "2026MIN17"
+  },
+  {
+    "label": "Astrophysics B.A.",
+    "value": "011220217"
+  },
+  {
+    "label": "Astrophysics B.S.Astrop.",
+    "value": "011624207"
+  },
+  {
+    "label": "Astrophysics M.S.",
+    "value": "011631507"
+  },
+  {
+    "label": "Astrophysics Minor",
+    "value": "0116MING07"
+  },
+  {
+    "label": "Astrophysics Minor",
+    "value": "0112MIN17"
+  },
+  {
+    "label": "Astrophysics Ph.D.",
+    "value": "011660207"
+  },
+  {
+    "label": "Audiology Au.D.",
+    "value": "211762017"
+  },
+  {
+    "label": "Austrian and Central European Studies Minor",
+    "value": "2116MIN17"
+  },
+  {
+    "label": "Autism Spectrum Disorder Certificate",
+    "value": "21305A706"
+  },
+  {
+    "label": "Autism Spectrum Disorder Postbaccalaureate Certificate",
+    "value": "21305A806"
+  },
+  {
+    "label": "Bachelor of Individualized Studies B.I.S.",
+    "value": "012326017"
+  },
+  {
+    "label": "Bachelor of Landscape Architecture",
+    "value": "046822022"
+  },
+  {
+    "label": "Behavioral Biology Minor",
+    "value": "2337MIN10"
+  },
+  {
+    "label": "Biblical Studies Minor",
+    "value": "0122MIN17"
+  },
+  {
+    "label": "Biochemistry B.S.",
+    "value": "012420110"
+  },
+  {
+    "label": "Biochemistry Minor",
+    "value": "0124MIN10"
+  },
+  {
+    "label": "Biochemistry, Molecular Biology and Biophysics M.S.",
+    "value": "013531508"
+  },
+  {
+    "label": "Biochemistry, Molecular Biology and Biophysics Minor",
+    "value": "0135MING08"
+  },
+  {
+    "label": "Biochemistry, Molecular Biology and Biophysics Ph.D.",
+    "value": "013560208"
+  },
+  {
+    "label": "Bioethics M.A.",
+    "value": "012730408"
+  },
+  {
+    "label": "Bioethics Minor",
+    "value": "0127MING08"
+  },
+  {
+    "label": "Bioinformatics and Computational Biology M S",
+    "value": "219331507"
+  },
+  {
+    "label": "Bioinformatics and Computational Biology Minor",
+    "value": "2193MING07"
+  },
+  {
+    "label": "Bioinformatics and Computational Biology Ph D",
+    "value": "219360207"
+  },
+  {
+    "label": "Biological Sciences M.B.S.",
+    "value": "011837918"
+  },
+  {
+    "label": "Biology B.S.",
+    "value": "013220110"
+  },
+  {
+    "label": "Biology Minor",
+    "value": "0132MIN10"
+  },
+  {
+    "label": "Biology, Society, and Environment B.A.",
+    "value": "205820217"
+  },
+  {
+    "label": "Biomedical Engineering B.Bm.E.",
+    "value": "013428907"
+  },
+  {
+    "label": "Biomedical Engineering M.S.",
+    "value": "013431507"
+  },
+  {
+    "label": "Biomedical Engineering Minor",
+    "value": "0134MING07"
+  },
+  {
+    "label": "Biomedical Engineering Ph.D.",
+    "value": "013460207"
+  },
+  {
+    "label": "Biomedical Laboratory Sciences M.S.",
+    "value": "242831515"
+  },
+  {
+    "label": "Biomedical Sciences M.S.",
+    "value": "210031511"
+  },
+  {
+    "label": "Bioproducts and Biosystems Engineering B.B.B.E.",
+    "value": "216629107"
+  },
+  {
+    "label": "Bioproducts and Biosystems Science, Eng and Mgmt M.S.",
+    "value": "219431530"
+  },
+  {
+    "label": "Bioproducts and Biosystems Science, Engineering and Management Minor",
+    "value": "2194MING30"
+  },
+  {
+    "label": "Bioproducts and Biosystems Science, Engineering and Management Ph.D.",
+    "value": "219460230"
+  },
+  {
+    "label": "Bioproducts Engineering Minor",
+    "value": "2010MIN30"
+  },
+  {
+    "label": "Biostatistics M.S.",
+    "value": "013831520"
+  },
+  {
+    "label": "Biostatistics Minor",
+    "value": "0138MING20"
+  },
+  {
+    "label": "Biostatistics Ph.D.",
+    "value": "013860220"
+  },
+  {
+    "label": "Biotechnology Minor",
+    "value": "2516MIN10"
+  },
+  {
+    "label": "Business Administration M.B.A.",
+    "value": "015230602"
+  },
+  {
+    "label": "Business Administration Minor",
+    "value": "0152MING02"
+  },
+  {
+    "label": "Business Administration Ph.D.",
+    "value": "015260202"
+  },
+  {
+    "label": "Business Analytics B.S.B.",
+    "value": "mweIj5tUEMI7LVnTPFbI"
+  },
+  {
+    "label": "Business Analytics M.S.",
+    "value": "230031502"
+  },
+  {
+    "label": "Business Analytics Minor",
+    "value": "2361MIN02"
+  },
+  {
+    "label": "Business Analytics Postbaccalaureate Certificate",
+    "value": "23005M402"
+  },
+  {
+    "label": "Business and Marketing Education B.S.",
+    "value": "207520106"
+  },
+  {
+    "label": "Business Law LL.M.",
+    "value": "227630L09"
+  },
+  {
+    "label": "Business Law Minor",
+    "value": "2352MIN02"
+  },
+  {
+    "label": "Business Management Minor",
+    "value": "2381MING02"
+  },
+  {
+    "label": "Business of Healthcare Minor",
+    "value": "2437MIN02"
+  },
+  {
+    "label": "Business Research M.S.",
+    "value": "232431502"
+  },
+  {
+    "label": "Business Taxation M.B.T.",
+    "value": "015836402"
+  },
+  {
+    "label": "Career Readiness Certificate",
+    "value": "23875K817"
+  },
+  {
+    "label": "Cell Biology Minor",
+    "value": "2451MIN10"
+  },
+  {
+    "label": "Cellular and Molecular Neuroscience Minor",
+    "value": "2403MIN10"
+  },
+  {
+    "label": "Cellular and Organismal Physiology B.S.",
+    "value": "238520110"
+  },
+  {
+    "label": "Chemical Engineering B.Ch.E.",
+    "value": "016021407"
+  },
+  {
+    "label": "Chemical Engineering M.Ch.E.",
+    "value": "016036107"
+  },
+  {
+    "label": "Chemical Engineering M.S.Ch.E.",
+    "value": "016032007"
+  },
+  {
+    "label": "Chemical Engineering Minor",
+    "value": "0160MING07"
+  },
+  {
+    "label": "Chemical Engineering Ph.D.",
+    "value": "016060207"
+  },
+  {
+    "label": "Chemical Physics M.S.",
+    "value": "016431507"
+  },
+  {
+    "label": "Chemical Physics Minor",
+    "value": "0164MING07"
+  },
+  {
+    "label": "Chemical Physics Ph.D.",
+    "value": "016460207"
+  },
+  {
+    "label": "Chemistry B.A.",
+    "value": "016820217"
+  },
+  {
+    "label": "Chemistry B.S.Chem.",
+    "value": "016827007"
+  },
+  {
+    "label": "Chemistry M.S.",
+    "value": "016831507"
+  },
+  {
+    "label": "Chemistry Minor",
+    "value": "0168MING07"
+  },
+  {
+    "label": "Chemistry Minor",
+    "value": "0168MIN17"
+  },
+  {
+    "label": "Chemistry Ph.D.",
+    "value": "016860207"
+  },
+  {
+    "label": "Chicano-Latino Studies B.A.",
+    "value": "017020217"
+  },
+  {
+    "label": "Chicano-Latino Studies Minor",
+    "value": "0170MIN17"
+  },
+  {
+    "label": "Child Life and Pediatric Psychosocial Care M.S.C.L.P.P.C.",
+    "value": "Fa0xkyQ7FljbG1dasRRe"
+  },
+  {
+    "label": "Chinese Language Advanced-Level Certificate",
+    "value": "23365J217"
+  },
+  {
+    "label": "Civic Engagement M.P.S.",
+    "value": "240030I18"
+  },
+  {
+    "label": "Civil Engineering B.C.E.",
+    "value": "018021607"
+  },
+  {
+    "label": "Civil Engineering M.S.",
+    "value": "018031507"
+  },
+  {
+    "label": "Civil Engineering Minor",
+    "value": "0180MING07"
+  },
+  {
+    "label": "Civil Engineering Ph.D.",
+    "value": "018060207"
+  },
+  {
+    "label": "Classical and Near Eastern Religions and Cultures B.A.",
+    "value": "230720217"
+  },
+  {
+    "label": "Classical and Near Eastern Religions and Cultures M.A.",
+    "value": "251930417"
+  },
+  {
+    "label": "Classical and Near Eastern Religions and Cultures Minor",
+    "value": "0186MIN17"
+  },
+  {
+    "label": "Classical and Near Eastern Religions and Cultures Minor",
+    "value": "1184MING17"
+  },
+  {
+    "label": "Classical and Near Eastern Religions and Cultures Ph.D.",
+    "value": "251960217"
+  },
+  {
+    "label": "Climate Change and Health Minor",
+    "value": "2477MING20"
+  },
+  {
+    "label": "Climatology Minor",
+    "value": "2004MIN30"
+  },
+  {
+    "label": "Clinical Ethics Postbaccalaureate Certificate",
+    "value": "23165I308"
+  },
+  {
+    "label": "Clinical Physiology and Movement Science Minor",
+    "value": "2238MING06"
+  },
+  {
+    "label": "Clinical Physiology and Movement Science Postbaccalaureate Certificate",
+    "value": "22385F306"
+  },
+  {
+    "label": "Clinical Research M.S.",
+    "value": "118531520"
+  },
+  {
+    "label": "Clinical Research Postbaccalaureate Certificate",
+    "value": "11855G720"
+  },
+  {
+    "label": "Closely-Held Business Taxation Postbaccalaureate Certificate",
+    "value": "24415L802"
+  },
+  {
+    "label": "Cognitive Science M.S.",
+    "value": "024731517"
+  },
+  {
+    "label": "Cognitive Science Minor",
+    "value": "0247MING17"
+  },
+  {
+    "label": "Cognitive Science Ph.D.",
+    "value": "024760217"
+  },
+  {
+    "label": "Communication Studies B.A.",
+    "value": "088420217"
+  },
+  {
+    "label": "Communication Studies M.A.",
+    "value": "207430417"
+  },
+  {
+    "label": "Communication Studies Minor",
+    "value": "0884MIN17"
+  },
+  {
+    "label": "Communication Studies Minor",
+    "value": "2074MING17"
+  },
+  {
+    "label": "Communication Studies Ph.D.",
+    "value": "207460217"
+  },
+  {
+    "label": "Community Health Promotion M.P.H.",
+    "value": "017735220"
+  },
+  {
+    "label": "Comparative and Molecular Biosciences M.S.",
+    "value": "313531503"
+  },
+  {
+    "label": "Comparative and Molecular Biosciences Ph.D.",
+    "value": "313560203"
+  },
+  {
+    "label": "Comparative Literature M.A.",
+    "value": "019230417"
+  },
+  {
+    "label": "Comparative Literature Minor",
+    "value": "0192MING17"
+  },
+  {
+    "label": "Comparative Literature Ph.D.",
+    "value": "019260217"
+  },
+  {
+    "label": "Comparative Studies in Discourse and Society M.A.",
+    "value": "023130417"
+  },
+  {
+    "label": "Comparative Studies in Discourse and Society Minor",
+    "value": "0231MING17"
+  },
+  {
+    "label": "Comparative Studies in Discourse and Society Ph.D.",
+    "value": "023160217"
+  },
+  {
+    "label": "Comparative U.S. Race and Ethnicity Minor",
+    "value": "2171MIN17"
+  },
+  {
+    "label": "Computational Biology Minor",
+    "value": "2402MIN10"
+  },
+  {
+    "label": "Computer Engineering B.Comp.E.",
+    "value": "018326107"
+  },
+  {
+    "label": "Computer Science B.A.",
+    "value": "019620217"
+  },
+  {
+    "label": "Computer Science B.S. Comp.Sc.",
+    "value": "019627107"
+  },
+  {
+    "label": "Computer Science M.C.S.",
+    "value": "019639507"
+  },
+  {
+    "label": "Computer Science M.S.",
+    "value": "019631507"
+  },
+  {
+    "label": "Computer Science Minor",
+    "value": "0196MIN17"
+  },
+  {
+    "label": "Computer Science Minor",
+    "value": "0196MING07"
+  },
+  {
+    "label": "Computer Science Ph.D.",
+    "value": "019660207"
+  },
+  {
+    "label": "Conservation Sciences M.S.",
+    "value": "235131530"
+  },
+  {
+    "label": "Conservation Sciences Minor",
+    "value": "2351MING30"
+  },
+  {
+    "label": "Conservation Sciences Ph.D.",
+    "value": "235160230"
+  },
+  {
+    "label": "Construction Management B.A.Sc.",
+    "value": "100624618"
+  },
+  {
+    "label": "Construction Management Certificate",
+    "value": "100653518"
+  },
+  {
+    "label": "Construction Management Minor",
+    "value": "1006MIN18"
+  },
+  {
+    "label": "Corporate Environmental Management Minor",
+    "value": "2141MIN30"
+  },
+  {
+    "label": "Corporate Financial Management Postbaccalaureate Certificate",
+    "value": "24475M702"
+  },
+  {
+    "label": "Creative Writing M.F.A.",
+    "value": "120330817"
+  },
+  {
+    "label": "Creative Writing Minor",
+    "value": "1203MIN17"
+  },
+  {
+    "label": "Cross-Cultural Health in Spain Certificate",
+    "value": "mGkKZoOI80Owopr6hfRJ"
+  },
+  {
+    "label": "Cultural Studies and Comparative Literature B.A.",
+    "value": "023020217"
+  },
+  {
+    "label": "Cultural Studies and Comparative Literature Minor",
+    "value": "0230MIN17"
+  },
+  {
+    "label": "Curriculum and Instruction M.Ed.",
+    "value": "024135006"
+  },
+  {
+    "label": "Cyber Security Minor",
+    "value": "2347MING07"
+  },
+  {
+    "label": "Dakota Language B.A.",
+    "value": "250220217"
+  },
+  {
+    "label": "Dance B.A.",
+    "value": "022320217"
+  },
+  {
+    "label": "Dance B.F.A.",
+    "value": "022320917"
+  },
+  {
+    "label": "Dance Minor",
+    "value": "0223MIN17"
+  },
+  {
+    "label": "Data Science B S D S",
+    "value": "231329907"
+  },
+  {
+    "label": "Data Science for Chemical Engineering and Materials Science M.S.",
+    "value": "249731507"
+  },
+  {
+    "label": "Data Science in Astrophysics Minor",
+    "value": "2434MING07"
+  },
+  {
+    "label": "Data Science in Operations Research M.S.DSOR.",
+    "value": "iPY2IhagjUJZvIStGwKI"
+  },
+  {
+    "label": "Data Science M.S.",
+    "value": "231331507"
+  },
+  {
+    "label": "Data Science Minor",
+    "value": "2313MING07"
+  },
+  {
+    "label": "Data Science Postbaccalaureate Certificate",
+    "value": "23135K207"
+  },
+  {
+    "label": "Dental Hygiene B.S.D.H.",
+    "value": "021624904"
+  },
+  {
+    "label": "Dental Hygiene M.S.D.H.",
+    "value": "231030Q04"
+  },
+  {
+    "label": "Dental Therapy M D T",
+    "value": "220230E04"
+  },
+  {
+    "label": "Dentistry M.S.",
+    "value": "022031504"
+  },
+  {
+    "label": "Design Justice Certificate",
+    "value": "25035P722"
+  },
+  {
+    "label": "Design M.F.A.",
+    "value": "122730822"
+  },
+  {
+    "label": "Design M.S.",
+    "value": "122731522"
+  },
+  {
+    "label": "Design Minor",
+    "value": "1227MING22"
+  },
+  {
+    "label": "Design Ph.D.",
+    "value": "122760222"
+  },
+  {
+    "label": "Design Thinking Certificate",
+    "value": "mFGBQIOSiZ3FuJziH2tQ"
+  },
+  {
+    "label": "Development Practice M.D.P.",
+    "value": "220930G16"
+  },
+  {
+    "label": "Development Practice Minor",
+    "value": "2209MING16"
+  },
+  {
+    "label": "Developmental Psychology B.A.",
+    "value": "017220217"
+  },
+  {
+    "label": "Developmental Psychology B.S.",
+    "value": "017220117"
+  },
+  {
+    "label": "Developmental Psychology Minor",
+    "value": "0172MIN17"
+  },
+  {
+    "label": "Developmental Psychology Minor",
+    "value": "2420MING06"
+  },
+  {
+    "label": "Developmental Psychology PhD",
+    "value": "242060206"
+  },
+  {
+    "label": "Developmental Studies and Social Change Minor",
+    "value": "0253MING17"
+  },
+  {
+    "label": "Dietetics M.P.S.",
+    "value": "022830I30"
+  },
+  {
+    "label": "Digital Media Studies Minor",
+    "value": "2348MIN17"
+  },
+  {
+    "label": "DirecTrack to Teaching",
+    "value": "218500006"
+  },
+  {
+    "label": "Disability Policy and Services Postbaccalaureate Certificate",
+    "value": "101451606"
+  },
+  {
+    "label": "Doctor of Business Administration D.B.A.",
+    "value": "236662302"
+  },
+  {
+    "label": "Doctor of Nursing Practice D.N.P.",
+    "value": "059662114"
+  },
+  {
+    "label": "Dual Language and Immersion Education Postbaccalaureate Certificate",
+    "value": "204651706"
+  },
+  {
+    "label": "Dutch Studies Minor",
+    "value": "0235MIN17"
+  },
+  {
+    "label": "Early Care and Education M.Ed.",
+    "value": "250935006"
+  },
+  {
+    "label": "Early Childhood B.S.",
+    "value": "201820106"
+  },
+  {
+    "label": "Early Childhood Education M.Ed.",
+    "value": "023835006"
+  },
+  {
+    "label": "Early Childhood Policy Postbaccalaureate Certificate",
+    "value": "21265A216"
+  },
+  {
+    "label": "Early Modern Studies Minor",
+    "value": "2210MING17"
+  },
+  {
+    "label": "Earth Sciences B.A.",
+    "value": "035620217"
+  },
+  {
+    "label": "Earth Sciences B.S. Earth Sciences",
+    "value": "224429307"
+  },
+  {
+    "label": "Earth Sciences M.S.",
+    "value": "224431507"
+  },
+  {
+    "label": "Earth Sciences Minor",
+    "value": "2244MING07"
+  },
+  {
+    "label": "Earth Sciences Minor",
+    "value": "0356MIN17"
+  },
+  {
+    "label": "Earth Sciences Ph.D.",
+    "value": "224460207"
+  },
+  {
+    "label": "Ecological Engineering Minor",
+    "value": "2199MIN07"
+  },
+  {
+    "label": "Ecological Restoration in Landscape Architecture Minor",
+    "value": "2333MING22"
+  },
+  {
+    "label": "Ecology, Evolution and Behavior M.S.",
+    "value": "124431510"
+  },
+  {
+    "label": "Ecology, Evolution and Behavior Minor",
+    "value": "1244MING10"
+  },
+  {
+    "label": "Ecology, Evolution and Behavior Ph.D.",
+    "value": "124460210"
+  },
+  {
+    "label": "Ecology, Evolution, and Behavior B.S.",
+    "value": "025120110"
+  },
+  {
+    "label": "Econometrics Minor",
+    "value": "2456MIN17"
+  },
+  {
+    "label": "Economics - Business Economics Emphasis B.A.",
+    "value": "o0EGWnYJgWhWNtZt51jS"
+  },
+  {
+    "label": "Economics - Quantitative Emphasis B.A.",
+    "value": "024520217"
+  },
+  {
+    "label": "Economics B.A.",
+    "value": "024820217"
+  },
+  {
+    "label": "Economics B.S.",
+    "value": "024820117"
+  },
+  {
+    "label": "Economics M.A.",
+    "value": "024830417"
+  },
+  {
+    "label": "Economics Minor",
+    "value": "0248MIN17"
+  },
+  {
+    "label": "Economics Minor",
+    "value": "0248MING17"
+  },
+  {
+    "label": "Economics Ph.D.",
+    "value": "024860217"
+  },
+  {
+    "label": "Editing and Publishing Certificate",
+    "value": "24315L717"
+  },
+  {
+    "label": "Education, Curriculum, and Instruction M.A.",
+    "value": "207330406"
+  },
+  {
+    "label": "Education, Curriculum, and Instruction Minor",
+    "value": "2073MING06"
+  },
+  {
+    "label": "Education, Curriculum, and Instruction Ph.D.",
+    "value": "207360206"
+  },
+  {
+    "label": "Educational Psychology M.A.",
+    "value": "026030406"
+  },
+  {
+    "label": "Educational Psychology Minor",
+    "value": "0260MING06"
+  },
+  {
+    "label": "Educational Psychology Ph.D.",
+    "value": "026060206"
+  },
+  {
+    "label": "Educational Psychology Research Minor",
+    "value": "2466MIN06"
+  },
+  {
+    "label": "Educational Psychology Specialist Certificate in Education and School Psychological Services",
+    "value": "026051106"
+  },
+  {
+    "label": "Educational Psychology Specialist Certificate in Education and Special Education",
+    "value": "026051306"
+  },
+  {
+    "label": "Election Administration Postbaccalaureate Certificate",
+    "value": "23395J416"
+  },
+  {
+    "label": "Election Administration Undergraduate Certificate",
+    "value": "23395K316"
+  },
+  {
+    "label": "Electrical and Computer Engineering MS.E.C.E.",
+    "value": "027139107"
+  },
+  {
+    "label": "Electrical Engineering B.E.E.",
+    "value": "026421707"
+  },
+  {
+    "label": "Electrical Engineering Minor",
+    "value": "0264MING07"
+  },
+  {
+    "label": "Electrical Engineering Ph.D.",
+    "value": "026460207"
+  },
+  {
+    "label": "Electrification Engineering Postbaccalaureate Certificate",
+    "value": "25065Q107"
+  },
+  {
+    "label": "Elementary Education: Foundations B.S.",
+    "value": "035320106"
+  },
+  {
+    "label": "English B.A.",
+    "value": "027620217"
+  },
+  {
+    "label": "English M.A.",
+    "value": "027630417"
+  },
+  {
+    "label": "English Minor",
+    "value": "0276MIN17"
+  },
+  {
+    "label": "English Minor",
+    "value": "0276MING17"
+  },
+  {
+    "label": "English Ph.D.",
+    "value": "027660217"
+  },
+  {
+    "label": "Ensemble Music Minor",
+    "value": "2511MIN17"
+  },
+  {
+    "label": "Entomology M.S.",
+    "value": "028431530"
+  },
+  {
+    "label": "Entomology Minor",
+    "value": "0284MING30"
+  },
+  {
+    "label": "Entomology Ph.D.",
+    "value": "028460230"
+  },
+  {
+    "label": "Entrepreneurial Management B.S.B.",
+    "value": "210620502"
+  },
+  {
+    "label": "Entrepreneurial Management Minor",
+    "value": "2106MIN02"
+  },
+  {
+    "label": "Entrepreneurship & Innovation Postbaccalaureate Certificate",
+    "value": "24705N902"
+  },
+  {
+    "label": "Entrepreneurship Minor",
+    "value": "2521MIN02"
+  },
+  {
+    "label": "Environmental Engineering B.Env.E",
+    "value": "101929707"
+  },
+  {
+    "label": "Environmental Geosciences B S E G",
+    "value": "02652A107"
+  },
+  {
+    "label": "Environmental Geosciences BA",
+    "value": "026520217"
+  },
+  {
+    "label": "Environmental Geosciences Minor",
+    "value": "0265MIN17"
+  },
+  {
+    "label": "Environmental Health and Safety Certificate",
+    "value": "24635N518"
+  },
+  {
+    "label": "Environmental Health M.P.H.",
+    "value": "028835220"
+  },
+  {
+    "label": "Environmental Health M.S.",
+    "value": "028831520"
+  },
+  {
+    "label": "Environmental Health Minor",
+    "value": "0288MING20"
+  },
+  {
+    "label": "Environmental Health Ph.D.",
+    "value": "028860220"
+  },
+  {
+    "label": "Environmental Sciences, Policy and Management B.S.",
+    "value": "216020130"
+  },
+  {
+    "label": "Environmental Sciences, Policy and Management Minor",
+    "value": "2160MIN30"
+  },
+  {
+    "label": "Epidemiology M.P.H.",
+    "value": "029235220"
+  },
+  {
+    "label": "Epidemiology M.S.",
+    "value": "029231520"
+  },
+  {
+    "label": "Epidemiology Minor",
+    "value": "0292MING20"
+  },
+  {
+    "label": "Epidemiology Ph.D.",
+    "value": "029260220"
+  },
+  {
+    "label": "Esports Management Minor",
+    "value": "NlkgEVhzSaHJgEK59fn6"
+  },
+  {
+    "label": "Experimental and Clinical Pharmacology M.S.",
+    "value": "223631515"
+  },
+  {
+    "label": "Experimental and Clinical Pharmacology Ph.D.",
+    "value": "223660215"
+  },
+  {
+    "label": "Facility Management Certificate",
+    "value": "22805H218"
+  },
+  {
+    "label": "Family and Community Engagement Minor",
+    "value": "2369MIN06"
+  },
+  {
+    "label": "Family Education M.Ed.",
+    "value": "033735006"
+  },
+  {
+    "label": "Family Financial Studies Minor",
+    "value": "2368MIN06"
+  },
+  {
+    "label": "Family Social Science B.S.",
+    "value": "029620106"
+  },
+  {
+    "label": "Family Social Science M.A.",
+    "value": "029630406"
+  },
+  {
+    "label": "Family Social Science Minor",
+    "value": "0296MING06"
+  },
+  {
+    "label": "Family Social Science Minor",
+    "value": "0296MIN06"
+  },
+  {
+    "label": "Family Social Science Ph.D.",
+    "value": "029660206"
+  },
+  {
+    "label": "Family Therapy Minor",
+    "value": "2367MIN06"
+  },
+  {
+    "label": "Family Violence Prevention Minor",
+    "value": "2039MIN06"
+  },
+  {
+    "label": "Fashion Studies Minor",
+    "value": "2261MIN22"
+  },
+  {
+    "label": "Feminist and Critical Sexuality Studies Minor",
+    "value": "2242MING17"
+  },
+  {
+    "label": "Feminist Studies M.A.",
+    "value": "032930417"
+  },
+  {
+    "label": "Feminist Studies Ph.D.",
+    "value": "032960217"
+  },
+  {
+    "label": "Finance & Risk Management Insurance B.S.B.",
+    "value": "219720502"
+  },
+  {
+    "label": "Finance B.S.B.",
+    "value": "102220502"
+  },
+  {
+    "label": "Finance M.S.",
+    "value": "102231502"
+  },
+  {
+    "label": "Finance Minor",
+    "value": "1022MIN02"
+  },
+  {
+    "label": "Financial Mathematics M.F.M.",
+    "value": "216539907"
+  },
+  {
+    "label": "Financial Mathematics Minor",
+    "value": "2165MING07"
+  },
+  {
+    "label": "Finnish Minor",
+    "value": "0299MIN17"
+  },
+  {
+    "label": "Fisheries, Wildlife, and Conservation Biology B.S.",
+    "value": "030020130"
+  },
+  {
+    "label": "Fisheries, Wildlife, and Conservation Biology Minor",
+    "value": "0300MIN30"
+  },
+  {
+    "label": "Food Science B.S.",
+    "value": "030820130"
+  },
+  {
+    "label": "Food Science M.S.",
+    "value": "030831530"
+  },
+  {
+    "label": "Food Science Minor",
+    "value": "0308MING30"
+  },
+  {
+    "label": "Food Science Minor",
+    "value": "0308MIN30"
+  },
+  {
+    "label": "Food Science Ph.D.",
+    "value": "030860230"
+  },
+  {
+    "label": "Food Systems Minor",
+    "value": "0984MIN30"
+  },
+  {
+    "label": "Forest and Natural Resource Management B.S.",
+    "value": "032420130"
+  },
+  {
+    "label": "Forest Ecosystem Management and Conservation Minor",
+    "value": "0324MIN30"
+  },
+  {
+    "label": "French Advanced-Level Proficiency Certificate",
+    "value": "23585J817"
+  },
+  {
+    "label": "French and Italian Studies B.A.",
+    "value": "033520217"
+  },
+  {
+    "label": "French M.A.",
+    "value": "033630417"
+  },
+  {
+    "label": "French Minor",
+    "value": "0336MING17"
+  },
+  {
+    "label": "French Ph.D.",
+    "value": "033660217"
+  },
+  {
+    "label": "French Studies B.A.",
+    "value": "033620217"
+  },
+  {
+    "label": "French Studies Minor",
+    "value": "0336MIN17"
+  },
+  {
+    "label": "Fundamentals of Quantitative Finance Postbaccalaureate Certificate",
+    "value": "22375F207"
+  },
+  {
+    "label": "Gay, Lesbian, Bisexual, Transgender Minor",
+    "value": "2127MIN17"
+  },
+  {
+    "label": "Gender, Women and Sexuality Studies B.A.",
+    "value": "097020217"
+  },
+  {
+    "label": "Gender, Women and Sexuality Studies Minor",
+    "value": "0970MIN17"
+  },
+  {
+    "label": "Genetics Minor",
+    "value": "0344MIN10"
+  },
+  {
+    "label": "Genetics, Cell Biology, and Development B.S.",
+    "value": "034520110"
+  },
+  {
+    "label": "Geoengineering B.GeoE.",
+    "value": "035221807"
+  },
+  {
+    "label": "Geoengineering M.S.",
+    "value": "035231507"
+  },
+  {
+    "label": "Geoengineering Minor",
+    "value": "0352MING07"
+  },
+  {
+    "label": "Geographic Information Science M.G.I.S.",
+    "value": "034937817"
+  },
+  {
+    "label": "Geographic Information Science Minor",
+    "value": "0349MIN17"
+  },
+  {
+    "label": "Geographic Information Science Minor",
+    "value": "0349MING17"
+  },
+  {
+    "label": "Geography B.A.",
+    "value": "034820217"
+  },
+  {
+    "label": "Geography B.S.",
+    "value": "034820117"
+  },
+  {
+    "label": "Geography M.A.",
+    "value": "034830417"
+  },
+  {
+    "label": "Geography Minor",
+    "value": "0348MING17"
+  },
+  {
+    "label": "Geography Minor",
+    "value": "0348MIN17"
+  },
+  {
+    "label": "Geography Ph.D.",
+    "value": "034860217"
+  },
+  {
+    "label": "German Advanced-Level Proficiency Certificate",
+    "value": "23595J917"
+  },
+  {
+    "label": "German Minor",
+    "value": "0364MIN17"
+  },
+  {
+    "label": "German, Scandinavian, Dutch B.A.",
+    "value": "228220217"
+  },
+  {
+    "label": "Germanic Studies M.A.",
+    "value": "136330417"
+  },
+  {
+    "label": "Germanic Studies Minor",
+    "value": "1363MING17"
+  },
+  {
+    "label": "Germanic Studies Ph.D.",
+    "value": "136360217"
+  },
+  {
+    "label": "Gerontology Minor",
+    "value": "0369MING20"
+  },
+  {
+    "label": "Global Health Postbaccalaureate Certificate",
+    "value": "23255I920"
+  },
+  {
+    "label": "Global Public Health Minor",
+    "value": "2388MING20"
+  },
+  {
+    "label": "Global Studies B.A.",
+    "value": "136820217"
+  },
+  {
+    "label": "Global Studies Minor",
+    "value": "1368MIN17"
+  },
+  {
+    "label": "Graphic Design B.F.A.",
+    "value": "036520922"
+  },
+  {
+    "label": "Graphic Design Minor",
+    "value": "j0VtqN2UhZ9kDp45G6Fq"
+  },
+  {
+    "label": "Greek Minor",
+    "value": "0370MIN17"
+  },
+  {
+    "label": "Health and Genomics Minor",
+    "value": "2481MIN10"
+  },
+  {
+    "label": "Health and Wellbeing Sciences B.S.",
+    "value": "241320118"
+  },
+  {
+    "label": "Health Care Administration M.H.A.",
+    "value": "044435120"
+  },
+  {
+    "label": "Health Care Design and Innovation Postbaccalaureate Certificate",
+    "value": "22565G308"
+  },
+  {
+    "label": "Health Communication M.A.",
+    "value": "231930417"
+  },
+  {
+    "label": "Health Equity Minor",
+    "value": "2354MING20"
+  },
+  {
+    "label": "Health Informatics M.H.I.",
+    "value": "038339208"
+  },
+  {
+    "label": "Health Informatics M.S.",
+    "value": "038331508"
+  },
+  {
+    "label": "Health Informatics Minor",
+    "value": "0383MING08"
+  },
+  {
+    "label": "Health Informatics Ph.D.",
+    "value": "038360208"
+  },
+  {
+    "label": "Health Psychology Minor",
+    "value": "2345MIN17"
+  },
+  {
+    "label": "Health Services Research, Policy, and Administration M.S.",
+    "value": "040531520"
+  },
+  {
+    "label": "Health Services Research, Policy, and Administration Minor",
+    "value": "0405MING20"
+  },
+  {
+    "label": "Health Services Research, Policy, and Administration Ph.D.",
+    "value": "040560220"
+  },
+  {
+    "label": "Healthcare Management B.A.Sc.",
+    "value": "231724618"
+  },
+  {
+    "label": "Healthcare Management Certificate",
+    "value": "23175J118"
+  },
+  {
+    "label": "Healthcare Management Minor",
+    "value": "2317MIN18"
+  },
+  {
+    "label": "Healthcare Management Postbaccalaureate Certificate",
+    "value": "24615N420"
+  },
+  {
+    "label": "Hebrew Minor",
+    "value": "0372MIN17"
+  },
+  {
+    "label": "Heritage Studies and Public History M.H.S.P.H.",
+    "value": "236230S22"
+  },
+  {
+    "label": "Heritage Studies and Public History Minor",
+    "value": "2362MING22"
+  },
+  {
+    "label": "High Net-Worth Individual Taxation Postbaccalaureate Certificate",
+    "value": "24425L902"
+  },
+  {
+    "label": "Hispanic and Lusophone Literatures, Cultures, and Linguistics M.A.",
+    "value": "216930417"
+  },
+  {
+    "label": "Hispanic and Lusophone Literatures, Cultures, and Linguistics Minor",
+    "value": "2169MING17"
+  },
+  {
+    "label": "Hispanic and Lusophone Literatures, Cultures, and Linguistics Ph.D.",
+    "value": "216960217"
+  },
+  {
+    "label": "History B.A.",
+    "value": "038020217"
+  },
+  {
+    "label": "History M.A.",
+    "value": "038030417"
+  },
+  {
+    "label": "History Minor",
+    "value": "0380MING17"
+  },
+  {
+    "label": "History Minor",
+    "value": "0380MIN17"
+  },
+  {
+    "label": "History of Science, Technology, and Medicine M.A.",
+    "value": "215930408"
+  },
+  {
+    "label": "History of Science, Technology, and Medicine Minor",
+    "value": "2159MIN17"
+  },
+  {
+    "label": "History of Science, Technology, and Medicine Minor",
+    "value": "2159MING08"
+  },
+  {
+    "label": "History of Science, Technology, and Medicine Ph.D.",
+    "value": "215960208"
+  },
+  {
+    "label": "History Ph.D.",
+    "value": "038060217"
+  },
+  {
+    "label": "Horticulture M.P.S.",
+    "value": "225130I18"
+  },
+  {
+    "label": "Horticulture Minor",
+    "value": "0400MIN30"
+  },
+  {
+    "label": "Human Factors and Ergonomics M.S.",
+    "value": "141931522"
+  },
+  {
+    "label": "Human Factors and Ergonomics Minor",
+    "value": "1419MING22"
+  },
+  {
+    "label": "Human Factors and Ergonomics Ph.D.",
+    "value": "141960222"
+  },
+  {
+    "label": "Human Physiology B.A.",
+    "value": "068820217"
+  },
+  {
+    "label": "Human Resource Development B.S.",
+    "value": "040220106"
+  },
+  {
+    "label": "Human Resource Development Certificate",
+    "value": "040259606"
+  },
+  {
+    "label": "Human Resource Development M.Ed.",
+    "value": "040235006"
+  },
+  {
+    "label": "Human Resource Development Postbaccalaureate Certificate",
+    "value": "040259706"
+  },
+  {
+    "label": "Human Resources and Industrial Relations B.S.B.",
+    "value": "039720502"
+  },
+  {
+    "label": "Human Resources and Industrial Relations M.H.R.I.R.",
+    "value": "039730W02"
+  },
+  {
+    "label": "Human Resources and Industrial Relations Minor",
+    "value": "0397MIN02"
+  },
+  {
+    "label": "Human Rights M.H.R.",
+    "value": "207830P16"
+  },
+  {
+    "label": "Human Rights Minor",
+    "value": "2078MING17"
+  },
+  {
+    "label": "Human Sexuality Postbaccalaureate Certificate",
+    "value": "23795K618"
+  },
+  {
+    "label": "Individually Designed Interdepartmental B.A.",
+    "value": "045920217"
+  },
+  {
+    "label": "Industrial and Systems Engineering B.I.Sy.E.",
+    "value": "214929607"
+  },
+  {
+    "label": "Industrial and Systems Engineering M.S.I.SY.E.",
+    "value": "214939607"
+  },
+  {
+    "label": "Industrial and Systems Engineering Minor",
+    "value": "2149MING07"
+  },
+  {
+    "label": "Industrial and Systems Engineering Ph.D.",
+    "value": "214960207"
+  },
+  {
+    "label": "Infant and Early Childhood Mental Health Graduate Minor",
+    "value": "2170MING06"
+  },
+  {
+    "label": "Infant and Early Childhood Mental Health Postbaccalaureate Certificate",
+    "value": "21705C206"
+  },
+  {
+    "label": "Information Technology Infrastructure B.A.Sc.",
+    "value": "206724618"
+  },
+  {
+    "label": "Information Technology Infrastructure Certificate",
+    "value": "206752618"
+  },
+  {
+    "label": "Information Technology Infrastructure Minor",
+    "value": "2067MIN18"
+  },
+  {
+    "label": "Information Technology Minor",
+    "value": "1034MIN07"
+  },
+  {
+    "label": "Insect Science Minor",
+    "value": "0284MIN30"
+  },
+  {
+    "label": "Integrated Behavioral Health M.P.S.",
+    "value": "227030I18"
+  },
+  {
+    "label": "Integrated Biosciences Ph.D.",
+    "value": "213860208"
+  },
+  {
+    "label": "Integrated Degree Program B.S.",
+    "value": "228520106"
+  },
+  {
+    "label": "Integrative Biology and Physiology M.S.",
+    "value": "221431511"
+  },
+  {
+    "label": "Integrative Biology and Physiology Minor",
+    "value": "2214MING11"
+  },
+  {
+    "label": "Integrative Biology and Physiology Ph.D.",
+    "value": "221460211"
+  },
+  {
+    "label": "Integrative Health and Wellbeing Coaching M.A.",
+    "value": "231530414"
+  },
+  {
+    "label": "Integrative Leadership Minor",
+    "value": "2277MING06"
+  },
+  {
+    "label": "Integrative Neuroscience Minor",
+    "value": "0590MIN10"
+  },
+  {
+    "label": "Integrative Therapies & Healing Practices Minor",
+    "value": "2243MING14"
+  },
+  {
+    "label": "Integrative Therapies & Healing Practices Postbaccalaureate Certificate",
+    "value": "22435P114"
+  },
+  {
+    "label": "Inter-College Program B.A.",
+    "value": "203720218"
+  },
+  {
+    "label": "Inter-College Program B.S.",
+    "value": "203720118"
+  },
+  {
+    "label": "Interdisciplinary Design Minor",
+    "value": "1227MIN22"
+  },
+  {
+    "label": "Interior Design B.S.",
+    "value": "044220122"
+  },
+  {
+    "label": "Interior Environments Minor",
+    "value": "2311MIN22"
+  },
+  {
+    "label": "International Agriculture Minor",
+    "value": "0447MIN30"
+  },
+  {
+    "label": "International Business B.S.B.",
+    "value": "102520502"
+  },
+  {
+    "label": "International Business Minor",
+    "value": "1025MIN02"
+  },
+  {
+    "label": "International Education Minor",
+    "value": "1007MING06"
+  },
+  {
+    "label": "International Taxation Postbaccalaureate Certificate",
+    "value": "24435M102"
+  },
+  {
+    "label": "Interpersonal Relationships Research Minor",
+    "value": "0449MING06"
+  },
+  {
+    "label": "Islamic Studies Minor",
+    "value": "2421MIN17"
+  },
+  {
+    "label": "Italian Studies B.A.",
+    "value": "045220217"
+  },
+  {
+    "label": "Italian Studies Minor",
+    "value": "0452MIN17"
+  },
+  {
+    "label": "Italian Studies Minor",
+    "value": "2186MING17"
+  },
+  {
+    "label": "Jewish Studies B.A.",
+    "value": "045820217"
+  },
+  {
+    "label": "Jewish Studies Minor",
+    "value": "0458MIN17"
+  },
+  {
+    "label": "Joint Military Science Leadership Minor",
+    "value": "0537MIN18"
+  },
+  {
+    "label": "Journalism B.A.",
+    "value": "046020217"
+  },
+  {
+    "label": "Juridical Science S.J.D.",
+    "value": "234062209"
+  },
+  {
+    "label": "K-12 Technology Integration Postbaccalaureate Certificate",
+    "value": "200158106"
+  },
+  {
+    "label": "Kinesiology B.S.",
+    "value": "046520106"
+  },
+  {
+    "label": "Kinesiology M.S.",
+    "value": "046531506"
+  },
+  {
+    "label": "Kinesiology Minor",
+    "value": "0465MING06"
+  },
+  {
+    "label": "Kinesiology Ph.D.",
+    "value": "046560206"
+  },
+  {
+    "label": "Land and Atmospheric Science M.S.",
+    "value": "221331530"
+  },
+  {
+    "label": "Land and Atmospheric Science Minor",
+    "value": "2213MING30"
+  },
+  {
+    "label": "Land and Atmospheric Science Ph.D.",
+    "value": "221360230"
+  },
+  {
+    "label": "Landscape Architecture M.L.A.",
+    "value": "046836722"
+  },
+  {
+    "label": "Landscape Architecture M.S.",
+    "value": "046831522"
+  },
+  {
+    "label": "Landscape Architecture Minor",
+    "value": "0468MING22"
+  },
+  {
+    "label": "Landscape Design and Planning Minor",
+    "value": "0286MIN22"
+  },
+  {
+    "label": "Latin Minor",
+    "value": "0480MIN17"
+  },
+  {
+    "label": "Law J.D.",
+    "value": "048440409"
+  },
+  {
+    "label": "Law LL.M.",
+    "value": "048436509"
+  },
+  {
+    "label": "Law Minor",
+    "value": "0484MING09"
+  },
+  {
+    "label": "Leadership for Managers Postbaccalaureate Certificate",
+    "value": "24485M802"
+  },
+  {
+    "label": "Leadership for Science Professionals Postbaccalaureate Certificate",
+    "value": "24525N118"
+  },
+  {
+    "label": "Leadership in Education M.Ed.",
+    "value": "092435006"
+  },
+  {
+    "label": "Leadership in Health Information Technology for Health Professionals Postbaccalaureate Certificate",
+    "value": "22485F814"
+  },
+  {
+    "label": "Leadership Minor",
+    "value": "2003MIN35"
+  },
+  {
+    "label": "Learning Analytics Postbaccalaureate Certificate",
+    "value": "24905O906"
+  },
+  {
+    "label": "Learning Sciences Postbaccalaureate Certificate",
+    "value": "24765O106"
+  },
+  {
+    "label": "Learning Technologies Minor",
+    "value": "2395MIN06"
+  },
+  {
+    "label": "Lighting Design Minor",
+    "value": "2412MING22"
+  },
+  {
+    "label": "Lighting Design Minor",
+    "value": "2412MIN22"
+  },
+  {
+    "label": "Linguistics B.A.",
+    "value": "050420217"
+  },
+  {
+    "label": "Linguistics M.A.",
+    "value": "050430417"
+  },
+  {
+    "label": "Linguistics Minor",
+    "value": "0504MING17"
+  },
+  {
+    "label": "Linguistics Minor",
+    "value": "0504MIN17"
+  },
+  {
+    "label": "Linguistics Ph.D.",
+    "value": "050460217"
+  },
+  {
+    "label": "Literacy Education M.Ed.",
+    "value": "212935006"
+  },
+  {
+    "label": "Long Term Care Management Certificate",
+    "value": "24585O218"
+  },
+  {
+    "label": "Long Term Care Management Minor",
+    "value": "2458MIN18"
+  },
+  {
+    "label": "Management Information Systems B.S.B.",
+    "value": "102420502"
+  },
+  {
+    "label": "Management Information Systems Minor",
+    "value": "1024MIN02"
+  },
+  {
+    "label": "Management Minor",
+    "value": "0511MIN02"
+  },
+  {
+    "label": "Management of Technology M.S.M.O.T.",
+    "value": "055537307"
+  },
+  {
+    "label": "Management of Technology Minor",
+    "value": "0555MIN07"
+  },
+  {
+    "label": "Management of Technology Minor",
+    "value": "0555MING07"
+  },
+  {
+    "label": "Management Science M.B.A.",
+    "value": "246930602"
+  },
+  {
+    "label": "Managing People in Organizations Minor",
+    "value": "2507MIN02"
+  },
+  {
+    "label": "Marine Biology Minor",
+    "value": "2299MIN10"
+  },
+  {
+    "label": "Marketing B.S.B.",
+    "value": "102620502"
+  },
+  {
+    "label": "Marketing M.MKTG",
+    "value": "102630Y02"
+  },
+  {
+    "label": "Marketing Minor",
+    "value": "1026MIN02"
+  },
+  {
+    "label": "Mass Communication M.A.",
+    "value": "051630417"
+  },
+  {
+    "label": "Mass Communication Minor",
+    "value": "0516MING17"
+  },
+  {
+    "label": "Mass Communication Ph.D.",
+    "value": "051660217"
+  },
+  {
+    "label": "Master of Learning and Talent Development",
+    "value": "250830Z06"
+  },
+  {
+    "label": "Master of Nursing M.N.",
+    "value": "059639814"
+  },
+  {
+    "label": "Master of Science Patent Law",
+    "value": "230930N09"
+  },
+  {
+    "label": "Materials Science and Engineering B.Mat.S.E.",
+    "value": "052125507"
+  },
+  {
+    "label": "Materials Science and Engineering M.Mat.S.E.",
+    "value": "052136807"
+  },
+  {
+    "label": "Materials Science and Engineering M.S.Mat.S.E.",
+    "value": "052136907"
+  },
+  {
+    "label": "Materials Science and Engineering Minor",
+    "value": "0521MING07"
+  },
+  {
+    "label": "Materials Science and Engineering Ph.D.",
+    "value": "052160207"
+  },
+  {
+    "label": "Maternal and Child Health M.P.H.",
+    "value": "082735220"
+  },
+  {
+    "label": "Mathematics B.A.",
+    "value": "052020217"
+  },
+  {
+    "label": "Mathematics B.S.Math.",
+    "value": "052027207"
+  },
+  {
+    "label": "Mathematics M.S.",
+    "value": "052031507"
+  },
+  {
+    "label": "Mathematics Minor",
+    "value": "0520MING07"
+  },
+  {
+    "label": "Mathematics Minor",
+    "value": "0520MIN17"
+  },
+  {
+    "label": "Mathematics Ph.D.",
+    "value": "052060207"
+  },
+  {
+    "label": "Mechanical Engineering B.M.E.",
+    "value": "052822207"
+  },
+  {
+    "label": "Mechanical Engineering M.S.M.E.",
+    "value": "052832707"
+  },
+  {
+    "label": "Mechanical Engineering Minor",
+    "value": "0528MING07"
+  },
+  {
+    "label": "Mechanical Engineering Ph.D.",
+    "value": "052860207"
+  },
+  {
+    "label": "Media and Information B.A.",
+    "value": "051620217"
+  },
+  {
+    "label": "Media and Information Minor",
+    "value": "0516MIN17"
+  },
+  {
+    "label": "Medical Device Innovation M.S.",
+    "value": "230231507"
+  },
+  {
+    "label": "Medical Industry Postbaccalaureate Certificate",
+    "value": "24535N202"
+  },
+  {
+    "label": "Medical Laboratory Sciences B.S.",
+    "value": "230820115"
+  },
+  {
+    "label": "Medical Laboratory Sciences Certificate",
+    "value": "23085J315"
+  },
+  {
+    "label": "Medical Laboratory Sciences Minor",
+    "value": "pszf5e9hgHE6Myz2ZmXY"
+  },
+  {
+    "label": "Medical Laboratory Sciences MMLS",
+    "value": "230830T15"
+  },
+  {
+    "label": "Medical Physics M.S.",
+    "value": "230431511"
+  },
+  {
+    "label": "Medical Physics Ph.D.",
+    "value": "230460211"
+  },
+  {
+    "label": "Medical Spanish Minor",
+    "value": "QsvOMnj7uXit0PipkjjL"
+  },
+  {
+    "label": "Medicinal Chemistry M.S.",
+    "value": "054831515"
+  },
+  {
+    "label": "Medicinal Chemistry Ph.D.",
+    "value": "054860215"
+  },
+  {
+    "label": "Medieval Studies Minor",
+    "value": "0550MING17"
+  },
+  {
+    "label": "Medieval Studies Minor",
+    "value": "0550MIN17"
+  },
+  {
+    "label": "Metropolitan Design Postbaccalaureate Certificate",
+    "value": "211356122"
+  },
+  {
+    "label": "Microbial Engineering M.S.",
+    "value": "056731510"
+  },
+  {
+    "label": "Microbiology B.S.",
+    "value": "056020110"
+  },
+  {
+    "label": "Microbiology Minor",
+    "value": "0560MIN10"
+  },
+  {
+    "label": "Microbiology, Immunology, and Cancer Biology M.S.",
+    "value": "156631511"
+  },
+  {
+    "label": "Microbiology, Immunology, and Cancer Biology Minor",
+    "value": "1566MING11"
+  },
+  {
+    "label": "Microbiology, Immunology, and Cancer Biology Ph.D.",
+    "value": "156660211"
+  },
+  {
+    "label": "Molecular Pharmacology and Therapeutics Minor",
+    "value": "2480MING11"
+  },
+  {
+    "label": "Molecular Pharmacology and Therapeutics MS",
+    "value": "248031511"
+  },
+  {
+    "label": "Molecular Pharmacology and Therapeutics PhD",
+    "value": "248060211"
+  },
+  {
+    "label": "Molecular, Cellular, Developmental Biology and Genetics M.S.",
+    "value": "057131508"
+  },
+  {
+    "label": "Molecular, Cellular, Developmental Biology and Genetics Minor",
+    "value": "0571MING08"
+  },
+  {
+    "label": "Molecular, Cellular, Developmental Biology and Genetics Ph.D.",
+    "value": "057160208"
+  },
+  {
+    "label": "Mortuary Science B.S.",
+    "value": "057220111"
+  },
+  {
+    "label": "Moving Image, Media and Sound Minor",
+    "value": "lRnoYeKijha3voP0JMXJ"
+  },
+  {
+    "label": "Multidisciplinary Studies B.A.",
+    "value": "226320218"
+  },
+  {
+    "label": "Multidisciplinary Studies B.S.",
+    "value": "226320118"
+  },
+  {
+    "label": "Museum & Curatorial Studies Minor",
+    "value": "2459MIN17"
+  },
+  {
+    "label": "Museum Studies Minor",
+    "value": "0577MING22"
+  },
+  {
+    "label": "Music B. Mus.",
+    "value": "058024717"
+  },
+  {
+    "label": "Music B.A.",
+    "value": "058020217"
+  },
+  {
+    "label": "Music D.M.A.",
+    "value": "058061717"
+  },
+  {
+    "label": "Music Education B. Mus",
+    "value": "058424717"
+  },
+  {
+    "label": "Music Education Post-Baccalaureate Licensure Certificate",
+    "value": "05845K117"
+  },
+  {
+    "label": "Music M.A.",
+    "value": "058030417"
+  },
+  {
+    "label": "Music M.M.",
+    "value": "058036617"
+  },
+  {
+    "label": "Music Minor",
+    "value": "0580MING17"
+  },
+  {
+    "label": "Music Minor",
+    "value": "0580MIN17"
+  },
+  {
+    "label": "Music Ph.D.",
+    "value": "058060217"
+  },
+  {
+    "label": "Music Therapy B. Mus.",
+    "value": "058624717"
+  },
+  {
+    "label": "Native American Environmental Knowledge Minor",
+    "value": "2252MIN30"
+  },
+  {
+    "label": "Natural Resources Science and Management M.S.",
+    "value": "207231530"
+  },
+  {
+    "label": "Natural Resources Science and Management Minor",
+    "value": "2072MING30"
+  },
+  {
+    "label": "Natural Resources Science and Management Ph.D.",
+    "value": "207260230"
+  },
+  {
+    "label": "Neuroengineering Minor",
+    "value": "2271MING07"
+  },
+  {
+    "label": "Neuroscience B.S.",
+    "value": "059020110"
+  },
+  {
+    "label": "Neuroscience M.S.",
+    "value": "059031511"
+  },
+  {
+    "label": "Neuroscience Minor",
+    "value": "0590MING11"
+  },
+  {
+    "label": "Neuroscience Ph.D.",
+    "value": "059060211"
+  },
+  {
+    "label": "Nonprofit Management Postbaccalaureate Certificate",
+    "value": "210356016"
+  },
+  {
+    "label": "Norwegian Minor",
+    "value": "0589MIN17"
+  },
+  {
+    "label": "Nurse Midwifery Postgraduate Certificate",
+    "value": "22275E414"
+  },
+  {
+    "label": "Nursing B.S.N.",
+    "value": "059620714"
+  },
+  {
+    "label": "Nursing Ph.D.",
+    "value": "059660214"
+  },
+  {
+    "label": "Nutrition B.S.",
+    "value": "059820130"
+  },
+  {
+    "label": "Nutrition M.S.",
+    "value": "059831530"
+  },
+  {
+    "label": "Nutrition Minor",
+    "value": "0598MING30"
+  },
+  {
+    "label": "Nutrition Minor",
+    "value": "0598MIN30"
+  },
+  {
+    "label": "Nutrition Ph.D.",
+    "value": "059860230"
+  },
+  {
+    "label": "Occupational Hygiene M.S.",
+    "value": "251831520"
+  },
+  {
+    "label": "Occupational Hygiene PhD",
+    "value": "251860220"
+  },
+  {
+    "label": "Occupational Therapy O.T.D.",
+    "value": "239262415"
+  },
+  {
+    "label": "Ojibwe Language B.A.",
+    "value": "220620217"
+  },
+  {
+    "label": "Online Distance Learning Postbaccalaureate Certificate",
+    "value": "21645B906"
+  },
+  {
+    "label": "Oral Biology M.S.",
+    "value": "061431504"
+  },
+  {
+    "label": "Oral Biology Minor",
+    "value": "0614MING04"
+  },
+  {
+    "label": "Oral Biology Ph.D.",
+    "value": "061460204"
+  },
+  {
+    "label": "Oral Health Educator Certificate",
+    "value": "25045P804"
+  },
+  {
+    "label": "Organizational Leadership, Policy, and Development Ed.D.",
+    "value": "229860106"
+  },
+  {
+    "label": "Organizational Leadership, Policy, and Development M.A.",
+    "value": "229830406"
+  },
+  {
+    "label": "Organizational Leadership, Policy, and Development Ph.D.",
+    "value": "229860206"
+  },
+  {
+    "label": "Orthoptics Post-baccalaureate Certificate",
+    "value": "23035H911"
+  },
+  {
+    "label": "Otolaryngology Ph.D. Otol.",
+    "value": "062461611"
+  },
+  {
+    "label": "Parent and Family Education Minor",
+    "value": "MDSiJNQpXEsX4bxfWpKQ"
+  },
+  {
+    "label": "Parent Education Postbaccalaureate Certificate",
+    "value": "21805C306"
+  },
+  {
+    "label": "Park and Protected Area Management Minor",
+    "value": "0756MIN30"
+  },
+  {
+    "label": "Patent Law LL.M.",
+    "value": "230930L09"
+  },
+  {
+    "label": "Pediatric Clinical Nurse Specialist Postgraduate Certificate",
+    "value": "22295E614"
+  },
+  {
+    "label": "Pediatric Nurse Practitioner - Acute Care Post-Graduate Certificate",
+    "value": "25005P414"
+  },
+  {
+    "label": "Pediatric Nurse Practitioner - Primary Care Postgraduate Certificate",
+    "value": "22305E714"
+  },
+  {
+    "label": "Pharmaceutics M.S.",
+    "value": "063631515"
+  },
+  {
+    "label": "Pharmaceutics Minor",
+    "value": "0636MING15"
+  },
+  {
+    "label": "Pharmaceutics Ph.D.",
+    "value": "063660215"
+  },
+  {
+    "label": "Pharmacology Minor",
+    "value": "0644MIN10"
+  },
+  {
+    "label": "Philosophy B.A.",
+    "value": "065220217"
+  },
+  {
+    "label": "Philosophy M.A.",
+    "value": "065230417"
+  },
+  {
+    "label": "Philosophy Minor",
+    "value": "0652MIN17"
+  },
+  {
+    "label": "Philosophy Minor",
+    "value": "0652MING17"
+  },
+  {
+    "label": "Philosophy Ph.D.",
+    "value": "065260217"
+  },
+  {
+    "label": "Physical Activity and Health M.Ed.",
+    "value": "237035006"
+  },
+  {
+    "label": "Physical Activity and Health Promotion B.S.",
+    "value": "246220106"
+  },
+  {
+    "label": "Physical Activity and Health Promotion Minor",
+    "value": "2375MIN06"
+  },
+  {
+    "label": "Physical Therapy D.P.T.",
+    "value": "067261911"
+  },
+  {
+    "label": "Physics B.A.",
+    "value": "067620217"
+  },
+  {
+    "label": "Physics B.S. Phys.",
+    "value": "067627307"
+  },
+  {
+    "label": "Physics M.S.",
+    "value": "067631507"
+  },
+  {
+    "label": "Physics Minor",
+    "value": "0676MIN17"
+  },
+  {
+    "label": "Physics Minor",
+    "value": "0676MING07"
+  },
+  {
+    "label": "Physics Ph.D.",
+    "value": "067660207"
+  },
+  {
+    "label": "PK-12 Administration Postbaccalaureate Certificate",
+    "value": "210255906"
+  },
+  {
+    "label": "Plant and Microbial Biology B.S.",
+    "value": "069720110"
+  },
+  {
+    "label": "Plant and Microbial Biology M.S.",
+    "value": "069731510"
+  },
+  {
+    "label": "Plant and Microbial Biology Minor",
+    "value": "0697MING10"
+  },
+  {
+    "label": "Plant and Microbial Biology Ph.D.",
+    "value": "069760210"
+  },
+  {
+    "label": "Plant Biology Minor",
+    "value": "0697MIN10"
+  },
+  {
+    "label": "Plant Pathology M.S.",
+    "value": "069331530"
+  },
+  {
+    "label": "Plant Pathology Minor",
+    "value": "0693MING30"
+  },
+  {
+    "label": "Plant Pathology Ph.D.",
+    "value": "069360230"
+  },
+  {
+    "label": "Plant Science B.S.",
+    "value": "228820130"
+  },
+  {
+    "label": "Policy Issues on Work and Pay Postbaccalaureate Certificate",
+    "value": "203458916"
+  },
+  {
+    "label": "Political Psychology Minor",
+    "value": "0711MING17"
+  },
+  {
+    "label": "Political Science B.A.",
+    "value": "071220217"
+  },
+  {
+    "label": "Political Science M.A.",
+    "value": "071230417"
+  },
+  {
+    "label": "Political Science Minor",
+    "value": "0712MIN17"
+  },
+  {
+    "label": "Political Science Ph.D.",
+    "value": "071260217"
+  },
+  {
+    "label": "Population Health Informatics & Technology Post Baccalaureate Certificate",
+    "value": "25015P514"
+  },
+  {
+    "label": "Population Studies Minor",
+    "value": "2132MIN17"
+  },
+  {
+    "label": "Population Studies Minor",
+    "value": "2132MING17"
+  },
+  {
+    "label": "Portuguese Studies Minor",
+    "value": "0716MIN17"
+  },
+  {
+    "label": "Poultry Health Postbaccalaureate Certificate",
+    "value": "24685N803"
+  },
+  {
+    "label": "Prevention Science Minor",
+    "value": "2203MING06"
+  },
+  {
+    "label": "Private College Leadership Postbaccalaureate Certificate",
+    "value": "23125I206"
+  },
+  {
+    "label": "Product Design B.S.",
+    "value": "224020122"
+  },
+  {
+    "label": "Product Design Minor",
+    "value": "2240MING22"
+  },
+  {
+    "label": "Product Design Minor",
+    "value": "2240MIN22"
+  },
+  {
+    "label": "Professional Development Postbaccalaureate Certificate",
+    "value": "151552106"
+  },
+  {
+    "label": "Program Evaluation Minor",
+    "value": "2029MING06"
+  },
+  {
+    "label": "Program Evaluation Postbaccalaureate Certificate",
+    "value": "202953206"
+  },
+  {
+    "label": "Psychiatric Mental Health Nurse Practitioner Postgraduate Certificate",
+    "value": "22315E814"
+  },
+  {
+    "label": "Psychology B.A.",
+    "value": "081220217"
+  },
+  {
+    "label": "Psychology B.S.",
+    "value": "081220117"
+  },
+  {
+    "label": "Psychology M.A.",
+    "value": "081230417"
+  },
+  {
+    "label": "Psychology Minor",
+    "value": "0812MIN17"
+  },
+  {
+    "label": "Psychology Minor",
+    "value": "0812MING17"
+  },
+  {
+    "label": "Psychology Ph.D.",
+    "value": "081260217"
+  },
+  {
+    "label": "Public & Nonprofit Management B.S.B",
+    "value": "217520502"
+  },
+  {
+    "label": "Public Affairs Leadership Postbaccalaureate Certificate",
+    "value": "22535G216"
+  },
+  {
+    "label": "Public Affairs M.P.A.",
+    "value": "081838316"
+  },
+  {
+    "label": "Public Affairs Ph.D.",
+    "value": "081860216"
+  },
+  {
+    "label": "Public Health Administration and Policy M.P.H.",
+    "value": "081935220"
+  },
+  {
+    "label": "Public Health B.A.",
+    "value": "082020220"
+  },
+  {
+    "label": "Public Health Core Concepts Postbaccalaureate Certificate",
+    "value": "204151920"
+  },
+  {
+    "label": "Public Health Data Science M.P.H.",
+    "value": "247935220"
+  },
+  {
+    "label": "Public Health Data Science Minor",
+    "value": "uqg0mdIIZh775sWFAXVc"
+  },
+  {
+    "label": "Public Health Food Protection Postbaccalaureate Certificate",
+    "value": "208053820"
+  },
+  {
+    "label": "Public Health Minor",
+    "value": "0820MIN17"
+  },
+  {
+    "label": "Public Health Minor",
+    "value": "0820MING20"
+  },
+  {
+    "label": "Public Health Nutrition M.P.H.",
+    "value": "082535220"
+  },
+  {
+    "label": "Public Health Practice M.P.H.",
+    "value": "203835220"
+  },
+  {
+    "label": "Public Health Preparedness, Response, and Recovery Postbaccalaureate Certificate",
+    "value": "207953720"
+  },
+  {
+    "label": "Public Interest Design Minor",
+    "value": "2374MIN22"
+  },
+  {
+    "label": "Public Policy M.P.P.",
+    "value": "177838216"
+  },
+  {
+    "label": "Public Policy Minor",
+    "value": "1778MING16"
+  },
+  {
+    "label": "Race, Indigeneity, Disability, Gender, and Sexuality Minor",
+    "value": "2409MING17"
+  },
+  {
+    "label": "Racial Justice in Urban Schooling Minor",
+    "value": "2373MIN06"
+  },
+  {
+    "label": "Real Estate Development and Management Certificate",
+    "value": "et6ltSlRUV9k1mM1q60t"
+  },
+  {
+    "label": "Real Estate Development and Management Minor",
+    "value": "Y4cYVnMXkQfk7uXCTliX"
+  },
+  {
+    "label": "Regulatory Affairs for Food Professionals Postbaccalaureate Certificate",
+    "value": "24865O618"
+  },
+  {
+    "label": "Rehabilitation Science M.S.",
+    "value": "082331511"
+  },
+  {
+    "label": "Rehabilitation Science Ph.D.",
+    "value": "082360211"
+  },
+  {
+    "label": "Religious Studies B.A.",
+    "value": "083420217"
+  },
+  {
+    "label": "Religious Studies Minor",
+    "value": "0834MIN17"
+  },
+  {
+    "label": "Religious Studies Minor",
+    "value": "0834MING17"
+  },
+  {
+    "label": "Retail and Consumer Studies B.S.",
+    "value": "093120122"
+  },
+  {
+    "label": "Retail and Consumer Studies Minor",
+    "value": "0931MIN22"
+  },
+  {
+    "label": "Risk Management and Insurance Minor",
+    "value": "1027MIN02"
+  },
+  {
+    "label": "Robotics M.S.",
+    "value": "242931507"
+  },
+  {
+    "label": "Robotics Minor",
+    "value": "2429MING07"
+  },
+  {
+    "label": "Russian B.A.",
+    "value": "084020217"
+  },
+  {
+    "label": "Russian Minor",
+    "value": "0840MIN17"
+  },
+  {
+    "label": "Sales Certificate",
+    "value": "24675N606"
+  },
+  {
+    "label": "Science, Technology, and Environmental Policy M.S.",
+    "value": "186731516"
+  },
+  {
+    "label": "Science, Technology, and Environmental Policy Minor",
+    "value": "1867MING16"
+  },
+  {
+    "label": "Security Technologies M.S.S.T.",
+    "value": "220130D07"
+  },
+  {
+    "label": "Security Technologies Minor",
+    "value": "2201MING07"
+  },
+  {
+    "label": "Sex Therapy Postbaccalaureate Certificate",
+    "value": "24855O518"
+  },
+  {
+    "label": "Sexual Health M.P.S.",
+    "value": "237630I18"
+  },
+  {
+    "label": "Sexual Health Minor",
+    "value": "2376MING20"
+  },
+  {
+    "label": "Social and Administrative Pharmacy M.S.",
+    "value": "085531515"
+  },
+  {
+    "label": "Social and Administrative Pharmacy Minor",
+    "value": "0855MING15"
+  },
+  {
+    "label": "Social and Administrative Pharmacy Ph.D.",
+    "value": "085560215"
+  },
+  {
+    "label": "Social Justice Minor",
+    "value": "2143MIN06"
+  },
+  {
+    "label": "Social Work M.S.W.",
+    "value": "086431406"
+  },
+  {
+    "label": "Social Work Ph.D.",
+    "value": "086460206"
+  },
+  {
+    "label": "Sociocultural Studies in Education Minor",
+    "value": "0887MING06"
+  },
+  {
+    "label": "Sociology B.A.",
+    "value": "086820217"
+  },
+  {
+    "label": "Sociology B.S.",
+    "value": "086820117"
+  },
+  {
+    "label": "Sociology M.A.",
+    "value": "086830417"
+  },
+  {
+    "label": "Sociology Minor",
+    "value": "0868MING17"
+  },
+  {
+    "label": "Sociology Minor",
+    "value": "0868MIN17"
+  },
+  {
+    "label": "Sociology of Law, Criminology, and Justice B.A.",
+    "value": "086720217"
+  },
+  {
+    "label": "Sociology of Law, Criminology, and Justice B.S.",
+    "value": "086720117"
+  },
+  {
+    "label": "Sociology of Law, Criminology, and Justice Minor",
+    "value": "0867MIN17"
+  },
+  {
+    "label": "Sociology Ph.D.",
+    "value": "086860217"
+  },
+  {
+    "label": "Software Engineering M.S.S.E.",
+    "value": "104838107"
+  },
+  {
+    "label": "Soil Science Minor",
+    "value": "0874MIN30"
+  },
+  {
+    "label": "Spanish and Portuguese Studies B.A.",
+    "value": "087720217"
+  },
+  {
+    "label": "Spanish Language Advanced-Level Proficiency Certificate",
+    "value": "23055I117"
+  },
+  {
+    "label": "Spanish Studies B.A.",
+    "value": "087620217"
+  },
+  {
+    "label": "Spanish Studies Minor",
+    "value": "0876MIN17"
+  },
+  {
+    "label": "Special Education B.S.",
+    "value": "087920106"
+  },
+  {
+    "label": "Special Education Initial License M.Ed.",
+    "value": "234135006"
+  },
+  {
+    "label": "Special Education M.Ed.",
+    "value": "087935006"
+  },
+  {
+    "label": "Special Education Minor",
+    "value": "0879MIN06"
+  },
+  {
+    "label": "Special Education Minor",
+    "value": "2493MING06"
+  },
+  {
+    "label": "Specialist in Education and General Education Administration Certificate",
+    "value": "025650606"
+  },
+  {
+    "label": "Speech-Language-Hearing Science M.A.",
+    "value": "213630417"
+  },
+  {
+    "label": "Speech-Language-Hearing Sciences B.A.",
+    "value": "088620217"
+  },
+  {
+    "label": "Speech-Language-Hearing Sciences Minor",
+    "value": "0886MIN17"
+  },
+  {
+    "label": "Speech-Language-Hearing Sciences Minor",
+    "value": "2136MING17"
+  },
+  {
+    "label": "Speech-Language-Hearing Sciences Ph.D.",
+    "value": "213660217"
+  },
+  {
+    "label": "Sport and Exercise Science M.Ed.",
+    "value": "233435006"
+  },
+  {
+    "label": "Sport Management B.S.",
+    "value": "104520106"
+  },
+  {
+    "label": "Sport Management M. A.",
+    "value": "204030406"
+  },
+  {
+    "label": "Sport Management M.Ed.",
+    "value": "204035006"
+  },
+  {
+    "label": "Sport Management Minor",
+    "value": "2040MING06"
+  },
+  {
+    "label": "Sport Management Minor",
+    "value": "1045MIN06"
+  },
+  {
+    "label": "Sports Coaching Certificate",
+    "value": "018757506"
+  },
+  {
+    "label": "Sports Coaching Minor",
+    "value": "0187MIN06"
+  },
+  {
+    "label": "Statistical Practice B.A.",
+    "value": "234320217"
+  },
+  {
+    "label": "Statistical Science B.S.",
+    "value": "234420117"
+  },
+  {
+    "label": "Statistics M.S.",
+    "value": "090031517"
+  },
+  {
+    "label": "Statistics Minor",
+    "value": "0900MIN17"
+  },
+  {
+    "label": "Statistics Minor",
+    "value": "0900MING17"
+  },
+  {
+    "label": "Statistics Ph.D.",
+    "value": "090060217"
+  },
+  {
+    "label": "Stem Cell Biology M.S.",
+    "value": "220031511"
+  },
+  {
+    "label": "Stem Cell Biology Minor",
+    "value": "2200MING11"
+  },
+  {
+    "label": "Strategic Communication M.A.",
+    "value": "212530417"
+  },
+  {
+    "label": "Strategic Communication: Advertising and Public Relations B.A.",
+    "value": "212520217"
+  },
+  {
+    "label": "Strategic Management Minor",
+    "value": "2425MIN02"
+  },
+  {
+    "label": "Strategic Management Postbaccalaureate Certificate",
+    "value": "24255M502"
+  },
+  {
+    "label": "Strategic Marketing Postbaccalaureate Certificate",
+    "value": "24495M902"
+  },
+  {
+    "label": "Stream Restoration Science and Engineering Postbaccalaureate Certificate",
+    "value": "21575B707"
+  },
+  {
+    "label": "Studies in Africa and African Diaspora Minor",
+    "value": "0893MING17"
+  },
+  {
+    "label": "Studies in Cinema and Media Culture B.A.",
+    "value": "202720217"
+  },
+  {
+    "label": "Studies in Cinema and Media Culture Minor",
+    "value": "2027MIN17"
+  },
+  {
+    "label": "Studies of Science and Technology Minor",
+    "value": "0907MING17"
+  },
+  {
+    "label": "Supply Chain & Operations Management B.S.B.",
+    "value": "219620502"
+  },
+  {
+    "label": "Supply Chain & Operations Management Minor",
+    "value": "2196MIN02"
+  },
+  {
+    "label": "Supply Chain Management for the Medical and Health Sector Postbaccalaureate Certificate",
+    "value": "24545N302"
+  },
+  {
+    "label": "Supply Chain Management M.S.",
+    "value": "204731502"
+  },
+  {
+    "label": "Surgery M.S. Surg.",
+    "value": "090834711"
+  },
+  {
+    "label": "Sustainability Studies Minor",
+    "value": "2163MIN30"
+  },
+  {
+    "label": "Sustainable Agriculture and Food Systems B.S.",
+    "value": "228920130"
+  },
+  {
+    "label": "Sustainable Agriculture Minor",
+    "value": "0983MIN30"
+  },
+  {
+    "label": "Sustainable Environmental, Social and Governance Leadership Postbaccalaureate Certificate",
+    "value": "3EGWKrnrxzfxVZEI4D1A"
+  },
+  {
+    "label": "Sustainable Systems Management B.S.",
+    "value": "100820130"
+  },
+  {
+    "label": "Swedish Minor",
+    "value": "0903MIN17"
+  },
+  {
+    "label": "Talent Development and Gifted Education Postbaccalaureate Certificate",
+    "value": "204952306"
+  },
+  {
+    "label": "Tax Executive Postbaccalaureate Certificate",
+    "value": "24445M202"
+  },
+  {
+    "label": "Taxation Postbaccalaureate Certificate",
+    "value": "24455M302"
+  },
+  {
+    "label": "Teaching English as a Second Language Certificate",
+    "value": "21055C506"
+  },
+  {
+    "label": "Teaching English as a Second Language Minor",
+    "value": "2105MIN06"
+  },
+  {
+    "label": "Teaching M.Ed.",
+    "value": "099235006"
+  },
+  {
+    "label": "Teaching Writing and Critical Literacy Postbaccalaureate Certificate",
+    "value": "21555B606"
+  },
+  {
+    "label": "Technical Communication M.S.",
+    "value": "90GRPu58FQX8QyihBS8x"
+  },
+  {
+    "label": "Technical Communication Minor",
+    "value": "1B1zyNEtH8FAa04lVn13"
+  },
+  {
+    "label": "Technical Communication Postbaccalaureate Certificate",
+    "value": "09135B817"
+  },
+  {
+    "label": "Technical Writing and Communication B.S.",
+    "value": "091320117"
+  },
+  {
+    "label": "Technical Writing and Communication Minor",
+    "value": "0913MIN17"
+  },
+  {
+    "label": "Technology Leadership Postbaccalaureate Certificate",
+    "value": "25135Q307"
+  },
+  {
+    "label": "Theatre Arts B.A.",
+    "value": "092020217"
+  }
+]
