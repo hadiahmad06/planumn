@@ -9,10 +9,10 @@ import '@mantine/core/styles.css';
 import '@mantine/notifications/styles.css';
 import { ColorSchemeScript, MantineProvider, mantineHtmlProps } from '@mantine/core';
 import { Notifications } from "@mantine/notifications";
-import { UserSessionProvider } from "@/contexts/UserSessionProvider";
-import { PlanProvider } from "@/contexts/PlanProvider";
-import { DisplaySettingsProvider } from "@/contexts/DisplaySettingsProvider";
-import { MobileProvider } from "@/contexts/MobileProvider";
+import { UserSessionProvider } from "@/contexts/data/UserSessionProvider";
+import { PlanProvider } from "@/contexts/data/PlanProvider";
+import { DisplaySettingsProvider } from "@/contexts/visual/DisplaySettingsProvider";
+import { MobileProvider } from "@/contexts/visual/MobileProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

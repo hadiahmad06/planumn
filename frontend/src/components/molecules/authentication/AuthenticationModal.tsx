@@ -3,7 +3,7 @@
 import { Button, Modal, Text, TextInput, Stack, SegmentedControl, Center, Loader } from "@mantine/core";
 import { useContext, useEffect, useState } from "react";
 import { IconLogin, IconUserPlus } from "@tabler/icons-react";
-import { UserSessionContext } from "@/contexts/UserSessionContext";
+import { UserSessionContext } from "@/contexts/data/UserSessionContext";
 import { handleLogin, handleRegister, handleResend } from "./authenticationActions";
 
 const PRIMARY_COLOR = "#811331";

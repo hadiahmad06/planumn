@@ -4,8 +4,8 @@ import AnimatedTypingText from "@/components/atoms/landing/AnimatedTypingTest";
 import VideoPopup from "@/components/atoms/landing/VideoPopup";
 import LoggedInLandingButtons from "@/components/molecules/landing/LoggedInLandingButtons";
 import LoggedOutLandingButtons from "@/components/molecules/landing/LoggedOutLandingButtons";
-import { useMobile } from "@/contexts/MobileProvider";
-import { UserSessionContext } from "@/contexts/UserSessionContext";
+import { useMobile } from "@/contexts/visual/MobileProvider";
+import { UserSessionContext } from "@/contexts/data/UserSessionContext";
 import "@/styles/global.css"; // make sure this path is correct
 import { Container, Flex, Button, Box, Stack, Text, Title, Group, Center, Space, Paper } from "@mantine/core";
 import { IconEdit, IconEye, IconPlayerPlay, IconUpload, IconPlayerPlayFilled, IconDeviceMobile } from "@tabler/icons-react";

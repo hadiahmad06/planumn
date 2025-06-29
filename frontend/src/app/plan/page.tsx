@@ -1,6 +1,6 @@
 "use client";
 
-import { UserSessionContext } from "@/contexts/UserSessionContext";
+import { UserSessionContext } from "@/contexts/data/UserSessionContext";
 import { useEffect, useContext, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Paper, Stack, Text, Box, Title, Collapse, Space, Loader } from "@mantine/core";

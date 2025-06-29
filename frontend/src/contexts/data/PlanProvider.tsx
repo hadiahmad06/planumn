@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState, useContext } from "react";
-import { PlanContext } from "@/contexts/PlanContext";
+import { PlanContext } from "@/contexts/data/PlanContext";
 import { CourseStub, Plan, PlannedCourse, PlanNullable } from "@/types/plan";
 import { getCourseDetails } from "@/types/planHandlers";
-import { UserSessionContext } from "@/contexts/UserSessionContext";
+import { UserSessionContext } from "@/contexts/data/UserSessionContext";
 import { useRouter } from "next/navigation";
 
 /**

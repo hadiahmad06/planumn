@@ -3,7 +3,7 @@ import { IconTrash, IconRecycle } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { PlanNullable } from "@/types/plan";
 import { MouseEvent, useContext, useState } from "react";
-import { MobileContext } from "@/contexts/MobileContext";
+import { MobileContext } from "@/contexts/visual/MobileContext";
 
 interface PlanRowProps {
   plan: PlanNullable;

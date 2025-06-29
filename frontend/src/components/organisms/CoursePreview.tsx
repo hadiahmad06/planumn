@@ -2,7 +2,7 @@ import { CourseDetails } from "@/types/plan"
 import { Stack, Text, Box, Group, CloseButton, Collapse } from "@mantine/core"
 import { BarChart } from "../atoms/course-preview/barchart"
 import { AreaChart } from "../atoms/course-preview/areachart"
-import { CoursePreview, HydratedPreview, PreviewContext, PreviewPosition } from "@/contexts/PreviewContext"
+import { CoursePreview, HydratedPreview, PreviewContext, PreviewPosition } from "@/contexts/visual/PreviewContext"
 
 
 export function getXYFromCoords(coords: {

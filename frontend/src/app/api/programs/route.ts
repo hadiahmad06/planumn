@@ -34,21 +34,31 @@ export async function POST(req: Request) {
     const results = [];
 
     for (const id of programGroupIds) {
-        const curlCommand = `
-          curl 'https://app.coursedog.com/api/v1/cm/umn_umntc_peoplesoft/programs?programGroupIds=${id}&effectiveDatesRange=2025-09-02%2C2032-12-15&doNotDisplayAllMappedRevisionsAsDependencies=true&formatDependents=true&includeMappedDocumentItems=true' \\
-          -H 'accept: application/json, text/plain, */*' \\
-          -H 'accept-language: en-US,en;q=0.9' \\
-          -H 'origin: https://umtc.catalog.prod.coursedog.com' \\
-          -H 'referer: https://umtc.catalog.prod.coursedog.com/' \\
-          -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36'
-        `;
 
         try {
-            const { stdout } = await execAsync(curlCommand);
-            results.push(JSON.parse(stdout));
+            const res = await fetch(`https://app.coursedog.com/api/v1/cm/umn_umntc_peoplesoft/programs?programGroupIds=${id}&effectiveDatesRange=2025-09-02%2C2032-12-15&doNotDisplayAllMappedRevisionsAsDependencies=true&formatDependents=true&includeMappedDocumentItems=true`, {
+              method: "GET",
+              headers: {
+                "Accept": "application/json, text/plain, */*",
+                "Accept-Language": "en-US,en;q=0.9",
+                "Origin": "https://umtc.catalog.prod.coursedog.com",
+                "Referer": "https://umtc.catalog.prod.coursedog.com/",
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+                "x-requested-with": "catalog"
+              },
+              credentials: "omit"
+            });
+
+            if (!res.ok) {
+              throw new Error(`Fetch failed for programGroupId=${id}: ${res.statusText}`);
+            }
+
+            const data = await res.json();
+            results.push(data);
+            
         } catch (err) {
-            console.error("Curl error:", err);
-            results.push({ error: "Curl failed", detail: err.message });
+            console.error("Fetch error:", err);
+            // results.push({ error: "Curl failed", detail: err.message });
         }
     }
 

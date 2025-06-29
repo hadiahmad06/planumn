@@ -8,9 +8,9 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import SettingsModal from "@/components/molecules/authentication/SettingsModal";
 import DeletionConfirmationModal from "./DeletionConfirmationModal";
-import { UserSessionContext } from "@/contexts/UserSessionContext";
+import { UserSessionContext } from "@/contexts/data/UserSessionContext";
 import { useContext } from "react";
-import { PlanContext } from "@/contexts/PlanContext";
+import { PlanContext } from "@/contexts/data/PlanContext";
 import DisplaySettings from "../DisplaySettings";
 import { handleLogout } from "./authenticationActions";
 

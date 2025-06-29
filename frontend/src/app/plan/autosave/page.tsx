@@ -1,7 +1,7 @@
 "use client";
 
 import PlanDisplay from "@/components/organisms/plan-display/PlanDisplay";
-import { PlanContext } from "@/contexts/PlanContext";
+import { PlanContext } from "@/contexts/data/PlanContext";
 import { useContext } from "react";
 import { Box, Text, Anchor, Center, Container, Paper, Stack, Title, Button } from "@mantine/core";
 import { useRouter } from "next/navigation";

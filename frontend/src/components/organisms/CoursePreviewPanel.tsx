@@ -3,7 +3,7 @@ import { Box, Text, Stack, Group, Dialog, Skeleton, Flex } from '@mantine/core';
 import { useContext, useState, useEffect, useRef, RefObject, createRef } from 'react';
 import { BarChart } from '../atoms/course-preview/barchart';
 import { AreaChart } from '../atoms/course-preview/areachart';
-import { HydratedPreview, PreviewContext, PreviewPosition } from '@/contexts/PreviewContext';
+import { HydratedPreview, PreviewContext, PreviewPosition } from '@/contexts/visual/PreviewContext';
 import { getCourseDetails } from '@/types/planHandlers';
 import Draggable from 'react-draggable';
 import { CoursePreviewEntry, CoursePreviewSkeleton, getXYFromCoords, mapPositionToCoords } from './CoursePreview';

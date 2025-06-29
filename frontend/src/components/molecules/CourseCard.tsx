@@ -5,9 +5,9 @@ import { Draggable } from "@hello-pangea/dnd";
 import { getCourseColor } from "@/lib/colors";
 import { PlannedCourse, CourseStub } from "@/types/plan";
 import { useContext } from "react";
-import { PlanContext } from "@/contexts/PlanContext";
-import { DisplaySettingsContext } from "@/contexts/DisplaySettingsContext";
-import { PreviewContext } from "@/contexts/PreviewContext";
+import { PlanContext } from "@/contexts/data/PlanContext";
+import { DisplaySettingsContext } from "@/contexts/visual/DisplaySettingsContext";
+import { PreviewContext } from "@/contexts/visual/PreviewContext";
 import styles from "./CourseCard.module.css";
 
 const CARD_FIXED_WIDTH = 110;

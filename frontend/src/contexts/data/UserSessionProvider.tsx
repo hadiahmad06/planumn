@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { UserSessionContext } from "@/contexts/UserSessionContext";
+import { UserSessionContext } from "@/contexts/data/UserSessionContext";
 import { User, Session } from "@supabase/supabase-js";
 import { createClient } from "@/utils/supabase/client";
 

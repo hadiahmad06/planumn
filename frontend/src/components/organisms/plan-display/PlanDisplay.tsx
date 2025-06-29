@@ -11,11 +11,11 @@ import CourseCard from "../../molecules/CourseCard";
 import { ColorKey, Course, CourseDetails, CourseMetadata, Plan, QueriedCourse, Semester } from "@/types/plan";
 import { useContext, useEffect, useState } from "react";
 import theme from "@/styles/theme";
-import { PlanContext } from "@/contexts/PlanContext";
+import { PlanContext } from "@/contexts/data/PlanContext";
 import SearchLayout from "@/components/organisms/SearchLayout";
 import PlanHeader from "../../atoms/PlanHeader";
 import { IconMinus, IconPlus } from "@tabler/icons-react";
-import { MobileContext } from "@/contexts/MobileContext";
+import { MobileContext } from "@/contexts/visual/MobileContext";
 import PlanDisplayMobile from "./PlanDisplayMobile";
 
 const ALWAYS_VISIBLE_CREDITS = 4;

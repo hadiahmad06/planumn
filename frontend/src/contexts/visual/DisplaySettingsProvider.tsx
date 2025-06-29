@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { DisplaySettingsContext } from "@/contexts/DisplaySettingsContext";
+import { DisplaySettingsContext } from "@/contexts/visual/DisplaySettingsContext";
 import { ColorKey } from "@/types/plan";
 
 export const DisplaySettingsProvider = ({ children }: { children: React.ReactNode }) => {

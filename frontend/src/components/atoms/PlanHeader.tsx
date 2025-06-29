@@ -1,8 +1,10 @@
-import { PlanContext } from "@/contexts/PlanContext";
-import { Box, Flex, Skeleton, Title, Text } from "@mantine/core";
+import { PlanContext } from "@/contexts/data/PlanContext";
+import { Box, Flex, Skeleton, Title, Text, MultiSelect } from "@mantine/core";
 import { useContext, useState, useEffect, useRef } from "react";
 import { formatDistance, formatDistanceToNow, isAfter } from "date-fns";
-import { UserSessionContext } from "@/contexts/UserSessionContext";
+import { UserSessionContext } from "@/contexts/data/UserSessionContext";
+import { useRouter } from "next/navigation";
+import programOptions from "@/lib/programOptions.json";
 
 export default function PlanHeader() {
     const planContext = useContext(PlanContext);
@@ -16,6 +18,35 @@ export default function PlanHeader() {
     const [hoveredInput, setHoveredInput] = useState(false);
     const spanRef = useRef<HTMLSpanElement>(null);
     const placeholder = "Edit Plan Title";
+
+    // vvvv change this to useContext
+    const [selectedPrograms, setSelectedPrograms] = useState<string[]>([]);
+    const router = useRouter();
+  
+    // move to Context
+    const handleContinue = async () => {
+      if (!selectedPrograms || selectedPrograms.length === 0) return;
+  
+      try {
+        const response = await fetch('/api/programs', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ programGroupIds: selectedPrograms }),
+        });
+  
+        if (!response.ok) {
+          throw new Error('Failed to fetch program data');
+        }
+  
+        const result = await response.json();
+        console.log("Fetched program data:", result.data);
+      } catch (error) {
+        console.error("Error fetching program data:", error);
+      }
+  
+    };
 
     useEffect(() => {
       if (plan) {
@@ -93,13 +124,14 @@ export default function PlanHeader() {
                     </span>
                   </div>
                 </form>
-                <Text size="md" c="dimmed" style={{marginBottom: "0.5rem"}}>
-                    Program{plan.programs && plan.programs.length>0
-                        ? (plan.programs.length === 1 
-                        ? ": " + plan.programs[0] 
-                        : "s: " + plan.programs.join(', ')) 
-                    : ": Unknown"}
-                </Text>
+                {/*  */}
+                <MultiSelect
+                  data={programOptions}
+                  searchable
+                  placeholder={selectedPrograms.length===0 ? "Select a program" : ""}
+                  value={selectedPrograms}
+                  onChange={setSelectedPrograms}
+                />
                 {!session ? (
                 <Text
                   size="md"

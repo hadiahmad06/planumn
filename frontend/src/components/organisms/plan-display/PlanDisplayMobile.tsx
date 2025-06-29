@@ -4,7 +4,7 @@ import { useContext, useState, useEffect } from "react";
 import { Carousel } from "@mantine/carousel";
 import { Box, Flex, Text, Skeleton, Title } from "@mantine/core";
 import { Droppable } from "@hello-pangea/dnd";
-import { PlanContext } from "@/contexts/PlanContext";
+import { PlanContext } from "@/contexts/data/PlanContext";
 import CourseCard from "../../molecules/CourseCard";
 import { Semester } from "@/types/plan";
 import classes from './PlanDisplayMobile.module.css';

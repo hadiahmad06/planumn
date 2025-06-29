@@ -1,6 +1,6 @@
 import { isPlanEmpty, Plan } from "@/types/plan";
 import { Button, Center, Stack, Text, Title, Paper } from "@mantine/core";
-import { PlanContext } from "@/contexts/PlanContext"
+import { PlanContext } from "@/contexts/data/PlanContext"
 import { useContext, useEffect } from "react";
 import { useRouter } from "next/navigation";
 

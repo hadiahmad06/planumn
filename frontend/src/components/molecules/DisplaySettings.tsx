@@ -14,7 +14,7 @@ import {
 import { IconX } from "@tabler/icons-react";
 import theme from "@/styles/theme";
 import { useContext, useState, useRef, useEffect } from "react";
-import { DisplaySettingsContext } from "@/contexts/DisplaySettingsContext";
+import { DisplaySettingsContext } from "@/contexts/visual/DisplaySettingsContext";
 
 type Props = {
   opened: boolean;

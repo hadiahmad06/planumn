@@ -5,7 +5,7 @@ import VideoPopup from "@/components/atoms/landing/VideoPopup";
 import { Button, Group } from "@mantine/core";
 import { useRouter } from "next/navigation";
 import { ImportTranscriptButton, StartFromScratchButton } from "@/components/atoms/landing/Buttons";
-import { useMobile } from "@/contexts/MobileProvider";
+import { useMobile } from "@/contexts/visual/MobileProvider";
 
 export default function LoggedOutLandingButtons() {
     const { isMobile } = useMobile();

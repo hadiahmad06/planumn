@@ -1,4 +1,4 @@
-import { PlanContext } from "@/contexts/PlanContext";
+import { PlanContext } from "@/contexts/data/PlanContext";
 import { Semester } from "@/types/plan";
 import { useContext } from "react";
 

@@ -5,8 +5,8 @@ import { Draggable } from "@hello-pangea/dnd";
 import CourseCard from "./CourseCard";
 import { Box, Input, Text, Flex, Paper } from "@mantine/core";
 import { Course, CourseDetails, CourseStub } from "@/types/plan";
-import { DisplaySettingsContext } from "@/contexts/DisplaySettingsContext";
-import { PlanContext } from "@/contexts/PlanContext";
+import { DisplaySettingsContext } from "@/contexts/visual/DisplaySettingsContext";
+import { PlanContext } from "@/contexts/data/PlanContext";
 
 export type ColorKey = 'department' | 'level' | 'none';
 

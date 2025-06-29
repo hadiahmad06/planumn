@@ -8,7 +8,7 @@ import { Dropzone, DropzoneProps } from '@mantine/dropzone';
 import { useContext, useEffect, useState } from 'react';
 import { IconUpload, IconPhoto, IconX, IconFileText } from '@tabler/icons-react';
 import { error } from 'console';
-import { PlanContext } from '@/contexts/PlanContext';
+import { PlanContext } from '@/contexts/data/PlanContext';
 import OverwriteSavedPrompt from '@/components/atoms/OverwriteSavedPrompt';
 
 

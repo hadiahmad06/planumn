@@ -7,8 +7,8 @@ import { useParams, notFound } from "next/navigation";
 import PlanDisplay from "@/components/organisms/plan-display/PlanDisplay";
 import { LockType, Plan, PlanNullable } from "@/types/plan";
 // import { getPlanDetails } from "@/types/planHandlers";
-import { PlanContext } from "@/contexts/PlanContext";
-import { cachePlannedCourses } from "@/contexts/PlanProvider";
+import { PlanContext } from "@/contexts/data/PlanContext";
+import { cachePlannedCourses } from "@/contexts/data/PlanProvider";
 import OverwriteSavedPrompt from "@/components/atoms/OverwriteSavedPrompt";
 
 export default function PlanPage() {

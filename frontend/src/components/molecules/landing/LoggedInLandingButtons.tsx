@@ -5,16 +5,14 @@ import VideoPopup from "@/components/atoms/landing/VideoPopup";
 import { Button, Group, Stack } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useRouter } from "next/navigation";
-import ProgramModal from "@/components/atoms/landing/ProgramModal";
 import { ImportTranscriptButton, ProgramCatalogButton, StartFromScratchButton, MyPlansButton } from "@/components/atoms/landing/Buttons";
-import { useMobile } from "@/contexts/MobileProvider";
+import { useMobile } from "@/contexts/visual/MobileProvider";
 import {useDisclosure} from "@mantine/hooks";
 
 export default function LoggedInLandingButtons() {
     const router = useRouter();
     const [hovered, setHovered] = useState([false, false, false]);
     const [hoveredPlans, setHoveredPlans] = useState(false);
-    const [modalOpen, setModalOpen] = useState(false);
     const { isMobile } = useMobile();
 
     return (
@@ -69,12 +67,11 @@ export default function LoggedInLandingButtons() {
                             transform: hovered[2] ? "scale(1.05)" : "scale(1)",
                             transition: "transform 0.2s ease, margin-left 0.2s ease",
                         }}
-                        onClick={() => setModalOpen(true)}
+                        onClick={() => router.push("/plan/new")}
                         onMouseEnter={() => setHovered(prev => [...prev, prev[2] = true])}
                         onMouseLeave={() => setHovered(prev => [...prev, prev[2] = false])}
                     />
                 </Button.Group>
-                <ProgramModal opened={modalOpen} onClose={() => setModalOpen(false)} />
             </Group>
             <Group justify="center" gap="sm" style={{ paddingTop: "1rem" }}>
                 <MyPlansButton
