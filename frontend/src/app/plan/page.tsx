@@ -8,7 +8,7 @@ import { IconTrash, IconChevronDown } from "@tabler/icons-react";
 import { CourseMetadata, Plan, PlanNullable, Semester } from "@/types/plan";
 import AnimatedTypingText from "@/components/atoms/landing/AnimatedTypingTest";
 import PlanRow, { PlanRowSkeleton } from "@/components/molecules/PlanRow";
-import { MobileContext } from "@/contexts/MobileContext";
+import { MobileContext } from "@/contexts/visual/MobileContext";
 
 export default function PlanPage() {
   const { isMobile } = useContext(MobileContext);

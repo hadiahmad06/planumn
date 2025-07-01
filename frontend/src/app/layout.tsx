@@ -13,6 +13,7 @@ import { UserSessionProvider } from "@/contexts/data/UserSessionProvider";
 import { PlanProvider } from "@/contexts/data/PlanProvider";
 import { DisplaySettingsProvider } from "@/contexts/visual/DisplaySettingsProvider";
 import { MobileProvider } from "@/contexts/visual/MobileProvider";
+import { PlanAuditProvider } from "@/contexts/data/PlanAuditProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,11 +59,13 @@ export default function RootLayout({
           <MobileProvider>
             <UserSessionProvider>
               <PlanProvider>
-                <DisplaySettingsProvider>
-                  <ClientLayout>
-                    {children}
-                  </ClientLayout>
-                </DisplaySettingsProvider>
+                <PlanAuditProvider>
+                  <DisplaySettingsProvider>
+                    <ClientLayout>
+                      {children}
+                    </ClientLayout>
+                  </DisplaySettingsProvider>
+                </PlanAuditProvider>
               </PlanProvider>
             </UserSessionProvider>
           </MobileProvider>
