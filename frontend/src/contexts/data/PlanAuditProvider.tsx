@@ -11,7 +11,7 @@ export const PlanAuditProvider = ({ children }: { children: React.ReactNode }) =
   const [programIds, setProgramIds] = useState<string[]>([]);
   const [programs, setPrograms] = useState<Record<string, ProgramDetails>>({});
 
-  const [reqGroups, setReqGroups] = useState<ReqGroup[]>([]);
+  const [reqGroups, setReqGroups] = useState<Record<string, ReqGroup[]>>({});
 
   const updateProgramList = async () => {
 
@@ -43,7 +43,20 @@ export const PlanAuditProvider = ({ children }: { children: React.ReactNode }) =
       // console.log("Fetched program data");
       console.log("programMap:", programMap);
       setPrograms(programMap);
-      setReqGroups(uniqueReqGroups(Object.values(programMap)));
+      setReqGroups((_) => {
+        const updated = {"requisitesSimple":uniqueReqGroups(Object.values(programMap))};
+        // const merged: Record<string, ReqGroup[]> = {};
+
+        // for (const key of Object.keys(prev)) {
+        //   merged[key] = updated[key] ?? prev[key];
+        // }
+
+        // for (const key of Object.keys(updated)) {
+        //   if (!(key in merged)) merged[key] = updated[key];
+        // }
+        return updated;
+        // return merged;
+      });
 
 
     } catch (error) {

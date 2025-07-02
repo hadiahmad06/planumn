@@ -49,12 +49,18 @@ export interface ProgramDetails extends ProgramId {
 }
 
 
+export type ReqValue = {
+  value: string[];
+  logic?: "or" | "and" | string; // Optional, based on UI
+  [key: string]: any; // to handle any unexpected fields
+}
+
 export type ReqCondition = {
   condition: string;
-  values?: string[];
+  values?: ReqValue[];
   number?: number;
   subSelections?: ReqCondition[];
-  logic?: "or" | "and"; // Optional, based on UI logic
+  logic?: "or" | "and" | string; // Optional, based on UI logic
   [key: string]: any;
 }
 export type ReqRule = {
@@ -65,6 +71,9 @@ export type ReqRule = {
   maxCourses?: number;
   minCredits?: number;
   maxCredits?: number;
+  credits?: number;
+  courses?: number;
+  subRules?: ReqRule[];
   notes?: string;
   value: ReqCondition;
   [key: string]: any;
@@ -77,7 +86,7 @@ export type ReqGroup = {
   requirementLevel: string;
   notes?: string;
   showInCatalog: boolean;
-  rules: [];
+  rules: ReqRule[];
 }
 
 export type ProgramGroup = {

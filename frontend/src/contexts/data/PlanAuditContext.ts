@@ -12,7 +12,7 @@ export const PlanAuditContext = createContext<{
   programs: Record<string, ProgramDetails>;
   setPrograms: (programs: Record<string, ProgramDetails>) => void;
 
-  reqGroups: ReqGroup[];
+  reqGroups: Record<string, ReqGroup[]>;
 
   groupedPrograms: () => ProgramGroup[]
   onUpdate: () => void;
@@ -30,7 +30,7 @@ export const PlanAuditContext = createContext<{
     console.warn("setPrograms not implemented in context");
   },
 
-  reqGroups: [],
+  reqGroups: {},
 
   groupedPrograms: () => {
     console.warn("groupedPrograms not impletmented yet");
