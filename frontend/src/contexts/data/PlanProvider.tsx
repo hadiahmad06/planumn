@@ -3,7 +3,7 @@
 import { useEffect, useState, useContext } from "react";
 import { PlanContext } from "@/contexts/data/PlanContext";
 import { CourseStub, Plan, PlannedCourse, PlanNullable } from "@/types/plan";
-import { getCourseDetails } from "@/types/planHandlers";
+import { fetchCourseDetailsFromId } from "@/types/planHandlers";
 import { UserSessionContext } from "@/contexts/data/UserSessionContext";
 import { useRouter } from "next/navigation";
 
@@ -17,12 +17,8 @@ export const cachePlannedCourses = async (
     setCachedCourses: (courses: Record<number, PlannedCourse>) => void
 ) => {
     if (!plan) return;
-    const allCourses = plan.semesters.flatMap(sem => sem.courses);
-    const detailsArr = await Promise.all(allCourses.map(course => getCourseDetails(String(course.id))));
-    const detailsMap: Record<number, PlannedCourse> = {};
-    detailsArr.forEach((details, idx) => {
-        detailsMap[allCourses[idx].id] = details;
-    });
+    const allCourses = plan.semesters.flatMap(sem => sem.courses.map(course => String(course.id)));
+    const detailsMap = await fetchCourseDetailsFromId(allCourses) as Record<number, PlannedCourse>;
     setCachedCourses(detailsMap);
 };
 

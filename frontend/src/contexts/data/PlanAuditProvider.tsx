@@ -3,10 +3,14 @@
 import { useState } from "react";
 import { PlanAuditContext } from "./PlanAuditContext";
 import { ProgramDetails, ReqGroup } from "@/types/program";
-import { uniqueReqGroups } from "@/types/programHandlers";
+import { getCourseIdsFromPrograms, uniqueReqGroups } from "@/types/programHandlers";
+import { CourseDetails } from "@/types/plan";
+import { get } from "http";
+import { fetchCourseDetailsFromCd } from "@/types/planHandlers";
 
 export const PlanAuditProvider = ({ children }: { children: React.ReactNode }) => {
   const [dataFetched, setDataFetched] = useState<boolean>(false);
+  const [cachedReqCourses, setCachedReqCourses] = useState<Record<string, CourseDetails>>({});
 
   const [programIds, setProgramIds] = useState<string[]>([]);
   const [programs, setPrograms] = useState<Record<string, ProgramDetails>>({});
@@ -58,6 +62,12 @@ export const PlanAuditProvider = ({ children }: { children: React.ReactNode }) =
         // return merged;
       });
 
+      setCachedReqCourses(
+        await fetchCourseDetailsFromCd(
+          getCourseIdsFromPrograms(Object.values(programMap))
+        )
+      );
+
 
     } catch (error) {
       console.error("Error fetching program data:", error);
@@ -68,6 +78,7 @@ export const PlanAuditProvider = ({ children }: { children: React.ReactNode }) =
     <PlanAuditContext.Provider
       value={{
         dataFetched: dataFetched,
+        cachedReqCourses: cachedReqCourses,
         programIds: programIds,
         setProgramIds: setProgramIds,
         programs: programs,

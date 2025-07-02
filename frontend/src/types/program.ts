@@ -51,7 +51,7 @@ export interface ProgramDetails extends ProgramId {
 
 export type ReqValue = {
   value: string[];
-  logic?: "or" | "and" | string; // Optional, based on UI
+  logic?: "or" | "and" | string; 
   [key: string]: any; // to handle any unexpected fields
 }
 
@@ -60,7 +60,7 @@ export type ReqCondition = {
   values?: ReqValue[];
   number?: number;
   subSelections?: ReqCondition[];
-  logic?: "or" | "and" | string; // Optional, based on UI logic
+  logic?: "or" | "and" | string; // need to fix
   [key: string]: any;
 }
 export type ReqRule = {

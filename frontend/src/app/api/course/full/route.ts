@@ -3,40 +3,31 @@ import sqlite3 from "sqlite3";
 import { open } from "sqlite";
 import path from "path";
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get("id");
-
-  if (!id) {
-    return NextResponse.json(
-      { error: "Id is required" },
-      { status: 400 }
-    );
-  }
-
+export async function POST(request: Request) {
   try {
+    const body = await request.json();
+    const ids: string[] = body.ids;
+
+    if (!ids || !Array.isArray(ids) || ids.length === 0) {
+      return NextResponse.json({ error: "ids array is required" }, { status: 400 });
+    }
+
     const db = await open({
       filename: path.join(process.cwd(), "public", "ProcessedData.db"),
       driver: sqlite3.Database,
     });
 
-    const course = await db.get(
-      `SELECT id, campus, dept_abbr, course_num, class_desc, total_students, total_grades, onestop, onestop_desc, cred_min, cred_max, srt_vals
-       FROM classdistribution
-       WHERE id = ?`,
-      [id]
-    );
+    const placeholders = ids.map(() => '?').join(', ');
+    const query = `
+      SELECT id, campus, dept_abbr, course_num, class_desc, total_students, total_grades, onestop, onestop_desc, cred_min, cred_max, srt_vals
+      FROM classdistribution
+      WHERE id IN (${placeholders})
+    `;
+    const courses = await db.all(query, ids);
 
     await db.close();
 
-    if (!course) {
-      return NextResponse.json(
-        { error: "Course not found" },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(course);
+    return NextResponse.json(courses);
   } catch (error) {
     console.error("Error fetching course details:", error);
     return NextResponse.json(
@@ -44,4 +35,4 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-} 
+}

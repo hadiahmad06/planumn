@@ -1,13 +1,65 @@
 import { PlanContext } from "@/contexts/data/PlanContext";
-import { Semester } from "@/types/plan";
+import { Course, CourseDetails, PlannedCourse, Semester } from "@/types/plan";
 import { useContext } from "react";
 
-export async function getCourseDetails(id:string) {
-  const response = await fetch(`/api/course/full?id=${id}`);
+export async function getCourseDetails(id: string) {
+  const response = await fetch(`/api/course/full`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ id }),
+  });
   if (!response.ok) {
     throw new Error(`Failed to fetch course details: ${response.statusText}`);
   }
-  return response.json();
+
+  const data: CourseDetails[] = await response.json();
+  return data[0];
+}
+
+export async function fetchCourseDetailsFromId(ids: string[]) {
+  const response = await fetch(`/api/course/full`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ ids }),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to fetch course details: ${response.statusText}`);
+  }
+
+  const data: CourseDetails[] = await response.json();
+  const courseMap: Record<number, CourseDetails> = {};
+
+  for (const course of data) {
+    courseMap[course.id] = course;
+  }
+
+  return courseMap;
+}
+
+export async function fetchCourseDetailsFromCd(ids: string[]) {
+  const response = await fetch(`/api/course/full`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ ids }),
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to fetch course details: ${response.statusText}`);
+  }
+
+  const data: CourseDetails[] = await response.json();
+  const courseMap: Record<string, CourseDetails> = {};
+
+  for (const course of data) {
+    courseMap[course.courseGroupId] = course;
+  }
+
+  return courseMap;
 }
 
 export function updateLock(semIndex: string, j: number){

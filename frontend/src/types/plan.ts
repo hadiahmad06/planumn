@@ -30,6 +30,7 @@ export interface CourseDetails extends CourseStub {
   cred_min: number;
   cred_max: number;
   srt_vals: string;
+  courseGroupId: string; // coursedog id
 }
 
 // search only

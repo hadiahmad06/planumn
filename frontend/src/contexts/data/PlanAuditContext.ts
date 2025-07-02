@@ -1,11 +1,13 @@
 "use client";
 
+import { CourseDetails } from "@/types/plan";
 import { ProgramDetails, ProgramGroup, ReqGroup } from "@/types/program";
 import { createContext } from "react";
 
 
 export const PlanAuditContext = createContext<{
   dataFetched: boolean
+  cachedReqCourses: Record<string, CourseDetails>;
 
   programIds: string[];
   setProgramIds: (programIds: string[]) => void;
@@ -19,6 +21,7 @@ export const PlanAuditContext = createContext<{
 
 }>({
   dataFetched: false,
+  cachedReqCourses: {},
 
   programIds: [],
   setProgramIds: () => {

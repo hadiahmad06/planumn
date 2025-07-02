@@ -3,12 +3,14 @@
 import { Box, Skeleton } from "@mantine/core";
 import { Draggable } from "@hello-pangea/dnd";
 import { getCourseColor } from "@/lib/colors";
-import { PlannedCourse, CourseStub } from "@/types/plan";
+import { PlannedCourse, CourseStub, CourseDetails } from "@/types/plan";
 import { useContext } from "react";
 import { PlanContext } from "@/contexts/data/PlanContext";
 import { DisplaySettingsContext } from "@/contexts/visual/DisplaySettingsContext";
 import { PreviewContext } from "@/contexts/visual/PreviewContext";
 import styles from "./CourseCard.module.css";
+import { cached } from "sqlite3";
+import { PlanAuditContext } from "@/contexts/data/PlanAuditContext";
 
 const CARD_FIXED_WIDTH = 110;
 const CARD_FIXED_HEIGHT = 40;
@@ -17,7 +19,7 @@ const CARD_HEIGHT_MULTIPLIER = 20;
 const SHINE_STRENGTH = 7;
 
 interface CourseCardProps {
-  courseId: number;
+  courseId: number | string;
   index?: number;
   semName?: string;
   showPreview?: boolean;
@@ -42,11 +44,14 @@ export default function CourseCard({
   fixedHeight = false,
 }: CourseCardProps) {
   const { cachedCourses, cachedSearchResults } = useContext(PlanContext);
+  const { cachedReqCourses } = useContext(PlanAuditContext);
   const { colorKey } = useContext(DisplaySettingsContext);
   const { setTempPreview, addPersistPreview } = useContext(PreviewContext);
 
-  const course: PlannedCourse | CourseStub =
-    cachedCourses[courseId] || cachedSearchResults[courseId];
+  const course: CourseDetails | PlannedCourse | CourseStub =
+    typeof courseId === "string"
+      ? cachedReqCourses[courseId]
+      : cachedCourses[courseId] || cachedSearchResults[courseId];
 
   if (!course) {
     return <Skeleton width={CARD_FIXED_WIDTH} height={CARD_FIXED_HEIGHT} />;
