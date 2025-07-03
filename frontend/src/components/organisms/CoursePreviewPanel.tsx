@@ -36,12 +36,12 @@ export default function CoursePreviewPanel() {
           if (!('campus' in course)) {
             // skeleton
             return (
-              <CoursePreviewSkeleton entry={entry} temp={true}/>
+              <CoursePreviewSkeleton key={index} entry={entry} temp={true}/>
             );
           }
           // full details
           return (
-            <CoursePreviewEntry entry={entry as HydratedPreview} temp={true}/>
+            <CoursePreviewEntry key={index} entry={entry as HydratedPreview} temp={true}/>
           );
         }
 
@@ -71,9 +71,9 @@ export default function CoursePreviewPanel() {
               onMouseDownCapture={() => focusPersistPreview(course.id)}
             >
               {'campus' in course ? (
-                <CoursePreviewEntry entry={entry as HydratedPreview} temp={false} />
+                <CoursePreviewEntry key={index} entry={entry as HydratedPreview} temp={false} />
               ) : (
-                <CoursePreviewSkeleton entry={entry} temp={false} />
+                <CoursePreviewSkeleton key={index} entry={entry} temp={false} />
               )}
             </div>
           </Draggable>

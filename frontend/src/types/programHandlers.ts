@@ -23,18 +23,28 @@ export function uniqueReqGroups(programs: ProgramDetails[]): ReqGroup[] {
 export function getCourseIdsFromPrograms(programs: ProgramDetails[]): string[] {
   const courseIds = new Set<string>();
 
+  function collectCourseIdsFromRule(rule: ReqGroup["rules"][0], courseIds: Set<string>) {
+    if (rule.value?.values) {
+      for (const val of rule.value.values) {
+        for (const code of val.value) {
+          courseIds.add(code);
+        }
+      }
+    }
+
+    if (rule.subRules) {
+      for (const subRule of rule.subRules) {
+        collectCourseIdsFromRule(subRule, courseIds);
+      }
+    }
+  }
+
   for (const program of programs) {
     if (!program.requisites) continue;
 
     for (const group of program.requisites["requisitesSimple"]) {
       for (const rule of group.rules) {
-        if (rule.value && rule.value.values) {
-          (rule.value.values.forEach((val: ReqValue) => {
-            (val.value.forEach((code: string) => {
-              courseIds.add(code);
-            }))
-          }))
-        }
+        collectCourseIdsFromRule(rule, courseIds);
       }
     }
   }

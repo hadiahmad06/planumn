@@ -1,7 +1,7 @@
 "use client";
 
 import { Accordion, Box, Collapse, Container, Flex, Group, ScrollArea, Stack, Text, Title } from '@mantine/core';
-import { DragDropContext, Droppable, DropResult } from "@hello-pangea/dnd";
+import { DragDropContext, Draggable, Droppable, DropResult } from "@hello-pangea/dnd";
 import { ColorKey, Course, CourseDetails } from '@/types/plan';
 import SearchBar from '@/components/molecules/SearchBar';
 import CoursePreviewPanel from '@/components/organisms/CoursePreviewPanel';
@@ -10,6 +10,7 @@ import { usePathname } from "next/navigation";
 import AnimatedTypingText from '../atoms/landing/AnimatedTypingTest';
 import { PlanAuditContext } from '@/contexts/data/PlanAuditContext';
 import { ReqCondition, ReqRule } from '@/types/program';
+import CourseCard from '../molecules/CourseCard';
 
 export default function SearchLayout() {
   const { reqGroups } = useContext(PlanAuditContext);
@@ -25,25 +26,47 @@ export default function SearchLayout() {
               condition.values.map((valObj: any, idx: number) => (
                 <Box key={idx}>
                   {Array.isArray(valObj.value) ? (
-                    <Group w="100%" wrap="nowrap" gap="0.5rem">
+                    <Group wrap="nowrap" gap="0.5rem">
                       {valObj.value.map((code: string, j: number) => (
-                        <Group key={j} align="center" gap="0.5rem">
-                          <Box
-                            px="xs"
-                            py={4}
-                            style={{ 
-                              backgroundColor: "#d0d0d0", 
-                              borderRadius: "0.5rem",
-                              borderLeft: 'logic' in valObj && valObj.value.length < 2 ? "2px solid #000000" : (j === 0 ? "2px solid #000000" : "0px solid #000000"),
-                              borderRight: 'logic' in valObj && valObj.value.length < 2 ? "2px solid #000000" : (j === valObj.value.length - 1 ? "2px solid #000000" : "0px solid #000000"),
-                            }}
-                          >
-                            {code}
-                          </Box>
-                          {'logic' in valObj && j !== valObj.value.length - 1 && (
-                            <Text ta="center" fw={600}>{valObj.logic}</Text>
+                        <Draggable
+                          key={`program-${idx}-course-${j}`}
+                          draggableId={JSON.stringify(code)}
+                          index={idx}
+                        >
+                          {(provided) => (
+                            <Group wrap="nowrap" gap="0.5rem">
+                              <Box
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                style={{ 
+                                  // flexShrink: 0,
+                                  backgroundColor: "#d0d0d0", 
+                                  borderRadius: "0.5rem",
+                                  boxShadow: valObj.value.length > 1 ? [
+                                    j === 0 && "-2px 0 0 0 #000000",
+                                    j === valObj.value.length - 1 && "2px 0 0 0 #000000"
+                                  ].filter(Boolean).join(", ") : "",
+                                  borderLeft: (j === 0 && valObj.value.length > 1 ? "2px solid #ffffff" : "0px solid #ffffff"),
+                                  borderRight: (j === valObj.value.length -1 && valObj.value.length > 1 ? "2px solid #ffffff" : "0px solid #ffffff")
+                                }}
+                              >
+                                {/* {code} */}
+                                <CourseCard
+                                  courseId={code}
+                                  isDraggable={true}
+                                  fixedHeight={true}
+                                  fixedWidth={true}
+                                />
+                              </Box>
+                            {'logic' in valObj && valObj.value.length > 1 && j !== valObj.value.length - 1 && (
+                              <Text ta="center" fw={600}>{valObj.logic}</Text>
+                            )}
+                          </Group>
                           )}
-                        </Group>
+                        </Draggable>
+                        // <Group key={j} align="center" gap="0.5rem">
+                        // </Group>
                       ))}
                     </Group>
                   ) : null}
@@ -192,23 +215,28 @@ export default function SearchLayout() {
           </Box>
         )}
       </Droppable>
-      <ScrollArea
-        offsetScrollbars
-        scrollbarSize={8}
-        styles={{ scrollbar: { backgroundColor: "#f1f5f9" } }}
-        h="80vh"
-        style={{
-          // marginTop: "1rem",
-          // marginBottom: "1rem",
-          // paddingRight: "0.5rem",
-        }}
-      >
-        <Stack gap="sm">
-          <Accordion defaultValue="Core Requisites" variant="filled" chevronPosition="left">
-            {items}
-          </Accordion>
-        </Stack>
-      </ScrollArea>
+      <Droppable droppableId="program">
+        {(provided) => (
+          <ScrollArea
+            ref={provided.innerRef}
+            offsetScrollbars
+            scrollbarSize={8}
+            styles={{ scrollbar: { backgroundColor: "#f1f5f9" } }}
+            h="80vh"
+            style={{
+              // marginTop: "1rem",
+              // marginBottom: "1rem",
+              // paddingRight: "0.5rem",
+            }}
+          >
+            <Stack gap="sm">
+              <Accordion defaultValue="Core Requisites" variant="filled" chevronPosition="left">
+                {items}
+              </Accordion>
+            </Stack>
+          </ScrollArea>
+        )}
+      </Droppable>
     </Stack>
   );
 }

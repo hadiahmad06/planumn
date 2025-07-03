@@ -12,7 +12,7 @@ import {
 } from "@mantine/core";
 import theme from "@/styles/theme";
 import { useContext } from "react";
-import { DisplaySettingsContext } from "@/contexts/DisplaySettingsContext";
+import { DisplaySettingsContext } from "@/contexts/visual/DisplaySettingsContext";
 
 type Props = {
   onAutofill: () => void;

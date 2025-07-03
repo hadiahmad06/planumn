@@ -7,6 +7,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const ids: string[] = body.ids;
+    const column = body.from === "cd" ? "courseGroupId" : "id";
 
     if (!ids || !Array.isArray(ids) || ids.length === 0) {
       return NextResponse.json({ error: "ids array is required" }, { status: 400 });
@@ -19,9 +20,9 @@ export async function POST(request: Request) {
 
     const placeholders = ids.map(() => '?').join(', ');
     const query = `
-      SELECT id, campus, dept_abbr, course_num, class_desc, total_students, total_grades, onestop, onestop_desc, cred_min, cred_max, srt_vals
+      SELECT id, campus, dept_abbr, course_num, class_desc, total_students, total_grades, onestop, onestop_desc, cred_min, cred_max, srt_vals, courseGroupId
       FROM classdistribution
-      WHERE id IN (${placeholders})
+      WHERE ${column} IN (${placeholders})
     `;
     const courses = await db.all(query, ids);
 

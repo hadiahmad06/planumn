@@ -8,7 +8,7 @@ export async function getCourseDetails(id: string) {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ id }),
+    body: JSON.stringify({ from: "id", ids:[id] }),
   });
   if (!response.ok) {
     throw new Error(`Failed to fetch course details: ${response.statusText}`);
@@ -24,7 +24,7 @@ export async function fetchCourseDetailsFromId(ids: string[]) {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ ids }),
+    body: JSON.stringify({ from: "id", ids: ids }),
   });
   if (!response.ok) {
     throw new Error(`Failed to fetch course details: ${response.statusText}`);
@@ -46,7 +46,7 @@ export async function fetchCourseDetailsFromCd(ids: string[]) {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ ids }),
+    body: JSON.stringify({ from:"cd", ids:ids }),
   });
   if (!response.ok) {
     throw new Error(`Failed to fetch course details: ${response.statusText}`);
@@ -59,6 +59,7 @@ export async function fetchCourseDetailsFromCd(ids: string[]) {
     courseMap[course.courseGroupId] = course;
   }
 
+  console.log("Fetched course details from class distribution:", data);
   return courseMap;
 }
 

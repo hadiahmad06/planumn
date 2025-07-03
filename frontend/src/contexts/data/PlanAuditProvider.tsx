@@ -1,14 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { PlanAuditContext } from "./PlanAuditContext";
 import { ProgramDetails, ReqGroup } from "@/types/program";
 import { getCourseIdsFromPrograms, uniqueReqGroups } from "@/types/programHandlers";
-import { CourseDetails } from "@/types/plan";
+import { CourseDetails, PlanNullable } from "@/types/plan";
 import { get } from "http";
 import { fetchCourseDetailsFromCd } from "@/types/planHandlers";
+import { PlanContext } from "./PlanContext";
+import { set } from "date-fns";
 
 export const PlanAuditProvider = ({ children }: { children: React.ReactNode }) => {
+  const { plan, setPlan, planFetched } = useContext(PlanContext);
+
   const [dataFetched, setDataFetched] = useState<boolean>(false);
   const [cachedReqCourses, setCachedReqCourses] = useState<Record<string, CourseDetails>>({});
 
@@ -17,11 +21,25 @@ export const PlanAuditProvider = ({ children }: { children: React.ReactNode }) =
 
   const [reqGroups, setReqGroups] = useState<Record<string, ReqGroup[]>>({});
 
+  useEffect(() => {
+    if (!planFetched) return;
+    if (!plan || !plan.programs || plan.programs.length === 0) setProgramIds([]);
+    else setProgramIds(plan.programs.map((p) => p));
+    updateProgramList();
+  }, [planFetched]);
+
   const updateProgramList = async () => {
 
     if (!programIds || programIds.length === 0) return;
 
     console.log("update program list");
+
+    if (plan) {
+      setPlan({
+        ...plan,
+        programs: programIds,
+      });
+    }
 
     try {
       const response = await fetch('/api/programs', {
@@ -67,6 +85,10 @@ export const PlanAuditProvider = ({ children }: { children: React.ReactNode }) =
           getCourseIdsFromPrograms(Object.values(programMap))
         )
       );
+      // console.log("Fetched course details for programs:", 
+      //   await fetchCourseDetailsFromCd(
+      //     getCourseIdsFromPrograms(Object.values(programMap))
+      //   ));
 
 
     } catch (error) {
