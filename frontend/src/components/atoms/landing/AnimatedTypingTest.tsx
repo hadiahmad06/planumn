@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 
-export default function AnimatedTypingText({ blink = true }: { blink?: boolean }) {
+export default function AnimatedTypingText({ blink = true, hover = false }: { blink?: boolean, hover?: boolean }) {
   const router = useRouter(); 
   const [displayed, setDisplayed] = useState("");
   const [blinking, setBlinking] = useState(true);
@@ -50,9 +50,11 @@ export default function AnimatedTypingText({ blink = true }: { blink?: boolean }
           borderRight: blinking ? "2px solid #811331" : "none",
           paddingRight: "0.25rem",
           animation: blinking ? "blink .75s step-end infinite" : "none",
+          cursor: hover ? "pointer" : "default",
         }}
         onClick={() => {
           if (router) {
+
             router.push("/");
           }
         }}
