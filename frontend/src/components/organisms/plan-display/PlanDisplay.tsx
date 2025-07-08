@@ -6,9 +6,10 @@ import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal, Stack, Space, A
 // You may move these to a CSS module or stylesheet if preferred
 const SEMESTER_BACKGROUND = 'linear-gradient(135deg, rgba(221, 208, 208, 0.8), rgba(245, 245, 255, 0.6))';
 
+import {DisplaySettingsContext} from "@/contexts/visual/DisplaySettingsContext";
 import ManipulateYear from "@/lib/ManipulateYear";
 import CourseCard from "../../molecules/CourseCard";
-import { ColorKey, Course, CourseDetails, CourseMetadata, Plan, QueriedCourse, Semester } from "@/types/plan";
+import {Course, CourseDetails, CourseMetadata, Plan, QueriedCourse, Semester} from "@/types/plan";
 import { useContext, useEffect, useState } from "react";
 import theme from "@/styles/theme";
 import { PlanContext } from "@/contexts/data/PlanContext";
@@ -64,6 +65,7 @@ export default function PlanDisplay() {
 
 export function PlanDisplayDesktop() {
   const { plan, setPlan, cachedCourses } = useContext(PlanContext);
+  const { transposed } = useContext(DisplaySettingsContext);
 
   // Accordion control open/closed state for bottom border radius
   const [closedAccordion, setClosedAccordion] = useState<string[]>([]);
@@ -179,6 +181,8 @@ export function PlanDisplayDesktop() {
           }}
           >
             <ScrollArea
+              // w={'calc(100vh - 20rem)'}
+              // h={'100vh'}
               style={{
                 height: 'calc(100vh - 20rem)', // adjust to leave space for headers
                 overflow: 'auto',
@@ -189,6 +193,7 @@ export function PlanDisplayDesktop() {
               scrollHideDelay={0}
             >
               <Flex
+
               direction="row"
               align="flex-start"
               justify="center"
@@ -227,7 +232,7 @@ export function PlanDisplayDesktop() {
                           <Flex
                             // bg="blue"
                             key={year}
-                            direction="row"
+                            direction={transposed}
                             align="left"
                             justify="flex-start"
                             gap={theme.planDisplayStyles.container.gap + 10}

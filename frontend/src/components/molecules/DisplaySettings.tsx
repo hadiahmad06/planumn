@@ -9,7 +9,8 @@ import {
   MultiSelect,
   SimpleGrid,
   ActionIcon,
-  Paper
+  Paper,
+    Checkbox,
 } from "@mantine/core";
 import { IconX } from "@tabler/icons-react";
 import theme from "@/styles/theme";
@@ -25,13 +26,16 @@ const BOX_HEIGHT = 400; // Adjust if your box is taller/shorter
 
 export default function DisplaySettings({ opened, onClose }: Props) {
   const { colorKey, setColorKey } = useContext(DisplaySettingsContext);
+  const { transposed, setTransposed } = useContext(DisplaySettingsContext);
   const [hiddenSemesters, setHiddenSemesters] = useState<string[]>([]);
   const [position, setPosition] = useState<{ x: number; y: number }>({ x: 24, y: 24 });
   const dragging = useRef(false);
   const offset = useRef({ x: 0, y: 0 });
   const wasOpened = useRef(false);
+  const [checked, setChecked] = useState(false);
 
-  // Set initial position to bottom left when opened
+
+    // Set initial position to bottom left when opened
   useEffect(() => {
     if (opened && !wasOpened.current) {
       setPosition({
@@ -163,6 +167,16 @@ export default function DisplaySettings({ opened, onClose }: Props) {
             Autofill Plan
           </Button>
         </Box>
+          <Box>
+              <Checkbox
+                  checked={checked}
+                  onChange={(event) => {
+                      setChecked(event.currentTarget.checked);
+                      setTransposed(transposed == 'column' ? 'row' : 'column');}}
+                  label='Transpose Semesters'
+
+              />
+          </Box>
       </SimpleGrid>
     </Paper>
   );
