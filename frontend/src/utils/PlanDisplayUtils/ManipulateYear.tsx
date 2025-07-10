@@ -38,7 +38,7 @@ function generateNextYear(lastIndex: string) {
 function error_message() {
     return notifications.show({
         color: "#811331",
-        title: "No more Semesters",
+        title: "No more Desktop-Semesters",
         message: "You need to add semesters!! You are out Twiniante!"
     })
 }

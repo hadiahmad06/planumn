@@ -12,7 +12,7 @@ export const DisplaySettingsContext = createContext<{
 }>({
   colorKey: "department",
   transposed: "row",
-  setTransposed: (transposed: Transposed) => {'setTransposed not implemented in context'},
+  setTransposed: () => {'setTransposed not implemented in context'},
   setColorKey: () => { console.warn("setColorKey not implemented in context") }
 });
 

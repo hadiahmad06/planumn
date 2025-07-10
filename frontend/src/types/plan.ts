@@ -94,6 +94,9 @@ export interface PlanNullable {
 
 export type ColorKey = "none" | "department" | "level";
 export type Transposed = 'row' | 'column';
+type Seasons = "Fall" | "Spring" | "Summer"
+export type hiddenSemesters = Seasons[]
+
 
 export function isPlanEmpty(plan: PlanNullable | Plan): boolean {
   if (plan.semesters.length === 0) return true;

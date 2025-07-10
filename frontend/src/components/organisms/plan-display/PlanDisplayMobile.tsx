@@ -7,7 +7,7 @@ import { Droppable } from "@hello-pangea/dnd";
 import { PlanContext } from "@/contexts/data/PlanContext";
 import CourseCard from "../../molecules/CourseCard";
 import { Semester } from "@/types/plan";
-import classes from './PlanDisplayMobile.module.css';
+import classes from './Styles/PlanDisplayMobile.module.css';
 
 type SlideItem =
   | { type: 'edge'; position: 'left' | 'right' }

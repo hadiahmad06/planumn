@@ -36,12 +36,12 @@ export default function CoursePreviewPanel() {
           if (!('campus' in course)) {
             // skeleton
             return (
-              <CoursePreviewSkeleton entry={entry} temp={true}/>
+              <CoursePreviewSkeleton key={`skeleton-${course.id}`} entry={entry} temp={true}/>
             );
           }
           // full details
           return (
-            <CoursePreviewEntry entry={entry as HydratedPreview} temp={true}/>
+            <CoursePreviewEntry key={`skeleton-${course.id}`} entry={entry as HydratedPreview} temp={true}/>
           );
         }
 
