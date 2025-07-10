@@ -4,6 +4,7 @@ import { Semester } from "@/types/plan";
 import CourseCard from "@/components/molecules/CourseCard";
 import {useContext} from "react";
 import {PlanContext} from "@/contexts/data/PlanContext";
+import { DisplaySettingsContext } from "@/contexts/visual/DisplaySettingsContext";
 
 const SEMESTER_BOX_WIDTH = "160px";
 const SEMESTER_BOX_MIN_HEIGHT = "90px";
@@ -32,6 +33,8 @@ export default function SemesterAccordion({
         4,
         sem.courses.reduce((sum, c) => sum + (cachedCourses[c.id]?.cred_min || 0 || 0), 0)
     );
+    const { transposed } = useContext(DisplaySettingsContext);
+
 
     return (
         <Accordion
@@ -57,8 +60,7 @@ export default function SemesterAccordion({
                     border: "none",
                     margin: 0,
                     padding: 0,
-                    // borderBottomLeftRadius: "1rem",
-                    // borderBottomRightRadius: "1rem",
+                    minWidth: transposed === "row" ? "12rem" : "1rem", //necessary cause it will transpose automatically
                 },
                 control: {
                     textAlign: "center",
@@ -88,9 +90,6 @@ export default function SemesterAccordion({
                     boxShadow: "none",
                     border: "none",
                     display: "block",
-                    // borderBottomLeftRadius: "1rem",
-                    // borderBottomRightRadius: "1rem",
-                    // overflow: "hidden"
                 },
                 chevron: { display: "none" },
             }}

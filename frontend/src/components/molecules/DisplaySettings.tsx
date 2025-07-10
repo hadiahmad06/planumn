@@ -1,6 +1,6 @@
 "use client";
 
-import { ColorKey } from "@/types/plan";
+import {ColorKey, Season} from "@/types/plan";
 import {
   Box,
   Button,
@@ -13,7 +13,6 @@ import {
     Checkbox,
 } from "@mantine/core";
 import { IconX } from "@tabler/icons-react";
-import theme from "@/styles/theme";
 import { useContext, useState, useRef, useEffect } from "react";
 import { DisplaySettingsContext } from "@/contexts/visual/DisplaySettingsContext";
 
@@ -27,7 +26,7 @@ const BOX_HEIGHT = 400; // Adjust if your box is taller/shorter
 export default function DisplaySettings({ opened, onClose }: Props) {
   const { colorKey, setColorKey } = useContext(DisplaySettingsContext);
   const { transposed, setTransposed } = useContext(DisplaySettingsContext);
-  const [hiddenSemesters, setHiddenSemesters] = useState<string[]>([]);
+  const { theSeasons, setTheSeasons }= useContext(DisplaySettingsContext);
   const [position, setPosition] = useState<{ x: number; y: number }>({ x: 24, y: 24 });
   const dragging = useRef(false);
   const offset = useRef({ x: 0, y: 0 });
@@ -135,12 +134,12 @@ export default function DisplaySettings({ opened, onClose }: Props) {
           <Text style={{ marginBottom: "0.5rem", fontWeight: 500 }}>Hide Semesters:</Text>
           <MultiSelect
             data={[
-              { value: "fall", label: "Fall" },
-              { value: "spring", label: "Spring" },
-              { value: "summer", label: "Summer" },
+              { value: '🍂 Fall', label: "Fall" },
+              { value: '🌱 Spring', label: "Spring" },
+              { value: '☀️ Summer', label: "Summer" },
             ]}
-            value={hiddenSemesters}
-            onChange={setHiddenSemesters}
+            value={theSeasons}
+            onChange={(value) => setTheSeasons(value as typeof theSeasons)}
             placeholder="Choose semesters to hide"
             clearable
           />

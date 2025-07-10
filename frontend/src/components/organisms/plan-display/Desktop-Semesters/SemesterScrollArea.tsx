@@ -4,14 +4,15 @@ import { PlanContext } from "@/contexts/data/PlanContext";
 import { DisplaySettingsContext } from "@/contexts/visual/DisplaySettingsContext";
 import { groupSemestersByYear } from "@/utils/PlanDisplayUtils/groupSemesterByYear";
 import SemesterAccordion from "@/components/organisms/plan-display/Desktop-Semesters/SemesterAccordion";
-import { Semester } from "@/types/plan";
+import {Season, Semester} from "@/types/plan";
 import theme from "@/styles/theme";
-
 
 export default function SemesterScrollArea() {
     const { plan } = useContext(PlanContext);
+    const { theSeasons } = useContext(DisplaySettingsContext)
     const { transposed } = useContext(DisplaySettingsContext);
     const [closedAccordion, setClosedAccordion] = useState<string[]>([]);
+    const ALL_SEASONS: Season[] = ['🍂 Fall', '🌱 Spring', '☀️ Summer'];
 
 
     if (!plan) return null;
@@ -46,12 +47,12 @@ export default function SemesterScrollArea() {
                             <Flex
                                 key={year}
                                 direction={transposed}
-                                align="left"
-                                justify="flex-start"
+                                align="center"
+                                justify="space-between"
                                 gap={theme.planDisplayStyles.container.gap + 10}
                                 wrap="nowrap"
                             >
-                                {(['🍂 Fall', '🌱 Spring', '☀️ Summer'] as const).map((season) => {
+                                {ALL_SEASONS.filter(season => !theSeasons.includes(season)).map((season) => {
                                     const sem = season === '🍂 Fall' ? Fall : season === '🌱 Spring' ? Spring : Summer;
                                     if (!sem) return null;
 
@@ -63,6 +64,7 @@ export default function SemesterScrollArea() {
                                             closedAccordion={closedAccordion}
                                             setClosedAccordion={setClosedAccordion}
                                             year={year}
+
                                         />
                                     );
                                 })}
