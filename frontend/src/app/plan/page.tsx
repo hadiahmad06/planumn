@@ -63,6 +63,30 @@ export default function PlanPage() {
   const activePlans = plans.filter(plan => !plan.deletion_scheduled_at);
   const deletedPlans = plans.filter(plan => plan.deletion_scheduled_at);
 
+  const handleRename = async (id: string, newTitle: string) => {
+    // 1. Optimistically update local state
+    setPlans((prevPlans) =>
+      prevPlans.map((plan) =>
+        plan.id === id ? { ...plan, title: newTitle } : plan
+      )
+    );
+
+    // 2. Persist the change to Supabase via /api/plan
+    try {
+      const res = await fetch("/api/plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, title: newTitle }),
+      });
+
+      if (!res.ok) {
+        console.error("Failed to persist title change to backend.");
+      }
+    } catch (error) {
+      console.error("Error updating title:", error);
+    }
+  };
+
   if (deletedPlans.length === 0 && showDeleted) setShowDeleted(false);
 
   return (
@@ -96,7 +120,7 @@ export default function PlanPage() {
         >
           <Text c="black" size={isMobile ? "sm" : "lg"} fw={800}>Plan Title</Text>
           <Space/>
-          <Text c="black" size={isMobile ? "xs" : "md"} fw={600}>{isMobile ? "Credits Bar" : "Credit Completion"}</Text>
+          <Text c="black" size={isMobile ? "xsf" : "md"} fw={600}>{isMobile ? "Credits Bar" : "Credit Completion"}</Text>
           <Space/>
           {!isMobile && <>
               <Text c="black" size="md" fw={600}># of Courses</Text>
@@ -116,6 +140,7 @@ export default function PlanPage() {
               creditMap={creditMap}
               index={index}
               isDeleted={false}
+              onRename={(newTitle) => handleRename(plan.id!, newTitle)}
               onDelete={() => {
                 fetch("/api/plan/delete", {
                   method: "DELETE",

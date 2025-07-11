@@ -1,5 +1,5 @@
 import { Paper, Text, Box, Loader, Progress, Space, Skeleton } from "@mantine/core";
-import { IconTrash, IconRecycle } from "@tabler/icons-react";
+import { IconTrash, IconRecycle, IconPencil } from "@tabler/icons-react";
 import { useRouter } from "next/navigation";
 import { PlanNullable } from "@/types/plan";
 import { MouseEvent, useContext, useState } from "react";
@@ -13,12 +13,16 @@ interface PlanRowProps {
   isDeleted?: boolean;
   onClick?: () => void;
   onRecover?: (id: string) => void;
+  onRename?: (newTitle: string) => void;
 }
 
-export default function PlanRow({ plan, index, creditMap, onDelete, isDeleted = false, onClick, onRecover }: PlanRowProps) {
-  const { isMobile } = useContext(MobileContext);
-  const router = useRouter();
-  const [buttonLoading, setButtonLoading] = useState(false);
+export default function PlanRow({ plan, index, creditMap, onDelete, isDeleted = false, onRename, onRecover }: PlanRowProps) {
+    const { isMobile } = useContext(MobileContext);
+    const router = useRouter();
+    const [buttonLoading, setButtonLoading] = useState(false);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editedTitle, setEditedTitle] = useState(plan.title);
+    const [isTitleHovered, setIsTitleHovered] = useState(false);
 
   const courseCount = plan.semesters.reduce((sum, sem) => sum + sem.courses.length, 0);
   const creditCount = plan.semesters.reduce(
@@ -48,8 +52,8 @@ export default function PlanRow({ plan, index, creditMap, onDelete, isDeleted = 
         gridTemplateColumns: isMobile ? "27.5% 2.5% 25% 5% 30% 7.5% 2.5%" : "27.5% 2.5% 15% 5% 10% 10% 10% 10% 5% 5%",
       }}
       onClick={(e: MouseEvent) => {
-        if (isDeleted || (e.target as HTMLElement).dataset.trash === "true") return;
-        router.push(`/plan/${plan.id}`);
+        if (isEditing || isDeleted || (e.target as HTMLElement).dataset.trash === "true") return;
+        else router.push(`/plan/${plan.id}`);
       }}
       onMouseEnter={(e) => {
         const el = e.currentTarget as HTMLElement;
@@ -64,9 +68,82 @@ export default function PlanRow({ plan, index, creditMap, onDelete, isDeleted = 
         el.style.backgroundColor = bgColor;
       }}
     >
-      <Text fw={600} size={isMobile ? "sm" : "md"} truncate="end" c={plan.title === "" ? "dimmed" : undefined}>
-        {plan.title === "" ? "Unnamed Plan" : plan.title}
-      </Text>
+        <Box style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {isEditing ? (
+            <input
+              value={editedTitle ?? ""}
+              onChange={(e) => setEditedTitle(e.target.value)}
+              onBlur={() => {
+                setIsEditing(false);
+                if (editedTitle !== plan.title) {
+                  onRename?.(editedTitle ?? "");
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  setIsEditing(false);
+                  if (editedTitle !== plan.title) {
+                    onRename?.(editedTitle ?? "");
+                  }
+                }
+              }}
+              autoFocus
+              style={{
+                fontSize: isMobile ? "0.875rem" : "1rem",
+                fontWeight: 600,
+                padding: "2px 6px",
+                borderRadius: 4,
+                border: "1px solid #ccc",
+                width: "100%",
+                maxWidth: "200px",
+              }}
+            />
+          ) : (
+            <Box
+              style={{ position: "relative", display: "inline-block" }}
+              onMouseEnter={() => setIsTitleHovered(true)}
+              onMouseLeave={() => setIsTitleHovered(false)}
+            >
+              <Text
+                fw={600}
+                size={isMobile ? "sm" : "md"}
+                truncate="end"
+                c={plan.title === "" ? "dimmed" : undefined}
+                style={{
+                  transform: isTitleHovered ? "scale(1.03)" : "scale(1)",
+                  transition: "transform 0.15s ease",
+                  display: "inline-block",
+                }}
+              >
+                {plan.title === "" ? "Unnamed Plan" : plan.title}
+              </Text>
+
+              <Box
+                component="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsEditing(true);
+                }}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  right: '-15px',
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  padding: 0,
+                  transform: isTitleHovered ? "scale(1.2)" : "scale(1)",
+                  opacity: isTitleHovered ? 1 : 0,
+                  transition: "transform 0.15s ease, opacity 0.2s ease",
+                }}
+              >
+                <IconPencil size={14} />
+              </Box>
+            </Box>
+          )}
+        </Box>
       <Space/>
       {isDeleted && plan.deletion_scheduled_at ? (
         <Text size="sm" c="red">
