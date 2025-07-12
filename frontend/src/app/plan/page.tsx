@@ -9,19 +9,24 @@ import { CourseMetadata, Plan, PlanNullable, Semester } from "@/types/plan";
 import AnimatedTypingText from "@/components/atoms/landing/AnimatedTypingTest";
 import PlanRow, { PlanRowSkeleton } from "@/components/molecules/PlanRow";
 import { MobileContext } from "@/contexts/visual/MobileContext";
+import ClearDeletedPlans from "@/components/molecules/ClearDeletedPlans";
 
 export default function PlanPage() {
   const { isMobile } = useContext(MobileContext);
   const { user } = useContext(UserSessionContext);
 
   const [plans, setPlans] = useState<PlanNullable[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [modalOpened, setModalOpened] = useState(false);
   const [creditMap, setCreditMap] = useState<Record<string, {id: number, cred_min: number, cred_max: number}>>({});
   const router = useRouter();
   const [showDeleted, setShowDeleted] = useState(true);
 
   useEffect(() => {
-    if (!user?.id) return;
-
+      if (!user?.id && activePlans.length == 0) {
+      setLoading(false);
+      return;
+        }
     fetch(`/api/plan/query`)
       .then((res) => res.json())
       .then(async (plansData: PlanNullable[]) => {
@@ -45,14 +50,19 @@ export default function PlanPage() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ ids: Array.from(allCourseIds) }),
         });
-        const creditData = await creditRes.json();
+
+        const resJson = await creditRes.json();
+        const creditData = resJson.data ?? [];
 
         const creditMap: Record<string, {id: number, cred_min: number, cred_max: number}> = {};
-        creditData.forEach((course: any) => {
-          creditMap[course.id] = course;
-        });
+        if (Array.isArray(creditData)) {
+          creditData.forEach((course: any) => {
+            creditMap[course.id] = course;
+          });
+        }
         // console.log(creditMap);
         setCreditMap(creditMap);
+        setLoading(false);
 
       })
       .catch((err) => {
@@ -98,11 +108,11 @@ export default function PlanPage() {
           marginBottom: "0.5rem",
         }}
       >
-        <AnimatedTypingText blink={false}/>
+        <AnimatedTypingText blink={false} hover={true}/>
       </Title>
-      <Paper 
-          w="100%" 
-          radius="md" 
+      <Paper
+          w="100%"
+          radius="md"
           shadow="sm"
           bg="rgba(129, 19, 49, 0.075)"
       >
@@ -133,45 +143,48 @@ export default function PlanPage() {
           <Space/>
         </Paper>
         <Stack gap={isMobile ? "4px" : "8px"} style={{ padding: isMobile ? "4px" : "8px" }}>
-          {activePlans.length !== 0 ? activePlans.map((plan, index) => (
-            <PlanRow
-              key={plan.id}
-              plan={plan}
-              creditMap={creditMap}
-              index={index}
-              isDeleted={false}
-              onRename={(newTitle) => handleRename(plan.id!, newTitle)}
-              onDelete={() => {
-                fetch("/api/plan/delete", {
-                  method: "DELETE",
-                  headers: { "Content-Type": "application/json" },
-                  credentials: "include",
-                  body: JSON.stringify({ planId: plan.id }),
-                }).then((res) => {
-                  if (res.ok) {
-                    setPlans((prev) => 
-                      prev.map((p) => {
-                        if (p.id === plan.id) {
-                          const in30Days = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-                          return { ...p, deletion_scheduled_at: in30Days }
-                        } else {
-                          return p;
-                        }
-                      })
-                    );
-                  } else {
-                    console.error("Failed to delete plan");
-                  }
-                });
-              }}
-              onClick={() => router.push(`/plan/${plan.id}`)}
-            />
-          )) : (
+          {loading ? (
             <>
-            <PlanRowSkeleton index={0} />
-            <PlanRowSkeleton index={1} />
-            <PlanRowSkeleton index={2} />
+              <PlanRowSkeleton index={0} />
+              <PlanRowSkeleton index={1} />
+              <PlanRowSkeleton index={2} />
             </>
+          ) : activePlans.length === 0 ? (
+            <Text ta="center" c="dimmed">You have no active plans. Start by creating one!</Text>
+          ) : (
+            activePlans.map((plan, index) => (
+              <PlanRow
+                key={plan.id}
+                plan={plan}
+                creditMap={creditMap}
+                index={index}
+                isDeleted={false}
+                onRename={(newTitle) => handleRename(plan.id!, newTitle)}
+                onDelete={() => {
+                  fetch("/api/plan/delete", {
+                    method: "DELETE",
+                    credentials: "include",
+                    body: JSON.stringify({ planId: plan.id }),
+                  }).then((res) => {
+                    if (res.ok) {
+                      setPlans((prev) =>
+                        prev.map((p) => {
+                          if (p.id === plan.id) {
+                            const in30Days = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+                            return { ...p, deletion_scheduled_at: in30Days }
+                          } else {
+                            return p;
+                          }
+                        })
+                      );
+                    } else {
+                      console.error("Failed to delete plan");
+                    }
+                  });
+                }}
+                onClick={() => router.push(`/plan/${plan.id}`)}
+              />
+            ))
           )}
         </Stack>
         {/* Deleted Plans Section Toggle */}
@@ -184,7 +197,9 @@ export default function PlanPage() {
             alignItems: "center",
             paddingBlock: isMobile ? (showDeleted ? "12px" : "8px") : (showDeleted ? "20px" : "10px"),
             paddingInline: "20px",
-            gridTemplateColumns: isMobile ? "27.5% 2.5% 25% 5% 30% 7.5% 2.5%" : "27.5% 2.5% 15% 5% 10% 10% 10% 10% 5% 5%",
+            gridTemplateColumns: isMobile
+              ? "27.5% 2.5% 25% 5% 30% 7.5% 2.5% 5%"
+              : "27.5% 2.5% 15% 5% 10% 10% 10% 10% 5% 5%",
             cursor: "pointer",
             userSelect: "none",
             transition: "padding-block 0.2s ease",
@@ -206,9 +221,9 @@ export default function PlanPage() {
             />
           </Text>
           <Space/>
-          <Text 
+          <Text
             size={isMobile ? "xs" : "md"}
-            c="black" 
+            c="black"
             fw={600}
             style={{
                 opacity: showDeleted ? 1 : 0,
@@ -217,6 +232,31 @@ export default function PlanPage() {
           >
             {isMobile ? "Deleted On" :"Will Be Deleted On"}
           </Text>
+            <Box
+                onClick={(e) => {
+                    e.stopPropagation();
+                    setModalOpened(true);
+                }}
+                style={{
+                    gridColumn: isMobile ? "9 / 9" : "11 / 9",
+                    justifySelf: "center",
+                    alignItems: "center",
+                    paddingRight: "25px"}}
+                onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLElement).style.transform = "scale(1.2)";
+                }}
+                onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLElement).style.transform = "scale(1)";
+                }}
+            >
+
+              <IconTrash color="gray" style={{ width: isMobile ? 20 : 32, height: isMobile ? 20 : 32 }} />
+            </Box>
+            <ClearDeletedPlans
+                deletedPlans={deletedPlans}
+                opened={modalOpened}
+                onClose={() => setModalOpened(false)}
+            />
         </Paper>
         <Collapse in={showDeleted} transitionDuration={200} transitionTimingFunction="ease">
           <Stack gap="xs" style={{ padding: "8px" }}>

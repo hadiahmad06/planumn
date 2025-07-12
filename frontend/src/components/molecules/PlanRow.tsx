@@ -264,6 +264,7 @@ export function PlanRowSkeleton({index}: {index: number}) {
     ? "rgba(255,255,255,0.3)"
     : "rgba(220,220,220,0.3)";
 
+
   return (
     <Paper
       radius="md"
@@ -275,7 +276,8 @@ export function PlanRowSkeleton({index}: {index: number}) {
         backgroundColor: bgColor,
         transition: "padding 0.25s, box-shadow 0.25s, background-color 0.25s",
         cursor: "default",
-        gridTemplateColumns: isMobile ? "27.5% 2.5% 25% 5% 30% 7.5% 2.5%" : "27.5% 2.5% 15% 5% 10% 10% 10% 10% 5% 5%",
+        gridTemplateColumns: isMobile ? "27.5% 2.5% 25% 5% 30% 7.5% 2.5%" : "" +
+            "27.5% 2.5% 15% 5% 10% 10% 10% 10% 5% 5%",
       }}
     >
       <Skeleton height={18} width={`calc(80%/${index+1})`} />
