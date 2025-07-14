@@ -26,49 +26,59 @@ export default function SearchLayout() {
               condition.values.map((valObj: any, idx: number) => (
                 <Box key={idx}>
                   {Array.isArray(valObj.value) ? (
-                    <Group wrap="nowrap" gap="0.5rem">
-                      {valObj.value.map((code: string, j: number) => (
-                        <Draggable
-                          key={`program-${idx}-course-${j}`}
-                          draggableId={JSON.stringify(code)}
-                          index={idx}
-                        >
-                          {(provided) => (
-                            <Group wrap="nowrap" gap="0.5rem">
-                              <Box
-                                ref={provided.innerRef}
-                                {...provided.draggableProps}
-                                {...provided.dragHandleProps}
-                                style={{ 
-                                  // flexShrink: 0,
-                                  backgroundColor: "#d0d0d0", 
-                                  borderRadius: "0.5rem",
-                                  boxShadow: valObj.value.length > 1 ? [
-                                    j === 0 && "-2px 0 0 0 #000000",
-                                    j === valObj.value.length - 1 && "2px 0 0 0 #000000"
-                                  ].filter(Boolean).join(", ") : "",
-                                  borderLeft: (j === 0 && valObj.value.length > 1 ? "2px solid #ffffff" : "0px solid #ffffff"),
-                                  borderRight: (j === valObj.value.length -1 && valObj.value.length > 1 ? "2px solid #ffffff" : "0px solid #ffffff")
-                                }}
-                              >
-                                {/* {code} */}
-                                <CourseCard
-                                  courseId={code}
-                                  isDraggable={true}
-                                  fixedHeight={true}
-                                  fixedWidth={true}
-                                />
-                              </Box>
-                            {'logic' in valObj && valObj.value.length > 1 && j !== valObj.value.length - 1 && (
-                              <Text ta="center" fw={600}>{valObj.logic}</Text>
-                            )}
-                          </Group>
-                          )}
-                        </Draggable>
-                        // <Group key={j} align="center" gap="0.5rem">
-                        // </Group>
-                      ))}
-                    </Group>
+                    <Droppable droppableId={`program-${idx}`}>
+                      {(provided) => (
+                        <Group ref={provided.innerRef} wrap="nowrap" gap="0.5rem">
+                          {valObj.value.map((code: string, j: number) => (
+                            // <Draggable
+                            //   key={`program-${idx}-course-${j}`}
+                            //   draggableId={JSON.stringify(code)}
+                            //   index={idx}
+                            // >
+                            //   {(provided) => (
+                                <Group key={`program-${idx}-course-${j}`} wrap="nowrap" gap="0.5rem">
+                                  <Draggable
+                                    key={`program-${idx}-course-${j}`}
+                                    draggableId={code}
+                                    index={j}
+                                  >
+                                    {(provided) => (
+                                      <Box
+                                        ref={provided.innerRef}
+                                        {...provided.draggableProps}
+                                        {...provided.dragHandleProps}
+                                        style={{ 
+                                          // flexShrink: 0,
+                                          backgroundColor: "#d0d0d0", 
+                                          borderRadius: "0.5rem",
+                                          boxShadow: valObj.value.length > 1 ? [
+                                            j === 0 && "-2px 0 0 0 #000000",
+                                            j === valObj.value.length - 1 && "2px 0 0 0 #000000"
+                                          ].filter(Boolean).join(", ") : "",
+                                          borderLeft: (j === 0 && valObj.value.length > 1 ? "2px solid #ffffff" : "0px solid #ffffff"),
+                                          borderRight: (j === valObj.value.length -1 && valObj.value.length > 1 ? "2px solid #ffffff" : "0px solid #ffffff")
+                                        }}
+                                      >
+                                        {/* {code} */}
+                                        <CourseCard
+                                          courseId={code}
+                                          isDraggable={true}
+                                          fixedHeight={true}
+                                          fixedWidth={true}
+                                        />
+                                      </Box>
+                                    )}
+                                  </Draggable>
+                                  {'logic' in valObj && valObj.value.length > 1 && j !== valObj.value.length - 1 && (
+                                    <Text ta="center" fw={600}>{valObj.logic}</Text>
+                                  )}
+                                </Group>
+                            // <Group key={j} align="center" gap="0.5rem">
+                            // </Group>
+                          ))}
+                        </Group>
+                      )}
+                    </Droppable>
                   ) : null}
                 </Box>
               ))
@@ -215,10 +225,10 @@ export default function SearchLayout() {
           </Box>
         )}
       </Droppable>
-      <Droppable droppableId="program">
-        {(provided) => (
+      {/* <Droppable droppableId="program">
+        {(provided) => ( */}
           <ScrollArea
-            ref={provided.innerRef}
+            // ref={provided.innerRef}
             offsetScrollbars
             scrollbarSize={8}
             styles={{ scrollbar: { backgroundColor: "#f1f5f9" } }}
@@ -235,8 +245,8 @@ export default function SearchLayout() {
               </Accordion>
             </Stack>
           </ScrollArea>
-        )}
-      </Droppable>
+        {/* )}
+      </Droppable> */}
     </Stack>
   );
 }

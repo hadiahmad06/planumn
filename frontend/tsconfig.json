@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "types": ["@mantine/core"],
     "lib": [
       "dom",
       "dom.iterable",
