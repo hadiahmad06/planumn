@@ -25,7 +25,7 @@ export async function DELETE(req: Request): Promise<NextResponse> {
   }
 
   // parses plan id from request body
-  const { planId } = await req.json();
+  const { planId, force } = await req.json();
 
   // creates deletion date from supabase time to avoid spoofed date/time
   const { data: deletionDate, error: rpcError } = await supabase.rpc('now_plus_30_days');
@@ -39,6 +39,15 @@ export async function DELETE(req: Request): Promise<NextResponse> {
     .update({ deletion_scheduled_at: deletionDate })
     .eq("id", planId)
     .eq("user_id", user.id); // verifies ownership
+
+  if (force) {
+    await supabase
+        .from("plans")
+        .delete()
+        .eq("id", planId)
+        .eq("user_id", user.id);
+
+  }
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });

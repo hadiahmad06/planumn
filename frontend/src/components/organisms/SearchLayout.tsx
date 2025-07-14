@@ -218,7 +218,7 @@ export default function SearchLayout() {
               marginBottom: "0.5rem",
             }}
             >
-              <AnimatedTypingText blink={false}/>
+              <AnimatedTypingText blink={false} hover={true}/>
             </Title>
             <SearchBar/>
             {provided.placeholder}

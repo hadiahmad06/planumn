@@ -1,0 +1,73 @@
+.control {
+  &[data-inactive] {
+    opacity: 0;
+    cursor: default;
+  }
+}
+.root {
+  &:hover {
+    .controls {
+      opacity: 1;
+    }
+  }
+}
+.carouselContainer {
+  margin-top: 4rem;
+  width: 100dvw;
+  height: 50dvh;
+}
+.edgeWrapper {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+.edgeCard {
+  width: 75%;
+  aspect-ratio: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #aaa;
+  font-size: 2rem;
+  font-weight: bold;
+  padding: 1.5rem;
+  background: rgba(255,255,255,0.5);
+  box-shadow: 0 0 0 4px rgba(209, 99, 145, 0.25), 0 6px 18px rgba(0, 0, 0, 0.1);
+  border-radius: 10rem;
+  transition: transform 0.3s ease, border 0.3s ease;
+}
+.semesterCard {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  background: rgba(255,255,255,0.5);
+  box-shadow: 0 0 0 4px rgba(209, 99, 145, 0.25), 0 6px 18px rgba(0, 0, 0, 0.1);
+  border-radius: 1rem;
+  transition: transform 0.3s ease, border 0.3s ease;
+}
+.courseWrapper {
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.bubbleWrapper {
+  justify-content: center;
+  margin-top: 1rem;
+  gap: 0.5rem;
+}
+.bubble {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 1rem;
+  background-color: #ccc;
+  transition: all 0.3s ease;
+}
+.activeBubble {
+  width: 1rem;
+  background-color: #811331;
+}

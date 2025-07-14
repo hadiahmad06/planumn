@@ -1,15 +1,15 @@
 "use client";
 
-import { Box, Text, Title, Container } from "@mantine/core";
 import { useState, useEffect, useContext } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useParams, notFound } from "next/navigation";
-import PlanDisplay from "@/components/organisms/plan-display/PlanDisplay";
+import PlanDisplayDesktop from "@/components/organisms/plan-display/PlanDisplayDesktop";
 import { LockType, Plan, PlanNullable } from "@/types/plan";
-// import { getPlanDetails } from "@/types/planHandlers";
 import { PlanContext } from "@/contexts/data/PlanContext";
 import { cachePlannedCourses } from "@/contexts/data/PlanProvider";
 import OverwriteSavedPrompt from "@/components/atoms/OverwriteSavedPrompt";
+import {MobileContext} from "@/contexts/visual/MobileContext";
+import PlanDisplayMobile from "@/components/organisms/plan-display/PlanDisplayMobile";
 
 export default function PlanPage() {
   const params = useParams();
@@ -91,7 +91,6 @@ export default function PlanPage() {
     );
   }
 
-  return (
-    <PlanDisplay/>
-  );
+  const { isMobile } = useContext(MobileContext);
+  return isMobile ? <PlanDisplayMobile /> : <PlanDisplayDesktop />;
 }
