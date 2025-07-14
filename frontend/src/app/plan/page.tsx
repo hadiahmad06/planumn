@@ -197,9 +197,7 @@ export default function PlanPage() {
             alignItems: "center",
             paddingBlock: isMobile ? (showDeleted ? "12px" : "8px") : (showDeleted ? "20px" : "10px"),
             paddingInline: "20px",
-            gridTemplateColumns: isMobile
-              ? "27.5% 2.5% 25% 5% 30% 7.5% 2.5% 5%"
-              : "27.5% 2.5% 15% 5% 10% 10% 10% 10% 5% 5%",
+            gridTemplateColumns: isMobile ? "27.5% 2.5% 25% 5% 30% 7.5% 2.5%" : "27.5% 2.5% 15% 5% 10% 10% 10% 10% 5% 5%",
             cursor: "pointer",
             userSelect: "none",
             transition: "padding-block 0.2s ease",
@@ -232,31 +230,36 @@ export default function PlanPage() {
           >
             {isMobile ? "Deleted On" :"Will Be Deleted On"}
           </Text>
-            <Box
-                onClick={(e) => {
-                    e.stopPropagation();
-                    setModalOpened(true);
-                }}
-                style={{
-                    gridColumn: isMobile ? "9 / 9" : "11 / 9",
-                    justifySelf: "center",
-                    alignItems: "center",
-                    paddingRight: "25px"}}
-                onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLElement).style.transform = "scale(1.2)";
-                }}
-                onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLElement).style.transform = "scale(1)";
-                }}
-            >
-
-              <IconTrash color="gray" style={{ width: isMobile ? 20 : 32, height: isMobile ? 20 : 32 }} />
-            </Box>
-            <ClearDeletedPlans
-                deletedPlans={deletedPlans}
-                opened={modalOpened}
-                onClose={() => setModalOpened(false)}
-            />
+          <Space/>
+          <Space/>
+          <Space/>
+          <Space/>
+          <Space/>
+          <Box
+            style={{
+              width: isMobile ? "20px" : "32px",
+              height: isMobile ? "20px" : "32px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "none",
+              cursor: "pointer",
+              background: "transparent",
+              padding: 0,
+              marginLeft: "auto",
+              transition: "transform 0.15s ease, color 0.2s ease",
+            }}
+            onClick={(e) => { e.stopPropagation(); setModalOpened(true); }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.transform = "scale(1.2)"; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.transform = "scale(1)"; }}
+          >
+            <IconTrash color="#811331" style={{ width: isMobile ? 20 : 32, height: isMobile ? 20 : 32 }} />
+          </Box>
+          <ClearDeletedPlans
+            deletedPlans={deletedPlans}
+            opened={modalOpened}
+            onClose={() => setModalOpened(false)}
+          />
         </Paper>
         <Collapse in={showDeleted} transitionDuration={200} transitionTimingFunction="ease">
           <Stack gap="xs" style={{ padding: "8px" }}>
