@@ -17,13 +17,13 @@ interface PlanRowProps {
 }
 
 export default function PlanRow({ plan, index, creditMap, onDelete, isDeleted = false, onRename, onRecover }: PlanRowProps) {
-    const { isMobile } = useContext(MobileContext);
-    const router = useRouter();
-    const [buttonLoading, setButtonLoading] = useState(false);
-    const [isEditing, setIsEditing] = useState(false);
-    const [editedTitle, setEditedTitle] = useState(plan.title);
-    const [isTitleHovered, setIsTitleHovered] = useState(false);
-
+  const { isMobile } = useContext(MobileContext);
+  const router = useRouter();
+  const [buttonLoading, setButtonLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTitle, setEditedTitle] = useState(plan.title);
+  const [isTitleHovered, setIsTitleHovered] = useState(false);
+  
   const courseCount = plan.semesters.reduce((sum, sem) => sum + sem.courses.length, 0);
   const creditCount = plan.semesters.reduce(
     (sum, sem) =>

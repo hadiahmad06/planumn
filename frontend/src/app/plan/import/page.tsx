@@ -1,6 +1,5 @@
 "use client";
 
-import PlanDisplay from '@/components/organisms/plan-display/PlanDisplayDesktop';
 import { Plan, PlanNullable } from '@/types/plan';
 // import { getPlanDetails } from '@/types/planHandlers';
 import { Box, Group, Text, Button, FileButton, Container, Center, Stack, Space } from '@mantine/core';
@@ -9,7 +8,8 @@ import { useContext, useEffect, useState } from 'react';
 import { IconUpload, IconPhoto, IconX, IconFileText } from '@tabler/icons-react';
 import { error } from 'console';
 import { PlanContext } from '@/contexts/data/PlanContext';
-import OverwriteSavedPrompt from '@/components/atoms/OverwriteSavedPrompt';
+import OverwriteSavedPrompt from '@/components/atoms/plan-loading/OverwriteSavedPrompt';
+import PlanDisplay from '@/components/organisms/plan-display/PlanDisplay';
 
 
 export default function PlanPage() {
@@ -71,11 +71,13 @@ export default function PlanPage() {
   }, [plan]);
 
   if (promptVisible) {
-    return <OverwriteSavedPrompt
+    return (
+      <OverwriteSavedPrompt
         setPromptVisible={setPromptVisible}
         onOverwrite={() => setShowPlanDisplay(false)}
         message="An autosave was found. Continuing will replace it with courses from your transcript."
-        /> 
+      /> 
+    )
   } else {
     return showPlanDisplay ? (
       <PlanDisplay/>

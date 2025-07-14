@@ -13,11 +13,6 @@ import { MobileContext } from "@/contexts/visual/MobileContext";
 import PlanDisplayMobile from "./PlanDisplayMobile";
 import diddy from '../plan-display/Styles/PlanDisplayDesktop.module.css'
 
-// export default function PlanDisplay() {
-//   const { isMobile } = useContext(MobileContext);
-//   return isMobile ? <PlanDisplayMobile/> : <PlanDisplayDesktop/>;
-// }
-
 export default function PlanDisplayDesktop() {
   const { plan, setPlan, cachedCourses } = useContext(PlanContext);
 

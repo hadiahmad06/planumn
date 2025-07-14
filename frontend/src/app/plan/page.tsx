@@ -23,10 +23,10 @@ export default function PlanPage() {
   const [showDeleted, setShowDeleted] = useState(true);
 
   useEffect(() => {
-      if (!user?.id && activePlans.length == 0) {
+    if (!user?.id || activePlans.length == 0) {
       setLoading(false);
       return;
-        }
+    }
     fetch(`/api/plan/query`)
       .then((res) => res.json())
       .then(async (plansData: PlanNullable[]) => {
@@ -60,7 +60,7 @@ export default function PlanPage() {
             creditMap[course.id] = course;
           });
         }
-        // console.log(creditMap);
+        console.log(creditMap);
         setCreditMap(creditMap);
         setLoading(false);
 

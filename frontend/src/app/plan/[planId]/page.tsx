@@ -1,35 +1,69 @@
 "use client";
 
 import { useState, useEffect, useContext } from "react";
-import { createClient } from "@/utils/supabase/client";
 import { useParams, notFound } from "next/navigation";
-import PlanDisplayDesktop from "@/components/organisms/plan-display/PlanDisplayDesktop";
+import PlanDisplay from "@/components/organisms/plan-display/PlanDisplay";
 import { LockType, Plan, PlanNullable } from "@/types/plan";
 import { PlanContext } from "@/contexts/data/PlanContext";
 import { cachePlannedCourses } from "@/contexts/data/PlanProvider";
-import OverwriteSavedPrompt from "@/components/atoms/OverwriteSavedPrompt";
-import {MobileContext} from "@/contexts/visual/MobileContext";
-import PlanDisplayMobile from "@/components/organisms/plan-display/PlanDisplayMobile";
+import OverwriteSavedPrompt from "@/components/atoms/plan-loading/OverwriteSavedPrompt";
+import NoAccessPrompt from "@/components/atoms/plan-loading/NoAccessPrompt";
+import UnknownErrorPrompt from "@/components/atoms/plan-loading/UnknownErrorPrompt";
+import UnauthorizedPrompt from "@/components/atoms/plan-loading/UnauthorizedPrompt";
+import { UserSessionContext } from "@/contexts/data/UserSessionContext";
 
 export default function PlanPage() {
   const params = useParams();
   const planId = Array.isArray(params?.planId) ? params.planId[0] : params?.planId;
 
-  const { plan, planFetched, setPlan, setRemotePlan, setCachedCourses } = useContext(PlanContext);
+  const { plan, remotePlan, planFetched, setPlan, setRemotePlan, setCachedCourses } = useContext(PlanContext);
+  const { user } = useContext(UserSessionContext);
+  const [loginPrompt, setLoginPrompt] = useState(false);
   const [promptVisible, setPromptVisible] = useState(false);
+  const [noAccessVisible, setNoAccessVisible] = useState(false);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const loadRemotePlan = async () => {
     if (!planId) return;
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from("plans")
-      .select("*")
-      .eq("id", planId)
-      .single();
+    if (!user) {
+      setLoginPrompt(true);
+      return;
+    } else {
+      setLoginPrompt(false);
+    }
+      
+    
+    // fetch by plan id
+    const res = await fetch(`/api/plan?planId=${planId}`, {
+      method: "GET",
+      credentials: "include",
+    });
 
-    if (error || !data) {
-      console.error("Plan fetch error:", error);
-      setPlan(null);
+    if (res.status === 401) {
+      console.error("User not authenticated");
+      setRemotePlan(null);
+      setLoginPrompt(true);
+      return;
+    }
+
+    if (res.status === 403) {
+      console.error("Access denied: You do not have permission to view this plan.");
+      setRemotePlan(null);
+      setNoAccessVisible(true);
+      return;
+    }
+
+    if (!res.ok) {
+      console.error("Plan fetch failed:", await res.text());
+      setRemotePlan(null);
+      setLoadFailed(true);
+      return;
+    }
+
+    const { plan: data } = await res.json();
+
+    if (!data) {
+      setRemotePlan(null);
       return;
     }
 
@@ -37,7 +71,7 @@ export default function PlanPage() {
       id: data.id,
       created_at: new Date(data.created_at),
       last_updated: new Date(data.last_updated),
-      deletion_scheduled_at: null,
+      deletion_scheduled_at: data.deletion_scheduled_at,
       can_view: data.can_view,
       title: data.title,
       programs: data.programs,
@@ -53,7 +87,7 @@ export default function PlanPage() {
       user_id: data.user_id,
     };
 
-    setPlan(remotePlan);
+    // setPlan(remotePlan);
     setRemotePlan(JSON.parse(JSON.stringify(remotePlan)) as PlanNullable);
     cachePlannedCourses(remotePlan, setCachedCourses);
 
@@ -63,7 +97,7 @@ export default function PlanPage() {
   useEffect(() => {
     if (!planFetched) return;
     if (!plan) {
-      loadRemotePlan();
+      loadRemotePlan().then((remotePlan) => { if(remotePlan) setPlan(remotePlan)});
     } else if (plan.id === planId) {
       loadRemotePlan().then((remotePlan) => {
         // in the case that we used router.replace this shouldnt do anything since its the same last_updated value
@@ -74,23 +108,72 @@ export default function PlanPage() {
     } else {
       setPromptVisible(true);
     }
-  }, [planFetched, planId]);
+  }, [planFetched, planId, user]);
 
   if (!planId) return notFound();
 
-  if (promptVisible) {
-    return (
-      <OverwriteSavedPrompt
-        setPromptVisible={setPromptVisible}
-        onOverwrite={() => {
-          setPromptVisible(false);
-          loadRemotePlan();
-        }}
-        message="An autosave was found for a different plan. Overwrite and load this plan?"
-      />
-    );
-  }
+  // if (loginPrompt) {
+  //   return (
+  //     <UnauthorizedPrompt/>
+  //   )
+  // }
 
-  const { isMobile } = useContext(MobileContext);
-  return isMobile ? <PlanDisplayMobile /> : <PlanDisplayDesktop />;
+  // if (noAccessVisible) {
+  //   return (
+  //     <NoAccessPrompt/>
+  //   )
+  // }
+
+  // if (loadFailed) {
+  //   return (
+  //     <UnknownErrorPrompt/>
+  //   )
+  // }
+
+  // if (promptVisible) {
+  //   return (
+  //     <OverwriteSavedPrompt
+  //       setPromptVisible={setPromptVisible}
+  //       onOverwrite={() => {
+  //         setPromptVisible(false);
+  //         loadRemotePlan().then((remotePlan) => { if(remotePlan) setPlan(remotePlan)});
+  //       }}
+  //       message="An autosave was found for a different plan. Overwrite and load this plan?"
+  //     />
+  //   );
+  // }
+
+  return (
+    <>
+      <PlanDisplay />
+      <div 
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%"
+        }}
+      >
+        {loginPrompt ? (
+          <UnauthorizedPrompt />
+        ) : noAccessVisible ? (
+          <NoAccessPrompt />
+        ) : loadFailed ? (
+          <UnknownErrorPrompt />
+        ) : promptVisible ? (
+          <OverwriteSavedPrompt
+            setPromptVisible={setPromptVisible}
+            onOverwrite={() => {
+              setPromptVisible(false);
+              loadRemotePlan().then((remotePlan) => {
+                if (remotePlan) setPlan(remotePlan);
+              });
+            }}
+            message="An autosave was found for a different plan. Overwrite and load this plan?"
+          />
+        ) : null}
+      </div>
+    </>
+  );
 }
