@@ -41,9 +41,17 @@ export const letterToGpa = (letter: string) => {
 
 export const AreaChart = ({ distribution, isMobile = true }: { distribution: Distribution, isMobile: boolean }) => {
     const { isSummary, grades } = distribution;
-    // Check if there are no letter grades (A, B, C, D, F) in the grades object
+    
+    const [hovered, setHovered] = useState(false);
+    const [hoveredGrade, setHoveredGrade] = useState<{
+      grade: string;
+      gradeCount: number;
+      gpa: number;
+    } | null>(null);
+    
     const letterGradeKeys = ['A', 'B', 'C', 'D', 'F'];
     const noLetterGrades = !grades || !letterGradeKeys.some(grade => grades[grade] > 0);
+    
     if (noLetterGrades) {
       return (
         <div style={{
@@ -74,13 +82,6 @@ export const AreaChart = ({ distribution, isMobile = true }: { distribution: Dis
     const AREA_GRAPH_HEIGHT = 50 * scale - BOTTOM_MARGIN;
     const AREA_GRAPH_WIDTH = 300 * scale;
   
-    const [hovered, setHovered] = useState(false);
-    const [hoveredGrade, setHoveredGrade] = useState<{
-      grade: string;
-      gradeCount: number;
-      gpa: number;
-    } | null>(null);
-  
     const hasAPlus = grades?.["A+"] > 0;
   
     const maxGrade = Math.max(...Object.values(grades ?? {}));
@@ -98,12 +99,9 @@ export const AreaChart = ({ distribution, isMobile = true }: { distribution: Dis
       )
       .join(" ")} ${AREA_GRAPH_WIDTH},${AREA_GRAPH_HEIGHT}`;
   
-    // add text labels above every major grade (A, B, C, D, F)
-  
     const labelPoints = letterGrades
       .map((grade, index, arr) => [
         (AREA_GRAPH_WIDTH * index) / (arr.length - 1),
-        // AREA_GRAPH_HEIGHT * (1 - (grades?.[grade] ?? 0) / maxGrade),
         AREA_GRAPH_HEIGHT + BOTTOM_MARGIN,
         grade,
       ])
@@ -111,7 +109,6 @@ export const AreaChart = ({ distribution, isMobile = true }: { distribution: Dis
   
     const maxGPA = hasAPlus ? 4.333 : 4;
   
-    // get mouse coordinates relative to the SVG, accounting for scaling
     const getMouseCoords = (e: React.MouseEvent<SVGSVGElement>) => {
       const svg = e.currentTarget;
       const point = svg.createSVGPoint();
@@ -126,21 +123,17 @@ export const AreaChart = ({ distribution, isMobile = true }: { distribution: Dis
     };
   
     const numGrades = GRADE_ORDER.length - (hasAPlus ? 0 : 1);
-  
-  
+
+
     const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
       const { x, y } = getMouseCoords(e);
-  
-      // get the grade that the mouse is over
+
       const grade = GRADE_ORDER[Math.floor((x / AREA_GRAPH_WIDTH) * numGrades)];
-  
-      // get the number of students that got that grade
+
       const gradeCount = grades?.[grade] ?? 0;
-  
-      // get the GPA that the mouse is over
+
       const gpa = letterToGpa(grade);
-  
-      // if the mouse is over the graph, show the tooltip
+
       if (x > 0 && x < AREA_GRAPH_WIDTH && y > 0 && y < AREA_GRAPH_HEIGHT) {
         setHovered(true);
         setHoveredGrade({
@@ -148,7 +141,6 @@ export const AreaChart = ({ distribution, isMobile = true }: { distribution: Dis
           gradeCount,
           gpa,
         });
-        // setHovered(false);
       }
     };
     const handleMouseEnter = () => setHovered(true);
@@ -173,8 +165,6 @@ export const AreaChart = ({ distribution, isMobile = true }: { distribution: Dis
         viewBox={`0 0 ${AREA_GRAPH_WIDTH} ${AREA_GRAPH_HEIGHT + BOTTOM_MARGIN}`}
         preserveAspectRatio="xMidYMid meet"
         style={{ width: '100%', height: '100%'}}
-        // height={AREA_GRAPH_HEIGHT + BOTTOM_MARGIN}
-        // width={AREA_GRAPH_WIDTH}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
@@ -219,7 +209,6 @@ export const AreaChart = ({ distribution, isMobile = true }: { distribution: Dis
           <text
             key={`label-${grade}`}
             x={Math.max(3, Math.min(AREA_GRAPH_WIDTH - 5, x as number))}
-            // if the text is off the top of the graph, move it down
             y={Math.max(y as number, 10)}
             style={{
               textAnchor: "middle",

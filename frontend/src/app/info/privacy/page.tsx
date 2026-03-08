@@ -17,7 +17,7 @@ export default function PrivacyPolicyPage() {
           <Accordion.Item value="data">
             <Accordion.Control>What data do you store?</Accordion.Control>
             <Accordion.Panel>
-              We store only login information and graduation plans you've saved manually or through autosave.
+              We store only login information and graduation plans you&apos;ve saved manually or through autosave.
             </Accordion.Panel>
           </Accordion.Item>
 

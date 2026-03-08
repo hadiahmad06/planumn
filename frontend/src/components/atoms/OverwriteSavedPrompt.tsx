@@ -1,4 +1,4 @@
-import { isPlanEmpty, Plan } from "@/types/plan";
+import { isPlanEmpty } from "@/types/plan";
 import { Button, Center, Stack, Text, Title, Paper } from "@mantine/core";
 import { PlanContext } from "@/contexts/data/PlanContext"
 import { useContext, useEffect } from "react";
@@ -58,7 +58,7 @@ export default function OverwriteSavedPrompt({ setPromptVisible, onOverwrite, me
                     setPromptVisible(false);
                     router.push("/plan/autosave");
                   }}>
-                    Don't Overwrite
+                    Don&apos;t Overwrite
                   </Button>
                 </Stack>
               </Stack>

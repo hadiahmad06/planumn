@@ -33,6 +33,8 @@ export default function DisplaySettings({ opened, onClose }: Props) {
 
   // Set initial position to bottom left when opened
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
     if (opened && !wasOpened.current) {
       setPosition({
         x: 24,

@@ -1,74 +1,72 @@
+import { PlanNullable, Semester } from "@/types/plan";
+import { notifications } from "@mantine/notifications";
 
-import { PlanNullable, Semester} from "@/types/plan";
-import {notifications, Notifications} from "@mantine/notifications";
-
-function generateCurrentYear() : Semester[] { // User out of years and is adding years
+function generateCurrentYear(): Semester[] {
     const date_object = new Date();
-    const current_academic_year = date_object.getFullYear()
-    let digits = parseInt(current_academic_year.toString().substring(2)) // 2025 --> 25
-    return [{index: "1" + (digits - 1).toString() + "9", courses: []},
-            {index: "1" + digits.toString() + "5", courses: []},
-            {index: "1" + digits.toString() + "3", courses: []},
+    const current_academic_year = date_object.getFullYear();
+    const digits = parseInt(current_academic_year.toString().substring(2));
+    return [{ index: "1" + (digits - 1).toString() + "9", courses: [] },
+            { index: "1" + digits.toString() + "5", courses: [] },
+            { index: "1" + digits.toString() + "3", courses: [] },
     ];
 }
-function generatePrevYear(firstIndex: string) {
-    // ex 1259 --> 1249
+
+function generatePrevYear(firstIndex: string): Semester[] {
     const idx = parseInt(firstIndex);
-    let prev_fall_index = (idx-10).toString()
-    let prev_Spring_index = (idx-6).toString()
-    let prev_Summer_index = (idx-4).toString()
+    const prev_fall_index = (idx - 10).toString();
+    const prev_Spring_index = (idx - 6).toString();
+    const prev_Summer_index = (idx - 4).toString();
 
-    // Make a semester array with index being prev year and courses being an empty array
-    const prev_year: Semester[] = [{index: prev_fall_index, courses: []}, {index: prev_Spring_index, courses: []}, {index: prev_Summer_index, courses: []}]
-    return prev_year
+    return [
+        { index: prev_fall_index, courses: [] },
+        { index: prev_Spring_index, courses: [] },
+        { index: prev_Summer_index, courses: [] }
+    ];
 }
-function generateNextYear(lastIndex: string) {
-    // ex 1259 --> 1269
+
+function generateNextYear(lastIndex: string): Semester[] {
     const idx = parseInt(lastIndex);
-    console.log(idx);
-    let next_fall_index = (idx+4).toString()
-    let next_Spring_index = (idx+8).toString()
-    let next_Summer_index = (idx+10).toString()
+    const next_fall_index = (idx + 4).toString();
+    const next_Spring_index = (idx + 8).toString();
+    const next_Summer_index = (idx + 10).toString();
 
-    // Make a semester array with index being prev year and courses being an empty array
-    const next_year: Semester[] = [{index: next_fall_index, courses: []}, {index: next_Spring_index, courses: []}, {index: next_Summer_index, courses: []}]
-    return next_year
-     
+    return [
+        { index: next_fall_index, courses: [] },
+        { index: next_Spring_index, courses: [] },
+        { index: next_Summer_index, courses: [] }
+    ];
 }
+
 function error_message() {
     return notifications.show({
         color: "#811331",
         title: "No more Semesters",
         message: "You need to add semesters!! You are out Twiniante!"
-    })
+    });
 }
 
-export default function ManipulateYear(plan: PlanNullable | null,setPlan: (plan: PlanNullable | null) => void,  manipulation: String) {
+export default function ManipulateYear(plan: PlanNullable | null, setPlan: (plan: PlanNullable | null) => void, manipulation: string) {
     if (!plan) return;
     const sems = [...plan.semesters];
-    let updated: Semester[] = []
+    let updated: Semester[] = [];
 
-    if (manipulation == "AddPrecedingYear") {
-        sems.length == 0 ? updated = generateCurrentYear() : updated = generatePrevYear(sems[0].index).concat(sems)
-
-    }
-    else if (manipulation == "RemovePrecedingYear") {
-        sems.length == 0 ? error_message() : sems.length == 3 ? updated = [] : updated = sems.slice(3)
-
-
-    } else if (manipulation == "AddLatestYear") {
+    if (manipulation === "AddPrecedingYear") {
+        updated = sems.length === 0 ? generateCurrentYear() : generatePrevYear(sems[0].index).concat(sems);
+    } else if (manipulation === "RemovePrecedingYear") {
+        if (sems.length === 0) {
+            error_message();
+            return;
+        }
+        updated = sems.length === 3 ? [] : sems.slice(3);
+    } else if (manipulation === "AddLatestYear") {
         const maxIndex = sems.reduce((max, s) => parseInt(s.index) > max ? parseInt(s.index) : max, -Infinity);
-        sems.length === 0 ? updated = generateCurrentYear() : updated = sems.concat(generateNextYear(maxIndex.toString()));
-
-    } else if (manipulation == "RemoveLatestYear") {
-        sems.length == 0 ? error_message() : sems.length == 3 ? updated = [] : updated = sems.slice(0, sems.length - 3)
+        updated = sems.length === 0 ? generateCurrentYear() : sems.concat(generateNextYear(maxIndex.toString()));
+    } else if (manipulation === "RemoveLatestYear") {
+        if (sems.length === 0) {
+            error_message();
+            return;
+        }
+        updated = sems.length === 3 ? [] : sems.slice(0, sems.length - 3);
     }
-    setPlan({...plan, semesters: updated})
-    console.log(sems)
-    // }
-
-        // },[plan, setPlan])
+    setPlan({ ...plan, semesters: updated });
 }
-   
-    
-

@@ -97,6 +97,8 @@ export async function handleLogout({ setUser, setPlan, changesSaved }: LogoutAct
     setUser(null);
     if(changesSaved) {
         setPlan(null);
-        localStorage.removeItem("plan");
+        if (typeof window !== "undefined") {
+            localStorage.removeItem("plan");
+        }
     }
 }

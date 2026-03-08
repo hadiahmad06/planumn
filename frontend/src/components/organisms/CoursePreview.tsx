@@ -12,22 +12,27 @@ export function getXYFromCoords(coords: {
   right?: number | string;
   transform?: string;
 }): { x: number; y: number } {
+  if (typeof window === 'undefined') {
+    return { x: 0, y: 0 };
+  }
+
   let x = 0;
   let y = 0;
 
-  // Use top and left as primary references
+  const windowWidth = window.innerWidth * 0.75;
+  const windowHeight = window.innerHeight;
+
   if (typeof coords.left === 'number') x = coords.left;
-  else if (typeof coords.right === 'number') x = window.innerWidth * 0.75 - coords.right;
+  else if (typeof coords.right === 'number') x = windowWidth - coords.right;
 
   if (typeof coords.top === 'number') y = coords.top;
-  else if (typeof coords.bottom === 'number') y = window.innerHeight - coords.bottom;
+  else if (typeof coords.bottom === 'number') y = windowHeight - coords.bottom;
 
-  // Apply transform adjustments
   if (coords.transform?.includes('translateY(-50%)')) {
-    y += window.innerHeight * 0.5;
+    y += windowHeight * 0.5;
   }
   if (coords.transform?.includes('translateX(-50%)')) {
-    x -= window.innerWidth * 0.5;
+    x -= windowWidth * 0.5;
   }
 
   return { x, y };

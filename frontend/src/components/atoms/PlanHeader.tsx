@@ -1,18 +1,14 @@
 import { PlanContext } from "@/contexts/data/PlanContext";
-import { Box, Flex, Skeleton, Title, Text, MultiSelect } from "@mantine/core";
+import { Box, Flex, Skeleton, Text, MultiSelect } from "@mantine/core";
 import { useContext, useState, useEffect, useRef } from "react";
-import { formatDistance, formatDistanceToNow, isAfter } from "date-fns";
+import { formatDistanceToNow, isAfter } from "date-fns";
 import { UserSessionContext } from "@/contexts/data/UserSessionContext";
-import { useRouter } from "next/navigation";
 import programOptions from "@/lib/programOptions.json";
 import { PlanAuditContext } from "@/contexts/data/PlanAuditContext";
 
 export default function PlanHeader() {
   const planContext = useContext(PlanContext);
-  const { groupedPrograms, programIds, setProgramIds, onUpdate } = useContext(PlanAuditContext);
-  if (!planContext.plan) return <Skeleton w="90%"/>;
-
-  const { plan, setPlan, changesSaved, retryCount, setRetryCount, error } = planContext;
+  const { programIds, setProgramIds, onUpdate } = useContext(PlanAuditContext);
   const { session } = useContext(UserSessionContext);
 
   const [titleLocal, setTitleLocal] = useState('');
@@ -21,7 +17,7 @@ export default function PlanHeader() {
   const spanRef = useRef<HTMLSpanElement>(null);
   const placeholder = "Edit Plan Title";
 
-  const [isProgramSelectorFocused, setIsProgramSelectorFocused] = useState<boolean>(false);
+  const { plan, setPlan, changesSaved, retryCount, setRetryCount, error } = planContext;
 
   useEffect(() => {
     if (plan) {
@@ -32,6 +28,8 @@ export default function PlanHeader() {
   useEffect(() => {
     if (spanRef.current) setInputWidth(spanRef.current.offsetWidth + 2);
   }, [titleLocal]);
+
+  if (!plan) return <Skeleton w="90%"/>;
 
   return (
     <Flex
@@ -99,13 +97,11 @@ export default function PlanHeader() {
             </span>
           </div>
         </form>
-        {/*  */}
         <MultiSelect
-          // onFocus={() => setIsProgramSelectorFocused(true)}
           onBlur={onUpdate}
           data={programOptions}
           searchable
-          aria-label="Add Programs Here" //brotisserie chicken we need to add accessibility stuff eventually prob
+          aria-label="Add Programs Here"
           placeholder={programIds.length===0 ? "Select a program" : ""}
           value={programIds}
           onChange={setProgramIds}
@@ -133,10 +129,6 @@ export default function PlanHeader() {
                 {error}
               </Text>
             ) : changesSaved && plan.last_updated !== null ? (() => {
-
-              // now using TIMESTAMPTZ instead of TIMESTAMP, so no manual logic required.
-              // const offset = new Date().getTimezoneOffset();
-              // const now = new Date(Date.now() + offset * 60 * 1000);
               return isAfter(Date.now(), plan.last_updated)
                 ? `Saved ${formatDistanceToNow(plan.last_updated, { addSuffix: true })}`
                 : "Saved just now."

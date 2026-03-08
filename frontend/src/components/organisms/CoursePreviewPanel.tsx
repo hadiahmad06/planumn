@@ -7,9 +7,16 @@ import { HydratedPreview, PreviewContext, PreviewPosition } from '@/contexts/vis
 import { getCourseDetails } from '@/types/planHandlers';
 import Draggable from 'react-draggable';
 import { CoursePreviewEntry, CoursePreviewSkeleton, getXYFromCoords, mapPositionToCoords } from './CoursePreview';
+import { useWindowDimensions } from '@/hooks/useWindowDimensions';
 
 export default function CoursePreviewPanel() {
   const { persistCourses, tempCourse, focusPersistPreview } = useContext(PreviewContext);
+  const { width, height } = useWindowDimensions();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Combine persistent and temporary previews
   const allPreviews = [
@@ -57,8 +64,8 @@ export default function CoursePreviewPanel() {
             bounds={{
               left: 0,
               top: 0,
-              right: window.innerWidth * 0.75,
-              bottom: window.innerHeight * 0.9,
+              right: mounted ? width * 0.75 : 0,
+              bottom: mounted ? height * 0.9 : 0,
             }}
           >
             <div

@@ -6,20 +6,27 @@ import { ColorKey } from "@/types/plan";
 
 export const DisplaySettingsProvider = ({ children }: { children: React.ReactNode }) => {
   const [colorKey, setColorKey] = useState<ColorKey>("department");
+  const [mounted, setMounted] = useState(false);
 
-  // Load from localStorage on mount
   useEffect(() => {
-    const storedColorKey = localStorage.getItem("colorKey");
-    if (storedColorKey) {
-      setColorKey(storedColorKey as ColorKey);
-    }
+    setMounted(true);
   }, []);
 
-  // Save to localStorage on update
   useEffect(() => {
-    localStorage.setItem("colorKey", colorKey);
-    window.postMessage({ type: "COLOR_KEY_UPDATE", colorKey }, "*");
-  }, [colorKey]);
+    if (mounted) {
+      const storedColorKey = localStorage.getItem("colorKey");
+      if (storedColorKey) {
+        setColorKey(storedColorKey as ColorKey);
+      }
+    }
+  }, [mounted]);
+
+  useEffect(() => {
+    if (mounted) {
+      localStorage.setItem("colorKey", colorKey);
+      window.postMessage({ type: "COLOR_KEY_UPDATE", colorKey }, "*");
+    }
+  }, [colorKey, mounted]);
 
   return (
     <DisplaySettingsContext.Provider value={{ colorKey, setColorKey }}>

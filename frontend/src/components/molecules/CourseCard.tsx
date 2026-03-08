@@ -9,7 +9,6 @@ import { PlanContext } from "@/contexts/data/PlanContext";
 import { DisplaySettingsContext } from "@/contexts/visual/DisplaySettingsContext";
 import { PreviewContext } from "@/contexts/visual/PreviewContext";
 import styles from "./CourseCard.module.css";
-import { cached } from "sqlite3";
 import { PlanAuditContext } from "@/contexts/data/PlanAuditContext";
 
 const CARD_FIXED_WIDTH = 110;
@@ -96,7 +95,8 @@ export default function CourseCard({
     const rNorm = r / 255, gNorm = g / 255, bNorm = b / 255;
     const max = Math.max(rNorm, gNorm, bNorm);
     const min = Math.min(rNorm, gNorm, bNorm);
-    let h = 0, s = 0, l = (max + min) / 2;
+    let h = 0, s = 0;
+    const l = (max + min) / 2;
 
     if (max !== min) {
       const d = max - min;

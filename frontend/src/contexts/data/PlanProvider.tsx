@@ -30,6 +30,7 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
     const [plan, setPlan] = useState<PlanNullable | null>(null);
     const [cachedCourses, setCachedCourses] = useState<Record<number, PlannedCourse>>({});
     const [cachedSearchResults, setCachedSearchResults] = useState<Record<number, CourseStub>>({});
+    const [mounted, setMounted] = useState(false);
 
     const [planFetched, setPlanFetched] = useState<boolean>(false);
     const [changesSaved, setChangesSaved] = useState<boolean>(true);
@@ -39,8 +40,13 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
 
     const { user, session } = useContext(UserSessionContext);
 
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     // Load from localStorage on mount
     useEffect(() => {
+        if (!mounted) return;
         const storedPlan = localStorage.getItem("plan");
         if (storedPlan) {
             const parsedPlan = JSON.parse(storedPlan) as Plan;
@@ -48,7 +54,7 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
             cachePlannedCourses(parsedPlan, setCachedCourses);
         }
         setPlanFetched(true);
-    }, []);
+    }, [mounted]);
 
     useEffect(() => {
         const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -66,7 +72,7 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
     // Save to localStorage, update cache, and trigger changesSaved status on update.
     useEffect(() => {
         if (!plan) {
-            if(planFetched) {
+            if(planFetched && mounted) {
                 setCachedCourses({});
                 setChangesSaved(true);
                 localStorage.removeItem("plan");
@@ -85,10 +91,10 @@ export const PlanProvider = ({ children }: { children: React.ReactNode }) => {
 
         if (semestersChanged || titleChanged || programsChanged) {
             setChangesSaved(false);
-            localStorage.setItem("plan", JSON.stringify(plan));
+            if (mounted) localStorage.setItem("plan", JSON.stringify(plan));
             if (retryCount > 0) setRetryCount(0);
         } else {
-            localStorage.removeItem("plan");
+            if (mounted) localStorage.removeItem("plan");
         }
         // console.log(semestersChanged, changesSaved, retryCount)
     }, [plan]);

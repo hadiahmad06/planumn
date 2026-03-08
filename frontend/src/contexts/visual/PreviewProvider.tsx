@@ -16,7 +16,8 @@ export function PreviewProvider({ children }: { children: ReactNode }) {
       setTempPreviewState({ course, pos });
       
       if (!("campus" in course)) {
-        getCourseDetails(String(course.id)).then((fullCourse: CourseDetails) => {
+        getCourseDetails(String(course.id)).then((fullCourse) => {
+          if (!fullCourse) return;
           setTempPreviewState(prev =>
             prev && "id" in prev.course && prev.course.id === course.id
               ? { ...prev, course: fullCourse }
@@ -42,7 +43,8 @@ export function PreviewProvider({ children }: { children: ReactNode }) {
     }));
 
     if (!("campus" in course)) {
-      getCourseDetails(String(course.id)).then((fullCourse: CourseDetails) => {
+      getCourseDetails(String(course.id)).then((fullCourse) => {
+        if (!fullCourse) return;
         setPersistCourses(prev => {
           const entry = prev[course.id];
           if (!entry) return prev;
