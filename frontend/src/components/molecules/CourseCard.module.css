@@ -17,3 +17,16 @@
 .autofilled {
   opacity: 0.5;
 }
+
+.completed {
+  font-weight: 600;
+}
+
+.alternative {
+  border: 2px dashed rgba(59, 130, 246, 0.8);
+}
+
+.plannedAlternative {
+  border: 2px solid rgba(59, 130, 246, 1);
+  font-weight: 600;
+}

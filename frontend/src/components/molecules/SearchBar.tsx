@@ -7,12 +7,15 @@ import { Box, Input, Text, Flex, Paper } from "@mantine/core";
 import { Course, CourseDetails, CourseStub } from "@/types/plan";
 import { DisplaySettingsContext } from "@/contexts/visual/DisplaySettingsContext";
 import { PlanContext } from "@/contexts/data/PlanContext";
+import { MenuItem } from "@/components/atoms/ContextMenu";
+import { notifications } from "@mantine/notifications";
+import { IconCopy, IconExternalLink, IconPlus } from "@tabler/icons-react";
 
 export type ColorKey = 'department' | 'level' | 'none';
 
 export default function SearchBar() {
   const { colorKey } = useContext(DisplaySettingsContext);
-  const { cachedCourses, setCachedSearchResults } = useContext(PlanContext);
+  const { cachedCourses, setCachedSearchResults, plan, setPlan } = useContext(PlanContext);
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<CourseStub[]>([]);
@@ -20,6 +23,8 @@ export default function SearchBar() {
   const [isDragging, setIsDragging] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+
+  const [selectedCourse, setSelectedCourse] = useState<CourseStub | null>(null);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -55,6 +60,76 @@ export default function SearchBar() {
 
     return () => clearTimeout(delayDebounce);
   }, [query, cachedCourses]);
+
+  const handleAddToPlan = (course: CourseStub) => {
+    if (!plan) {
+      notifications.show({
+        title: "Error",
+        message: "No plan loaded",
+        color: "red",
+      });
+      return;
+    }
+
+    const firstSemester = plan.semesters[0];
+    if (!firstSemester) {
+      notifications.show({
+        title: "Error",
+        message: "No semesters available",
+        color: "red",
+      });
+      return;
+    }
+
+    const updated = { ...plan, semesters: [...plan.semesters] };
+    const sem = updated.semesters.find((s) => s.index === firstSemester.index);
+    if (sem) {
+      sem.courses.push({
+        id: course.id,
+        lock: "unlocked",
+      });
+      setPlan(updated);
+      notifications.show({
+        title: "Success",
+        message: `Added ${course.dept_abbr} ${course.course_num} to ${firstSemester.index}`,
+        color: "green",
+      });
+    }
+  };
+
+  const handleCopyCourseCode = (course: CourseStub) => {
+    const courseCode = `${course.dept_abbr} ${course.course_num}`;
+    navigator.clipboard.writeText(courseCode).then(() => {
+      notifications.show({
+        title: "Copied",
+        message: courseCode,
+        color: "green",
+      });
+    });
+  };
+
+  const handleOpenInCatalog = (course: CourseStub) => {
+    window.open(`https://onestop2.umn.edu/psp/ps/EMPLOYEE/HRMS/c/SA_LEARNER_SERVICES.CLASS_SEARCH.GBL?Page=CLASS_SRCH_WRK2_SSRPB_SCR_DESCR&Action=U&ACAD_YEAR=2024&STRM=1249&SUBJ=${course.dept_abbr}&CATALOG_NBR=${course.course_num}`, "_blank");
+  };
+
+  const getContextMenuItems = (course: CourseStub): MenuItem[] => [
+    {
+      label: "Add to Plan",
+      icon: <IconPlus size={16} />,
+      onClick: () => handleAddToPlan(course),
+      color: "green",
+    },
+    {
+      label: "Copy Course Code",
+      icon: <IconCopy size={16} />,
+      onClick: () => handleCopyCourseCode(course),
+    },
+    {
+      label: "Open in Catalog",
+      icon: <IconExternalLink size={16} />,
+      onClick: () => handleOpenInCatalog(course),
+    },
+  ];
 
   // Group courses based on colorKey
   const groupedResults = results.reduce((acc, course) => {
@@ -157,31 +232,32 @@ export default function SearchBar() {
                     {key}
                   </td>
                   <td style={{ padding: '0.5rem' }}>
-                    <Flex wrap="wrap" gap={2}>
-                      {groupedResults[key].map((course, index) => (
-                        <Draggable
-                          key={`search-${course.dept_abbr}-${course.course_num}`}
-                          draggableId={JSON.stringify(course)}
-                          index={index}
-                        >
-                          {(provided) => (
-                            <Box
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              {...provided.dragHandleProps}
-                            >
-                              <CourseCard
-                                courseId={course.id}
-                                isDraggable={false}
-                                fixedWidth={true}
-                                fixedHeight={true}
-                                source="search"
-                              />
-                            </Box>
-                          )}
-                        </Draggable>
-                      ))}
-                    </Flex>
+<Flex wrap="wrap" gap={2}>
+                        {groupedResults[key].map((course, index) => (
+                          <Draggable
+                            key={`search-${course.dept_abbr}-${course.course_num}`}
+                            draggableId={JSON.stringify(course)}
+                            index={index}
+                          >
+                            {(provided) => (
+                              <Box
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                              >
+                                <CourseCard
+                                  courseId={course.id}
+                                  isDraggable={false}
+                                  fixedWidth={true}
+                                  fixedHeight={true}
+                                  source="search"
+                                  contextMenuItems={getContextMenuItems(course)}
+                                />
+                              </Box>
+                            )}
+                          </Draggable>
+                        ))}
+                      </Flex>
                   </td>
                 </tr>
               ))}

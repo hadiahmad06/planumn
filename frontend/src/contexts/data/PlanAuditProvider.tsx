@@ -9,6 +9,7 @@ import { get } from "http";
 import { fetchCourseDetailsFromCd } from "@/types/planHandlers";
 import { PlanContext } from "./PlanContext";
 import { set } from "date-fns";
+import { calculateAllRequirementsCompletion, findCourseAlternatives } from "@/types/requirement";
 
 export const PlanAuditProvider = ({ children }: { children: React.ReactNode }) => {
   const { plan, setPlan, planFetched } = useContext(PlanContext);
@@ -20,6 +21,8 @@ export const PlanAuditProvider = ({ children }: { children: React.ReactNode }) =
   const [programs, setPrograms] = useState<Record<string, ProgramDetails>>({});
 
   const [reqGroups, setReqGroups] = useState<Record<string, ReqGroup[]>>({});
+  const [requirementCompletion, setRequirementCompletion] = useState<Record<string, any>>({});
+  const [courseAlternatives, setCourseAlternatives] = useState<Record<string, any>>({});
 
   useEffect(() => {
     if (!planFetched) return;
@@ -27,6 +30,21 @@ export const PlanAuditProvider = ({ children }: { children: React.ReactNode }) =
     else setProgramIds(plan.programs.map((p) => p));
     updateProgramList();
   }, [planFetched]);
+
+  useEffect(() => {
+    if (reqGroups && Object.keys(reqGroups).length > 0) {
+      const completion = calculateAllRequirementsCompletion(reqGroups, plan, cachedReqCourses);
+      setRequirementCompletion(completion);
+
+      const alternatives: Record<string, any> = {};
+      for (const [key, groups] of Object.entries(reqGroups)) {
+        for (const group of groups) {
+          alternatives[group.id] = findCourseAlternatives(group, plan, cachedReqCourses);
+        }
+      }
+      setCourseAlternatives(alternatives);
+    }
+  }, [plan, reqGroups]);
 
   const updateProgramList = async () => {
 
@@ -76,6 +94,7 @@ export const PlanAuditProvider = ({ children }: { children: React.ReactNode }) =
         // for (const key of Object.keys(updated)) {
         //   if (!(key in merged)) merged[key] = updated[key];
         // }
+
         return updated;
         // return merged;
       });
@@ -85,7 +104,7 @@ export const PlanAuditProvider = ({ children }: { children: React.ReactNode }) =
           getCourseIdsFromPrograms(Object.values(programMap))
         )
       );
-      // console.log("Fetched course details for programs:", 
+      // console.log("Fetched course details for programs:",
       //   await fetchCourseDetailsFromCd(
       //     getCourseIdsFromPrograms(Object.values(programMap))
       //   ));
@@ -96,7 +115,7 @@ export const PlanAuditProvider = ({ children }: { children: React.ReactNode }) =
     }
   };
 
-  return (
+return (
     <PlanAuditContext.Provider
       value={{
         dataFetched: dataFetched,
@@ -106,6 +125,8 @@ export const PlanAuditProvider = ({ children }: { children: React.ReactNode }) =
         programs: programs,
         setPrograms: setPrograms,
         reqGroups: reqGroups,
+        requirementCompletion: requirementCompletion,
+        courseAlternatives: courseAlternatives,
         groupedPrograms: () => {return []},
         onUpdate: updateProgramList
       }}

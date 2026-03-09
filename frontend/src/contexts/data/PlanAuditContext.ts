@@ -2,6 +2,7 @@
 
 import { CourseDetails } from "@/types/plan";
 import { ProgramDetails, ProgramGroup, ReqGroup } from "@/types/program";
+import { CompletionStatus, CourseAlternativeGroup } from "@/types/requirement";
 import { createContext } from "react";
 
 
@@ -15,6 +16,8 @@ export const PlanAuditContext = createContext<{
   setPrograms: (programs: Record<string, ProgramDetails>) => void;
 
   reqGroups: Record<string, ReqGroup[]>;
+  requirementCompletion: Record<string, CompletionStatus>;
+  courseAlternatives: Record<string, CourseAlternativeGroup[]>;
 
   groupedPrograms: () => ProgramGroup[]
   onUpdate: () => void;
@@ -34,13 +37,15 @@ export const PlanAuditContext = createContext<{
   },
 
   reqGroups: {},
+  requirementCompletion: {},
+  courseAlternatives: {},
 
   groupedPrograms: () => {
     console.warn("groupedPrograms not impletmented yet");
     return []
   },
-  
+
   onUpdate: () => {
-    console.warn("onUpdate not impelemetned in context");
+    console.warn("onUpdate not impelemetned yet");
   }
 });

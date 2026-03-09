@@ -4,12 +4,13 @@ import { Box, Skeleton } from "@mantine/core";
 import { Draggable } from "@hello-pangea/dnd";
 import { getCourseColor } from "@/lib/colors";
 import { PlannedCourse, CourseStub, CourseDetails } from "@/types/plan";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { PlanContext } from "@/contexts/data/PlanContext";
 import { DisplaySettingsContext } from "@/contexts/visual/DisplaySettingsContext";
 import { PreviewContext } from "@/contexts/visual/PreviewContext";
 import styles from "./CourseCard.module.css";
 import { PlanAuditContext } from "@/contexts/data/PlanAuditContext";
+import ContextMenu, { MenuItem } from "@/components/atoms/ContextMenu";
 
 const CARD_FIXED_WIDTH = 110;
 const CARD_FIXED_HEIGHT = 40;
@@ -25,9 +26,14 @@ interface CourseCardProps {
   isDraggable?: boolean;
   className?: string;
   fontSize?: string;
-  source?: "search" | "plan" | null;
+  source?: "search" | "plan" | "program" | null;
   fixedWidth?: boolean;
   fixedHeight?: boolean;
+  isCompleted?: boolean;
+  isAlternative?: boolean;
+  isPlannedAlternative?: boolean;
+  showContextMenu?: boolean;
+  contextMenuItems?: MenuItem[];
 }
 
 export default function CourseCard({
@@ -41,11 +47,19 @@ export default function CourseCard({
   source = "search",
   fixedWidth = false,
   fixedHeight = false,
+  isCompleted = false,
+  isAlternative = false,
+  isPlannedAlternative = false,
+  showContextMenu = true,
+  contextMenuItems = [],
 }: CourseCardProps) {
   const { cachedCourses, cachedSearchResults } = useContext(PlanContext);
   const { cachedReqCourses } = useContext(PlanAuditContext);
   const { colorKey } = useContext(DisplaySettingsContext);
   const { setTempPreview, addPersistPreview } = useContext(PreviewContext);
+
+  const [contextMenuOpened, setContextMenuOpened] = useState(false);
+  const [contextMenuPosition, setContextMenuPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const course: CourseDetails | PlannedCourse | CourseStub =
     typeof courseId === "string"
@@ -70,6 +84,10 @@ export default function CourseCard({
       ? styles.autofilled
       : ""
     : "";
+
+  const completedClass = isCompleted ? styles.completed : "";
+  const alternativeClass = isAlternative ? styles.alternative : "";
+  const plannedAlternativeClass = isPlannedAlternative ? styles.plannedAlternative : "";
 
   function hexToRgb(hex: string): [number, number, number] | null {
     const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
@@ -119,11 +137,23 @@ export default function CourseCard({
 
   const cardElement = (
     <Box
-      className={`${styles.card} ${lockClass} ${className}`}
+      className={`${styles.card} ${lockClass} ${completedClass} ${alternativeClass} ${plannedAlternativeClass} ${className}`}
       style={{
-        background: getShinyGradient(backgroundColor),
+        background: isCompleted
+          ? getShinyGradient("#10b981")
+          : isAlternative && isPlannedAlternative
+          ? getShinyGradient("#3b82f6")
+          : isAlternative
+          ? getShinyGradient(backgroundColor)
+          : getShinyGradient(backgroundColor),
         width: fixedWidth ? `${CARD_FIXED_WIDTH}px` : '100%',
-        boxShadow: "0 0 4px 2px rgba(0,0,0,0.2)",
+        boxShadow: isCompleted
+          ? "0 0 6px 3px rgba(16, 185, 129, 0.4)"
+          : isAlternative && isPlannedAlternative
+          ? "0 0 6px 3px rgba(59, 130, 246, 0.4)"
+          : isAlternative
+          ? "0 0 4px 2px rgba(59, 130, 246, 0.3)"
+          : "0 0 4px 2px rgba(0,0,0,0.2)",
         height: fixedHeight
           ? `${CARD_FIXED_HEIGHT}px`
           : `${("cred_min" in course ? course.cred_min : 1) * CARD_HEIGHT_MULTIPLIER}px`,
@@ -144,8 +174,24 @@ export default function CourseCard({
           setTempPreview?.(null);
         }
       }}
+      onContextMenu={(event) => {
+        if (showContextMenu && contextMenuItems.length > 0) {
+          event.preventDefault();
+          event.stopPropagation();
+          setContextMenuPosition({ x: event.clientX, y: event.clientY });
+          setContextMenuOpened(true);
+        }
+      }}
     >
       {course.dept_abbr} {course.course_num}
+      {showContextMenu && contextMenuItems.length > 0 && (
+        <ContextMenu
+          opened={contextMenuOpened}
+          onClose={() => setContextMenuOpened(false)}
+          items={contextMenuItems}
+          position={contextMenuPosition}
+        />
+      )}
     </Box>
   );
 

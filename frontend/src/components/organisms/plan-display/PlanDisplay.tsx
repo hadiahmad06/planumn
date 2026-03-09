@@ -1,7 +1,19 @@
 "use client";
 
 import { Droppable } from "@hello-pangea/dnd";
-import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal, Stack, Space, Accordion, ScrollArea, Container, Group, ActionIcon } from '@mantine/core';
+import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal, Stack, Space, Accordion, ScrollArea, Container, Group, ActionIcon, Tooltip } from '@mantine/core';
+import { MenuItem } from "@/components/atoms/ContextMenu";
+import { notifications } from "@mantine/notifications";
+import { IconCopy, IconExternalLink, IconTrash, IconArrowUp, IconArrowDown } from "@tabler/icons-react";
+import {
+  getSameSeasonPreviousYear,
+  getSameSeasonNextYear,
+  getSeasonInAcademicYear,
+  deleteCourseFromSemester,
+  moveCourseBetweenSemesters,
+  ensureSemesterExists,
+  Season,
+} from "@/lib/semesterUtils";
 // Accordion control open/closed styles
 // You may move these to a CSS module or stylesheet if preferred
 const SEMESTER_BACKGROUND = 'linear-gradient(135deg, rgba(221, 208, 208, 0.8), rgba(245, 245, 255, 0.6))';
@@ -14,7 +26,7 @@ import theme from "@/styles/theme";
 import { PlanContext } from "@/contexts/data/PlanContext";
 import SearchLayout from "@/components/organisms/SearchLayout";
 import PlanHeader from "../../atoms/PlanHeader";
-import { IconMinus, IconPlus } from "@tabler/icons-react";
+import { IconMinus, IconPlus, IconChevronDown, IconChevronUp } from "@tabler/icons-react";
 import { MobileContext } from "@/contexts/visual/MobileContext";
 import PlanDisplayMobile from "./PlanDisplayMobile";
 
@@ -68,7 +80,185 @@ export function PlanDisplayDesktop() {
   // Accordion control open/closed state for bottom border radius
   const [closedAccordion, setClosedAccordion] = useState<string[]>([]);
 
+// Semester selection state
+  const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
+
+  // Toggle semester selection
+  const toggleSemesterSelection = (semesterIndex: string) => {
+    setSelectedSemesters((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(semesterIndex)) {
+        newSet.delete(semesterIndex);
+      } else {
+        newSet.add(semesterIndex);
+      }
+      return newSet;
+    });
+  };
+
+  // Year-level collapse state
+  const [collapsedYears, setCollapsedYears] = useState<Set<string>>(new Set());
+
+  // Toggle all semesters in a year
+  const toggleYearCollapse = (year: string, yearSemesters: Semester[]) => {
+    const yearSemesterIndices = yearSemesters.map(s => s.index);
+    const isYearCollapsed = yearSemesterIndices.every(idx => closedAccordion.includes(idx));
+
+    if (isYearCollapsed) {
+      // Expand year: remove semester indices from closedAccordion, remove year from collapsedYears
+      setClosedAccordion(prev => prev.filter(idx => !yearSemesterIndices.includes(idx)));
+      setCollapsedYears(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(year);
+        return newSet;
+      });
+    } else {
+      // Collapse year: add semester indices to closedAccordion, add year to collapsedYears
+      setClosedAccordion(prev => {
+        // Don't mutate prev, return a new array with all indices (union)
+        const set = new Set(prev);
+        yearSemesterIndices.forEach(idx => set.add(idx));
+        return Array.from(set);
+      });
+      setCollapsedYears(prev => {
+        const newSet = new Set(prev);
+        newSet.add(year);
+        return newSet;
+      });
+    }
+  };
+
   const [yearManipulate, setYearManipulate] = useState<string>('')
+
+  const handleDeleteCourse = (courseId: number, semesterIndex: string) => {
+    if (!plan) return;
+
+    const updated = deleteCourseFromSemester(plan, courseId, semesterIndex);
+    if (updated !== plan) {
+      setPlan(updated);
+      notifications.show({
+        title: "Deleted",
+        message: "Course removed from plan",
+        color: "green",
+      });
+    }
+  };
+
+  const handleMoveToSeason = (courseId: number, fromSemIndex: string, toSeason: Season) => {
+    if (!plan) return;
+
+    const toSemIndex = getSeasonInAcademicYear(fromSemIndex, toSeason);
+    if (!toSemIndex) return;
+
+    let updated = ensureSemesterExists(plan, toSemIndex);
+    updated = moveCourseBetweenSemesters(updated, courseId, fromSemIndex, toSemIndex);
+
+    if (updated !== plan) {
+      setPlan(updated);
+      notifications.show({
+        title: "Moved",
+        message: `Course moved to ${toSeason}`,
+        color: "green",
+      });
+    }
+  };
+
+  const handleMoveToPreviousYear = (courseId: number, fromSemIndex: string) => {
+    if (!plan) return;
+
+    const toSemIndex = getSameSeasonPreviousYear(fromSemIndex);
+    if (!toSemIndex) return;
+
+    let updated = ensureSemesterExists(plan, toSemIndex);
+    updated = moveCourseBetweenSemesters(updated, courseId, fromSemIndex, toSemIndex);
+
+    if (updated !== plan) {
+      setPlan(updated);
+      notifications.show({
+        title: "Moved",
+        message: "Course moved to previous year",
+        color: "green",
+      });
+    }
+  };
+
+  const handleMoveToNextYear = (courseId: number, fromSemIndex: string) => {
+    if (!plan) return;
+
+    const toSemIndex = getSameSeasonNextYear(fromSemIndex);
+    if (!toSemIndex) return;
+
+    let updated = ensureSemesterExists(plan, toSemIndex);
+    updated = moveCourseBetweenSemesters(updated, courseId, fromSemIndex, toSemIndex);
+
+    if (updated !== plan) {
+      setPlan(updated);
+      notifications.show({
+        title: "Moved",
+        message: "Course moved to next year",
+        color: "green",
+      });
+    }
+  };
+
+  const handleCopyCourseCode = (course: CourseDetails) => {
+    const courseCode = `${course.dept_abbr} ${course.course_num}`;
+    navigator.clipboard.writeText(courseCode).then(() => {
+      notifications.show({
+        title: "Copied",
+        message: courseCode,
+        color: "green",
+      });
+    });
+  };
+
+  const handleOpenInCatalog = (course: CourseDetails) => {
+    window.open(`https://onestop2.umn.edu/psp/ps/EMPLOYEE/HRMS/c/SA_LEARNER_SERVICES.CLASS_SEARCH.GBL?Page=CLASS_SRCH_WRK2_SSRPB_SCR_DESCR&Action=U&ACAD_YEAR=2024&STRM=1249&SUBJ=${course.dept_abbr}&CATALOG_NBR=${course.course_num}`, "_blank");
+  };
+
+  const getContextMenuItems = (course: CourseDetails, semesterIndex: string): MenuItem[] => [
+    {
+      label: "Delete",
+      icon: <IconTrash size={16} />,
+      onClick: () => handleDeleteCourse(course.id, semesterIndex),
+      color: "red",
+    },
+    {
+      label: "Move to Fall 🍂",
+      icon: <IconArrowUp size={16} />,
+      onClick: () => handleMoveToSeason(course.id, semesterIndex, "Fall"),
+    },
+    {
+      label: "Move to Spring 🌱",
+      icon: <IconArrowUp size={16} />,
+      onClick: () => handleMoveToSeason(course.id, semesterIndex, "Spring"),
+    },
+    {
+      label: "Move to Summer ☀️",
+      icon: <IconArrowUp size={16} />,
+      onClick: () => handleMoveToSeason(course.id, semesterIndex, "Summer"),
+    },
+    {
+      label: "Move to previous year ↑",
+      icon: <IconArrowUp size={16} />,
+      onClick: () => handleMoveToPreviousYear(course.id, semesterIndex),
+    },
+    {
+      label: "Move to next year ↓",
+      icon: <IconArrowDown size={16} />,
+      onClick: () => handleMoveToNextYear(course.id, semesterIndex),
+    },
+    {
+      label: "Copy Course Code",
+      icon: <IconCopy size={16} />,
+      onClick: () => handleCopyCourseCode(course),
+    },
+    {
+      label: "Open in Catalog",
+      icon: <IconExternalLink size={16} />,
+      onClick: () => handleOpenInCatalog(course),
+    },
+  ];
 
   useEffect(() => {
     const handleMessage = async (event: MessageEvent) => {
@@ -97,6 +287,24 @@ export function PlanDisplayDesktop() {
             lock: "unlocked"
           });
 
+        } else if (source.droppableId && source.droppableId.startsWith("program-")) {
+
+          const courseCode = event.data.result.draggableId;
+          const [dept, num] = courseCode.split(" ");
+
+          if (cachedCourses) {
+            const existingCourse = Object.values(cachedCourses).find(
+              c => c.dept_abbr === dept && c.course_num === num
+            );
+
+            if (existingCourse) {
+              courses.splice(destination.index, 0, {
+                ...existingCourse,
+                lock: "unlocked"
+              });
+            }
+          }
+
         } else {
           const sourceSem = updated.find(sem => sem.index === source.droppableId);
           if (!sourceSem) return;
@@ -124,7 +332,7 @@ export function PlanDisplayDesktop() {
 
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [plan, setPlan]);
+  }, [plan, setPlan, cachedCourses]);
 
 
   if (!plan) {
@@ -223,20 +431,57 @@ export function PlanDisplayDesktop() {
                         .map(([year, semGroupRaw]) => {
 
                         const semGroup = semGroupRaw as Record<'Fall' | 'Spring' | 'Summer', Semester | undefined>;
+                        const yearSemesters = Object.values(semGroup).filter((s): s is Semester => s !== undefined);
+                        const isYearCollapsed = yearSemesters.every(s => closedAccordion.includes(s.index));
+
                         return (
                           <Flex
-                            // bg="blue"
+                            direction="column"
                             key={year}
-                            direction="row"
-                            align="left"
-                            justify="flex-start"
-                            gap={theme.planDisplayStyles.container.gap + 10}
-                            wrap="nowrap"
-                            // style={{ width: '150px' }}
+                            align="flex-start"
+                            gap="md"
                           >
-                            {/*<Title>*/}
-                            {/*  /!* {year}–{(parseInt(year) + 1).toString().slice(-2)} *!/*/}
-                            {/*</Title>*/}
+                            <Flex
+                              align="center"
+                              gap="sm"
+                              onClick={() => toggleYearCollapse(year, yearSemesters)}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.background = 'rgba(129, 19, 49, 0.1)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(129, 19, 49, 0.05)';
+                              }}
+                              style={{
+                                cursor: 'pointer',
+                                padding: '0.5rem 1rem',
+                                background: 'rgba(129, 19, 49, 0.05)',
+                                borderRadius: '0.5rem',
+                                transition: 'all 0.2s ease',
+                              }}
+                            >
+                              <IconChevronUp
+                                size={20}
+                                style={{
+                                  transform: isYearCollapsed ? 'rotate(180deg)' : 'rotate(0deg)',
+                                  transition: 'transform 0.3s ease',
+                                  color: '#811331',
+                                }}
+                              />
+                              <Text
+                                fw={700}
+                                size="lg"
+                                style={{ color: '#2D2A32' }}
+                              >
+                                {year}–{(parseInt(year) + 1).toString().slice(-2)}
+                              </Text>
+                            </Flex>
+                            <Flex
+                              direction="row"
+                              align="flex-start"
+                              justify="flex-start"
+                              gap={theme.planDisplayStyles.container.gap + 10}
+                              wrap="nowrap"
+                            >
                             {(() => {
                               const { Fall, Spring, Summer } = semGroup as { Fall?: Semester; Spring?: Semester; Summer?: Semester };
                               return (['🍂 Fall', '🌱 Spring', '☀️ Summer'] as const).map((season) => {
@@ -276,23 +521,31 @@ export function PlanDisplayDesktop() {
                                           borderBottomLeftRadius: '1rem',
                                           borderBottomRightRadius: '1rem',
                                         },
-                                        control: {
-                                          textAlign: 'center',
-                                          fontSize: SEMESTER_TITLE_SIZE,
-                                          color: '#2D2A32',
-                                          background: SEMESTER_BACKGROUND,
-                                          border: '1px solid rgba(128, 128, 128, 0.2)',
-                                          padding: 12,
-                                          width: SEMESTER_BOX_WIDTH,
-                                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-                                          display: 'block',
-                                          marginBottom: 0,
-                                          paddingBottom: 12,
-                                          borderTopLeftRadius: '1rem',
-                                          borderTopRightRadius: '1rem',
-                                          borderBottomLeftRadius: !closedAccordion.includes(sem.index) ? '0' : '1rem',
-                                          borderBottomRightRadius: !closedAccordion.includes(sem.index) ? '0' : '1rem',
-                                        },
+control: {
+                                           textAlign: 'center',
+                                           fontSize: SEMESTER_TITLE_SIZE,
+                                           color: '#2D2A32',
+                                           background: selectedSemesters.has(sem.index)
+                                             ? 'linear-gradient(135deg, rgba(255, 235, 235, 0.9), rgba(255, 245, 245, 0.8))'
+                                             : SEMESTER_BACKGROUND,
+                                           border: selectedSemesters.has(sem.index)
+                                             ? '2px solid #811331'
+                                             : '1px solid rgba(128, 128, 128, 0.2)',
+                                           padding: 12,
+                                           width: SEMESTER_BOX_WIDTH,
+                                           boxShadow: selectedSemesters.has(sem.index)
+                                             ? '0 4px 12px rgba(129, 19, 49, 0.2)'
+                                             : '0 2px 8px rgba(0, 0, 0, 0.05)',
+                                           display: 'block',
+                                           marginBottom: 0,
+                                           paddingBottom: 12,
+                                           borderTopLeftRadius: '1rem',
+                                           borderTopRightRadius: '1rem',
+                                           borderBottomLeftRadius: !closedAccordion.includes(sem.index) ? '0' : '1rem',
+                                           borderBottomRightRadius: !closedAccordion.includes(sem.index) ? '0' : '1rem',
+                                           cursor: 'pointer',
+                                           transition: 'all 0.2s ease',
+                                         },
                                         panel: {
                                           padding: 0,
                                           margin: 0,
@@ -307,7 +560,10 @@ export function PlanDisplayDesktop() {
                                       }}
                                     >
                                     <Accordion.Item value={sem.index} key={sem.index}>
-                                      <Accordion.Control>
+                                      <Accordion.Control onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleSemesterSelection(sem.index);
+                                      }}>
                                         <Text>
                                           {season} {season === '🍂 Fall' ? year : parseInt(year) + 1}
                                         </Text>
@@ -360,14 +616,19 @@ export function PlanDisplayDesktop() {
                                                 </Flex>
                                                 <Flex direction="column" gap={COURSE_VERTICAL_GAP} style={{ width: '100%', alignItems: 'center' }}>
                                                   {(sem.courses as CourseMetadata[]).map((course, j) => {
-                                                    return <CourseCard
-                                                      key={`${sem.index}-${j}`}
-                                                      courseId={course.id}
-                                                      index={j}
-                                                      semName={sem.index}
-                                                      fixedWidth
-                                                      fontSize="15px"
-                                                      source="plan"/>
+                                                    const courseDetails = cachedCourses[course.id];
+                                                    return (
+                                                      <CourseCard
+                                                        key={`${sem.index}-${j}`}
+                                                        courseId={course.id}
+                                                        index={j}
+                                                        semName={sem.index}
+                                                        fixedWidth
+                                                        fontSize="15px"
+                                                        source="plan"
+                                                        contextMenuItems={courseDetails ? getContextMenuItems(courseDetails, sem.index) : []}
+                                                      />
+                                                    );
                                                   })}
                                                   {provided.placeholder}
                                                 </Flex>
@@ -379,68 +640,104 @@ export function PlanDisplayDesktop() {
                                     </Accordion.Item>
                                   </Accordion>
                                 );
-                              });
-                            })()}
-                          </Flex>
-                        );
-                      })}
-                    </>
-                  );
-                })()}
-              </Flex>
-            </ScrollArea>
+});
+                             })()}
+                           </Flex>
+                           </Flex>
+                         );
+                       })}
+                     </>
+                   );
+                 })()}
+               </Flex>
+</ScrollArea>
             <Box
-              style={{
-                display: "flex",
-                flexDirection: 'column',
-                gap: '0.5rem',
-                position: 'absolute',
-                left: '5%',
-                top: '10%',
-                transform: 'translateY(-50%)',
-              }}
-            >
-              <ActionIcon 
-                bg='rgba(129, 19, 49, 0.1)' 
-                radius='md'  
-                onClick={() => {ManipulateYear(plan, setPlan, "AddPrecedingYear")}}
-              >
-                <IconPlus color={'Green'}/>
-              </ActionIcon>
-              <ActionIcon  
-                bg='rgba(129, 19, 49, 0.1)'
-                radius='md'
-                onClick={() => {ManipulateYear(plan, setPlan,"RemovePrecedingYear")}}
-              >
-                <IconMinus color={'Red'}/>
-              </ActionIcon>
-            </Box>
-            <Box style={{
-                display: "flex",
-                flexDirection: 'column',
-                gap: '0.5rem',
-                position: 'absolute',
-                right: '5%',
-                top: '10%',
-                transform: 'translateY(-50%)',
-              }}
-            >
-              <ActionIcon 
-                bg='rgba(129, 19, 49, 0.1)'
-                radius='md'
-                onClick={() => {ManipulateYear(plan, setPlan, "AddLatestYear")}}
-              >
-                <IconPlus color={'Green'}/>
-              </ActionIcon>
-
-              <ActionIcon 
-                bg='rgba(129, 19, 49, 0.1)'  
-                radius='md'
-                onClick={() => {ManipulateYear(plan, setPlan, "RemoveLatestYear")}}
-              >
-                <IconMinus color={'Red'}/>
-              </ActionIcon>
-            </Box>
+               style={{
+                 display: "flex",
+                 flexDirection: 'column',
+                 gap: '0.5rem',
+                 position: 'absolute',
+                 right: '5%',
+                 top: '10%',
+                 transform: 'translateY(-50%)',
+               }}
+             >
+               <Tooltip label="Add year at start" position="left">
+                 <ActionIcon
+                   bg='rgba(129, 19, 49, 0.1)'
+                   radius='md'
+                   style={{ transition: 'all 0.2s ease' }}
+                   onMouseEnter={(e) => {
+                     e.currentTarget.style.background = 'rgba(129, 19, 49, 0.2)';
+                   }}
+                   onMouseLeave={(e) => {
+                     e.currentTarget.style.background = 'rgba(129, 19, 49, 0.1)';
+                   }}
+                   onClick={() => {ManipulateYear(plan, setPlan, "AddPrecedingYear")}}
+                 >
+                   <IconPlus color={'Green'}/>
+                 </ActionIcon>
+               </Tooltip>
+               <Tooltip label="Remove earliest year" position="left">
+                 <ActionIcon
+                   bg='rgba(129, 19, 49, 0.1)'
+                   radius='md'
+                   style={{ transition: 'all 0.2s ease' }}
+                   onMouseEnter={(e) => {
+                     e.currentTarget.style.background = 'rgba(129, 19, 49, 0.2)';
+                   }}
+                   onMouseLeave={(e) => {
+                     e.currentTarget.style.background = 'rgba(129, 19, 49, 0.1)';
+                   }}
+                   onClick={() => {ManipulateYear(plan, setPlan, "RemovePrecedingYear")}}
+                 >
+                   <IconMinus color={'Red'}/>
+                 </ActionIcon>
+               </Tooltip>
+             </Box>
+             <Box style={{
+                 display: "flex",
+                 flexDirection: 'column',
+                 gap: '0.5rem',
+                 position: 'absolute',
+                 right: '5%',
+                 bottom: '10%',
+                 transform: 'translateY(50%)',
+               }}
+             >
+               <Tooltip label="Add year at end" position="left">
+                 <ActionIcon
+                   bg='rgba(129, 19, 49, 0.1)'
+                   radius='md'
+                   style={{ transition: 'all 0.2s ease' }}
+                   onMouseEnter={(e) => {
+                     e.currentTarget.style.background = 'rgba(129, 19, 49, 0.2)';
+                   }}
+                   onMouseLeave={(e) => {
+                     e.currentTarget.style.background = 'rgba(129, 19, 49, 0.1)';
+                   }}
+                   onClick={() => {ManipulateYear(plan, setPlan, "AddLatestYear")}}
+                 >
+                   <IconPlus color={'Green'}/>
+                 </ActionIcon>
+               </Tooltip>
+               <Tooltip label="Remove latest year" position="left">
+                 <ActionIcon
+                   bg='rgba(129, 19, 49, 0.1)'
+                   radius='md'
+                   style={{ transition: 'all 0.2s ease' }}
+                   onMouseEnter={(e) => {
+                     e.currentTarget.style.background = 'rgba(129, 19, 49, 0.2)';
+                   }}
+                   onMouseLeave={(e) => {
+                     e.currentTarget.style.background = 'rgba(129, 19, 49, 0.1)';
+                   }}
+                   onClick={() => {ManipulateYear(plan, setPlan, "RemoveLatestYear")}}
+                 >
+                   <IconMinus color={'Red'}/>
+                 </ActionIcon>
+               </Tooltip>
+             </Box>
           </Box>
         </Box>
       </Box>

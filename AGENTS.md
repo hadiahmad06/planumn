@@ -2,12 +2,44 @@
 
 Guidelines for agentic coding agents working in this repository.
 
+
+# Notifications
+
+You have access to a phone notification script. Use it to ping me whenever something important happens.
+
+Run this command to send a notification:
+```
+bash ~/.config/opencode/notify-phone.sh \"your message\" \"tag\"
+```
+
+The second argument is an emoji tag — it controls the notification sound on iPhone via the Ntfy app.
+
+## When to notify
+
+| Situation | Example message |
+|---|---|
+| Task fully completed | `✅ Done: built auth flow` |
+| Need permission or approval | `🔐 Need permission: delete 3 files in /src` |
+| Blocked / can't proceed | `⛔ Blocked: missing env var NEXT_PUBLIC_API_URL` |
+| Unrecoverable error | `❌ Error: build failed — tsc type errors in app/page.tsx` |
+| Long task started | `🚀 Started: refactoring database layer` |
+
+## Rules
+
+- Keep messages short and specific (under 80 chars)
+- Always notify before asking a clarifying question that requires my input
+- Always notify when a task is fully done, not just when you think you're close
+- Do NOT notify for every small step — only the events above
+- ALWAYS notify when you are about to be access something you need permission for.
+
+
 ## Project Overview
 
 PlanUMN is a Next.js 15 graduation planner for University of Minnesota students. Built with React 19, TypeScript, Mantine UI, Tailwind CSS v4, and Supabase.
 
 ## Commands
 
+Extra documentation can be found in the `docs/` directory
 All commands should be run from the `frontend/` directory:
 
 ```bash
@@ -107,6 +139,30 @@ try {
 } catch (err: any) {
   console.error(err.message);
 }
+```
+
+**Type Usage Patterns:**
+
+- **PlanNullable**: Default type for plan data throughout the app
+- **Plan**: Only used when saving to database (required fields enforced)
+
+```tsx
+// Use PlanNullable for in-memory data
+const plan: PlanNullable = { /* ... */ };
+
+// Convert to Plan only before DB operations
+const planToSave: Plan = convertToPlan(plan);
+```
+
+- **CourseMetadata**: Stores only plan-specific metadata (ids), not actual course info
+- Use `course_metadata.id` with `cachedCourses[courseId]` or `cachedSearchResults[courseId]` to retrieve full course details
+
+```tsx
+// CourseMetadata is just a reference
+const metadata: CourseMetadata = { id: "12345" };
+
+// Get actual course info from cache
+const courseInfo = cachedCourses[metadata.id];
 ```
 
 ### Error Handling
@@ -284,31 +340,3 @@ export default function MyComponent() {
 - Remove debug `console.log` statements before committing
 
 ---
-
-# Notifications
-
-You have access to a phone notification script. Use it to ping me whenever something important happens.
-
-Run this command to send a notification:
-```
-bash ~/.config/opencode/notify-phone.sh \"your message\" \"tag\"
-```
-
-The second argument is an emoji tag — it controls the notification sound on iPhone via the Ntfy app.
-
-## When to notify
-
-| Situation | Example message |
-|---|---|
-| Task fully completed | `✅ Done: built auth flow` |
-| Need permission or approval | `🔐 Need permission: delete 3 files in /src` |
-| Blocked / can't proceed | `⛔ Blocked: missing env var NEXT_PUBLIC_API_URL` |
-| Unrecoverable error | `❌ Error: build failed — tsc type errors in app/page.tsx` |
-| Long task started | `🚀 Started: refactoring database layer` |
-
-## Rules
-
-- Keep messages short and specific (under 80 chars)
-- Always notify before asking a clarifying question that requires my input
-- Always notify when a task is fully done, not just when you think you're close
-- Do NOT notify for every small step — only the events above
