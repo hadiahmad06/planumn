@@ -52,36 +52,40 @@ This roadmap outlines improvements to the plan display UI to enhance usability a
 **Priority**: High
 
 ### Features
-- Single click to expand/collapse all semesters within a year
-- Visual indicator showing year state (all expanded, all collapsed, or mixed)
-- Separate control from individual semester accordion controls
+- Clicking any semester header expands/collapses ALL semesters in that year
+- Smart click behavior based on selection and expand state:
+  - If clicked semester is selected AND expanded → collapse year AND deselect
+  - If clicked semester is not selected AND another semester is selected AND expanded → select clicked semester (collapse other year's semesters)
+  - If clicked semester is collapsed → expand year AND select semester
+- No separate year header needed (removed)
 
 ### Implementation Steps
-1. Add year-level collapse state management
+1. Removed `collapsedYears` state (no longer needed)
+2. Removed year header component and chevron icon
+3. Created `handleSemesterClick()` function with logic:
    ```typescript
-   const [collapsedYears, setCollapsedYears] = useState<Set<string>>(new Set());
+   if (isSelected && isExpanded) {
+     // Collapse year and deselect
+     toggleYearCollapse(...);
+     setSelectedSemesters(...remove...);
+   } else if (!isSelected && hasSelectedExpanded) {
+     // Select clicked semester
+     setSelectedSemesters(...add...);
+   } else if (!isExpanded) {
+     // Expand year and select
+     setClosedAccordion(...expand...);
+     setSelectedSemesters(...add...);
+   }
    ```
-
-2. Create year header component with expand/collapse control
-   - Add chevron/icon for year state
-   - Click handler to toggle all semesters in year
-
-3. Update Accordion logic for year control
-   - When year expanded: open all semester Accordions in that year
-   - When year collapsed: close all semester Accordions in that year
-
-4. Update year header styling
-   - Add visual distinction between year header and semester headers
-   - Ensure clear visual hierarchy
+4. Simplified year layout back to horizontal row
 
 ### Files to Modify
 - `frontend/src/components/organisms/plan-display/PlanDisplay.tsx`
-- `frontend/src/components/organisms/plan-display/PlanDisplayMobile.module.css` (styling)
 
 ### Design Considerations
-- Should year selection and year expand/collapse be separate controls?
-- Should year header display academic year (e.g., "2024–2025")?
-- Where to position year control relative to semester headers?
+- Removed: Year header component (no longer needed)
+- Kept: Semester selection visual feedback
+- Changed: Click behavior to handle both selection and year expansion
 
 ---
 
@@ -203,12 +207,14 @@ This roadmap outlines improvements to the plan display UI to enhance usability a
 
 - [x] Users can click semester headers to select/deselect them
 - [x] Visual feedback clearly indicates selected semesters
-- [x] Year header control expands/collapses all semesters in that year
+- [x] Clicking semester header expands/collapses all semesters in that year
+- [x] Smart click behavior handles selection and expansion correctly
 - [x] Year manipulation buttons are positioned correctly (top-right and bottom-right)
 - [x] All interactions feel smooth and responsive
 - [ ] Works on both desktop and mobile (desktop only implemented per requirements)
 - [ ] Accessibility requirements met (keyboard nav, ARIA labels) - partially implemented with tooltips
 - [x] No performance degradation with large plans
+- [x] Build completes successfully with no errors
 
 ---
 
@@ -238,28 +244,33 @@ This roadmap outlines improvements to the plan display UI to enhance usability a
 
 ### Phase 1: Semester Selection ✅
 - Added `selectedSemesters` state using `Set<string>` to track selected semester indices
-- Created `toggleSemesterSelection()` function to add/remove semesters from selection
 - Updated `Accordion.Control` styles to show selected state:
   - Background: Light pink gradient when selected
   - Border: 2px solid maroon (#811331) when selected
   - Box shadow: Enhanced shadow for selected semesters
-- Added click handler to semester headers with `e.stopPropagation()` to prevent accordion toggle conflict
+- Click behavior integrated with year expansion (see Phase 2)
 - Selection persists and is visually clear
 
 ### Phase 2: Year-Level Expand/Collapse ✅
-- Added `collapsedYears` state using `Set<string>` to track collapsed years
-- Created `toggleYearCollapse()` function that:
-  - Detects if all semesters in a year are collapsed
-  - Toggles all semesters in that year simultaneously
-  - Updates both `closedAccordion` and `collapsedYears` states
-- Added year header component with:
-  - Academic year label (e.g., "2024–25")
-  - Chevron icon that rotates 180° based on collapse state
-  - Maroon color (#811331) for visual consistency
-  - Hover effect (darker background)
-  - Click handler to toggle all semesters
-- Wrapped year's semesters in a column layout with year header above
-- Smooth transitions for chevron rotation and background changes
+- Removed separate year header component (simplified UX - user requirement)
+- Created `handleSemesterClick()` function with smart logic:
+  ```typescript
+  if (isSelected && isExpanded) {
+    // Collapse year and deselect clicked semester
+    toggleYearCollapse(year, yearSemesters);
+    setSelectedSemeters(...remove...);
+  } else if (!isSelected && hasSelectedExpanded) {
+    // Select clicked semester (other year remains expanded)
+    setSelectedSemesters(...add...);
+  } else if (!isExpanded) {
+    // Expand year and select clicked semester
+    toggleYearCollapse(year, yearSemesters);
+    setSelectedSemeters(...add...);
+  }
+  ```
+- Clicking any semester header now controls ALL semesters in that year
+- Simplified year layout back to horizontal row (no year header needed)
+- Maintains smooth transitions for all state changes
 
 ### Phase 3: Button Reorientation ✅
 - Removed left-side button container (previously at top-left)
@@ -274,14 +285,11 @@ This roadmap outlines improvements to the plan display UI to enhance usability a
   - "Add year at end" / "Remove latest year"
 
 ### Phase 4: Integration & Polish ✅
-- Added hover effects to year header (background darkens on hover)
 - Added hover effects to all ActionIcon buttons (background darkens on hover)
 - Smooth transitions (0.2s ease) on all interactive elements
-- Chevron rotation transition (0.3s ease) for year expand/collapse
-- Cursor pointer on year header to indicate interactivity
 - All state changes work seamlessly together:
-  - Semester selection independent from accordion expand/collapse
-  - Year expand/collapse updates all semester accordion states
+  - Semester selection works with smart click behavior
+  - Year expand/collapse controlled by any semester in that year
   - Button manipulations work with new layout
 - Maintained all existing functionality (drag-and-drop, course previews, etc.)
 - No linting errors introduced in modified files
@@ -292,10 +300,11 @@ This roadmap outlines improvements to the plan display UI to enhance usability a
 
 ### Design Decisions
 1. **Semester Selection**: Uses 2px maroon border + light pink background for clear visual feedback
-2. **Year Header**: Positioned above semesters in column layout, with maroon accent color
-3. **Button Layout**: Both button groups on right side for consistent navigation pattern
-4. **Transitions**: 0.2s for most interactions, 0.3s for chevron rotation for smooth feel
-5. **Tooltips**: Positioned "left" so they don't go off-screen on right side
+2. **Year Expansion**: No separate year header - clicking any semester header controls all semesters in that year
+3. **Smart Click Behavior**: Semester click handles both selection and year expansion based on current state
+4. **Button Layout**: Both button groups on right side for consistent navigation pattern
+5. **Transitions**: 0.2s for most interactions for smooth feel
+6. **Tooltips**: Positioned "left" so they don't go off-screen on right side
 
 ### Known Limitations (Future Work)
 - Mobile version not modified (as requested)
@@ -304,3 +313,4 @@ This roadmap outlines improvements to the plan display UI to enhance usability a
 - No ARIA labels for accessibility (tooltips provide some support)
 - Year selection not implemented (only individual semester selection)
 - FIND BETTER WAY TO CACHE AND LAZYLOAD COURSE DATA
+- Click behavior complexity may need user testing for discoverability

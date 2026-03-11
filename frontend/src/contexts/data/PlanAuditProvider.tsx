@@ -4,15 +4,13 @@ import { useContext, useEffect, useState } from "react";
 import { PlanAuditContext } from "./PlanAuditContext";
 import { ProgramDetails, ReqGroup } from "@/types/program";
 import { getCourseIdsFromPrograms, uniqueReqGroups } from "@/types/programHandlers";
-import { CourseDetails, PlanNullable } from "@/types/plan";
-import { get } from "http";
+import { CourseDetails } from "@/types/plan";
 import { fetchCourseDetailsFromCd } from "@/types/planHandlers";
 import { PlanContext } from "./PlanContext";
-import { set } from "date-fns";
 import { calculateAllRequirementsCompletion, findCourseAlternatives } from "@/types/requirement";
 
 export const PlanAuditProvider = ({ children }: { children: React.ReactNode }) => {
-  const { plan, setPlan, planFetched } = useContext(PlanContext);
+  const { plan, setPlan, planFetched, cachedCourses } = useContext(PlanContext);
 
   const [dataFetched, setDataFetched] = useState<boolean>(false);
   const [cachedReqCourses, setCachedReqCourses] = useState<Record<string, CourseDetails>>({});
@@ -33,18 +31,18 @@ export const PlanAuditProvider = ({ children }: { children: React.ReactNode }) =
 
   useEffect(() => {
     if (reqGroups && Object.keys(reqGroups).length > 0) {
-      const completion = calculateAllRequirementsCompletion(reqGroups, plan, cachedReqCourses);
+      const completion = calculateAllRequirementsCompletion(reqGroups, plan, cachedCourses);
       setRequirementCompletion(completion);
 
       const alternatives: Record<string, any> = {};
       for (const [key, groups] of Object.entries(reqGroups)) {
         for (const group of groups) {
-          alternatives[group.id] = findCourseAlternatives(group, plan, cachedReqCourses);
+          alternatives[group.id] = findCourseAlternatives(group, plan, cachedCourses);
         }
       }
       setCourseAlternatives(alternatives);
     }
-  }, [plan, reqGroups]);
+  }, [plan, reqGroups, cachedCourses]);
 
   const updateProgramList = async () => {
 

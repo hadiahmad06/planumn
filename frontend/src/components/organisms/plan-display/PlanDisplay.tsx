@@ -2,9 +2,9 @@
 
 import { Droppable } from "@hello-pangea/dnd";
 import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal, Stack, Space, Accordion, ScrollArea, Container, Group, ActionIcon, Tooltip } from '@mantine/core';
-import { MenuItem } from "@/components/atoms/ContextMenu";
+import { MenuRow } from "@/components/atoms/ContextMenu";
 import { notifications } from "@mantine/notifications";
-import { IconCopy, IconExternalLink, IconTrash, IconArrowUp, IconArrowDown } from "@tabler/icons-react";
+import { IconCopy, IconExternalLink, IconTrash, IconArrowUp, IconArrowDown, IconLeaf, IconSun } from "@tabler/icons-react";
 import {
   getSameSeasonPreviousYear,
   getSameSeasonNextYear,
@@ -26,7 +26,7 @@ import theme from "@/styles/theme";
 import { PlanContext } from "@/contexts/data/PlanContext";
 import SearchLayout from "@/components/organisms/SearchLayout";
 import PlanHeader from "../../atoms/PlanHeader";
-import { IconMinus, IconPlus, IconChevronDown, IconChevronUp } from "@tabler/icons-react";
+import { IconMinus, IconPlus } from "@tabler/icons-react";
 import { MobileContext } from "@/contexts/visual/MobileContext";
 import PlanDisplayMobile from "./PlanDisplayMobile";
 
@@ -77,54 +77,34 @@ export default function PlanDisplay() {
 export function PlanDisplayDesktop() {
   const { plan, setPlan, cachedCourses } = useContext(PlanContext);
 
-  // Accordion control open/closed state for bottom border radius
+  // closedAccordion stores the fall semester index of each collapsed year.
+  // e.g. if Fall 2024 (index "1249") is in this array, that whole year row is collapsed.
   const [closedAccordion, setClosedAccordion] = useState<string[]>([]);
+  const [selectedSemester, setSelectedSemester] = useState<string | null>(null);
 
-// Semester selection state
-  const [selectedSemesters, setSelectedSemesters] = useState<Set<string>>(new Set());
-
-  // Toggle semester selection
-  const toggleSemesterSelection = (semesterIndex: string) => {
-    setSelectedSemesters((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(semesterIndex)) {
-        newSet.delete(semesterIndex);
-      } else {
-        newSet.add(semesterIndex);
-      }
-      return newSet;
-    });
+  // Given any semester index, return the fall semester index for that academic year.
+  // Fall indices end in '9'; Spring/Summer belong to the previous fall year.
+  const getFallIndex = (semIndex: string): string => {
+    const seasonCode = semIndex[3];
+    if (seasonCode === '9') return semIndex; // already fall
+    // Spring ('3') and Summer ('5') share the fall of the previous calendar year
+    const yy = parseInt(semIndex.slice(1, 3), 10) - 1;
+    return `1${yy.toString().padStart(2, '0')}9`;
   };
 
-  // Year-level collapse state
-  const [collapsedYears, setCollapsedYears] = useState<Set<string>>(new Set());
-
-  // Toggle all semesters in a year
-  const toggleYearCollapse = (year: string, yearSemesters: Semester[]) => {
-    const yearSemesterIndices = yearSemesters.map(s => s.index);
-    const isYearCollapsed = yearSemesterIndices.every(idx => closedAccordion.includes(idx));
-
-    if (isYearCollapsed) {
-      // Expand year: remove semester indices from closedAccordion, remove year from collapsedYears
-      setClosedAccordion(prev => prev.filter(idx => !yearSemesterIndices.includes(idx)));
-      setCollapsedYears(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(year);
-        return newSet;
-      });
+  // Clicking an unselected semester selects it.
+  // Clicking the already-selected semester toggles the year's collapse.
+  const handleSemesterClick = (clickedIndex: string, fallIndex: string) => {
+    const isCollapsed = closedAccordion.includes(clickedIndex)
+    if (!isCollapsed && selectedSemester !== clickedIndex) {
+      setSelectedSemester(clickedIndex);
     } else {
-      // Collapse year: add semester indices to closedAccordion, add year to collapsedYears
-      setClosedAccordion(prev => {
-        // Don't mutate prev, return a new array with all indices (union)
-        const set = new Set(prev);
-        yearSemesterIndices.forEach(idx => set.add(idx));
-        return Array.from(set);
-      });
-      setCollapsedYears(prev => {
-        const newSet = new Set(prev);
-        newSet.add(year);
-        return newSet;
-      });
+      setClosedAccordion(prev =>
+        prev.includes(fallIndex)
+          ? prev.filter(f => f !== fallIndex)
+          : [...prev, fallIndex]
+      );
+      setSelectedSemester(isCollapsed ? clickedIndex : null);
     }
   };
 
@@ -216,47 +196,59 @@ export function PlanDisplayDesktop() {
     window.open(`https://onestop2.umn.edu/psp/ps/EMPLOYEE/HRMS/c/SA_LEARNER_SERVICES.CLASS_SEARCH.GBL?Page=CLASS_SRCH_WRK2_SSRPB_SCR_DESCR&Action=U&ACAD_YEAR=2024&STRM=1249&SUBJ=${course.dept_abbr}&CATALOG_NBR=${course.course_num}`, "_blank");
   };
 
-  const getContextMenuItems = (course: CourseDetails, semesterIndex: string): MenuItem[] => [
+  const getContextMenuRows = (course: CourseDetails, semesterIndex: string): MenuRow[] => [
     {
-      label: "Delete",
-      icon: <IconTrash size={16} />,
-      onClick: () => handleDeleteCourse(course.id, semesterIndex),
-      color: "red",
+      buttons: [
+        {
+          label: "Move to Fall",
+          icon: <IconLeaf size={16} color="#8B4513" />,
+          onClick: () => handleMoveToSeason(course.id, semesterIndex, "Fall"),
+        },
+        {
+          label: "Move to Spring",
+          icon: <IconLeaf size={16} color="#228B22" />,
+          onClick: () => handleMoveToSeason(course.id, semesterIndex, "Spring"),
+        },
+        {
+          label: "Move to Summer",
+          icon: <IconSun size={16} color="#FFD700" />,
+          onClick: () => handleMoveToSeason(course.id, semesterIndex, "Summer"),
+        },
+      ],
     },
     {
-      label: "Move to Fall 🍂",
-      icon: <IconArrowUp size={16} />,
-      onClick: () => handleMoveToSeason(course.id, semesterIndex, "Fall"),
+      buttons: [
+        {
+          label: "Previous Year",
+          icon: <IconArrowUp size={16} />,
+          onClick: () => handleMoveToPreviousYear(course.id, semesterIndex),
+        },
+        {
+          label: "Next Year",
+          icon: <IconArrowDown size={16} />,
+          onClick: () => handleMoveToNextYear(course.id, semesterIndex),
+        },
+      ],
     },
     {
-      label: "Move to Spring 🌱",
-      icon: <IconArrowUp size={16} />,
-      onClick: () => handleMoveToSeason(course.id, semesterIndex, "Spring"),
-    },
-    {
-      label: "Move to Summer ☀️",
-      icon: <IconArrowUp size={16} />,
-      onClick: () => handleMoveToSeason(course.id, semesterIndex, "Summer"),
-    },
-    {
-      label: "Move to previous year ↑",
-      icon: <IconArrowUp size={16} />,
-      onClick: () => handleMoveToPreviousYear(course.id, semesterIndex),
-    },
-    {
-      label: "Move to next year ↓",
-      icon: <IconArrowDown size={16} />,
-      onClick: () => handleMoveToNextYear(course.id, semesterIndex),
-    },
-    {
-      label: "Copy Course Code",
-      icon: <IconCopy size={16} />,
-      onClick: () => handleCopyCourseCode(course),
-    },
-    {
-      label: "Open in Catalog",
-      icon: <IconExternalLink size={16} />,
-      onClick: () => handleOpenInCatalog(course),
+      buttons: [
+        {
+          label: "Delete Course",
+          icon: <IconTrash size={16} />,
+          onClick: () => handleDeleteCourse(course.id, semesterIndex),
+          color: "red",
+        },
+        {
+          label: "Copy Course Code",
+          icon: <IconCopy size={16} />,
+          onClick: () => handleCopyCourseCode(course),
+        },
+        {
+          label: "Open in Catalog",
+          icon: <IconExternalLink size={16} />,
+          onClick: () => handleOpenInCatalog(course),
+        },
+      ],
     },
   ];
 
@@ -432,56 +424,16 @@ export function PlanDisplayDesktop() {
 
                         const semGroup = semGroupRaw as Record<'Fall' | 'Spring' | 'Summer', Semester | undefined>;
                         const yearSemesters = Object.values(semGroup).filter((s): s is Semester => s !== undefined);
-                        const isYearCollapsed = yearSemesters.every(s => closedAccordion.includes(s.index));
 
                         return (
                           <Flex
-                            direction="column"
+                            direction="row"
                             key={year}
                             align="flex-start"
-                            gap="md"
+                            justify="flex-start"
+                            gap={theme.planDisplayStyles.container.gap + 10}
+                            wrap="nowrap"
                           >
-                            <Flex
-                              align="center"
-                              gap="sm"
-                              onClick={() => toggleYearCollapse(year, yearSemesters)}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.background = 'rgba(129, 19, 49, 0.1)';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'rgba(129, 19, 49, 0.05)';
-                              }}
-                              style={{
-                                cursor: 'pointer',
-                                padding: '0.5rem 1rem',
-                                background: 'rgba(129, 19, 49, 0.05)',
-                                borderRadius: '0.5rem',
-                                transition: 'all 0.2s ease',
-                              }}
-                            >
-                              <IconChevronUp
-                                size={20}
-                                style={{
-                                  transform: isYearCollapsed ? 'rotate(180deg)' : 'rotate(0deg)',
-                                  transition: 'transform 0.3s ease',
-                                  color: '#811331',
-                                }}
-                              />
-                              <Text
-                                fw={700}
-                                size="lg"
-                                style={{ color: '#2D2A32' }}
-                              >
-                                {year}–{(parseInt(year) + 1).toString().slice(-2)}
-                              </Text>
-                            </Flex>
-                            <Flex
-                              direction="row"
-                              align="flex-start"
-                              justify="flex-start"
-                              gap={theme.planDisplayStyles.container.gap + 10}
-                              wrap="nowrap"
-                            >
                             {(() => {
                               const { Fall, Spring, Summer } = semGroup as { Fall?: Semester; Spring?: Semester; Summer?: Semester };
                               return (['🍂 Fall', '🌱 Spring', '☀️ Summer'] as const).map((season) => {
@@ -497,12 +449,7 @@ export function PlanDisplayDesktop() {
                                 return (
                                     <Accordion
                                       multiple
-                                      value={plan.semesters.map(sem => sem.index).filter(index => !closedAccordion.includes(index))}
-                                      onChange={(newValues) => {
-                                        const allIndices = plan.semesters.map(sem => sem.index);
-                                        const newlyClosed = allIndices.filter(index => !newValues.includes(index));
-                                        setClosedAccordion(newlyClosed);
-                                      }}
+                                      value={closedAccordion.includes(getFallIndex(sem.index)) ? [] : [sem.index]}
                                       key={`${year}-${season}`}
                                       style={{
                                         width: '100%',
@@ -521,19 +468,19 @@ export function PlanDisplayDesktop() {
                                           borderBottomLeftRadius: '1rem',
                                           borderBottomRightRadius: '1rem',
                                         },
-control: {
+                                        control: {
                                            textAlign: 'center',
                                            fontSize: SEMESTER_TITLE_SIZE,
                                            color: '#2D2A32',
-                                           background: selectedSemesters.has(sem.index)
+                                           background: selectedSemester === sem.index
                                              ? 'linear-gradient(135deg, rgba(255, 235, 235, 0.9), rgba(255, 245, 245, 0.8))'
                                              : SEMESTER_BACKGROUND,
-                                           border: selectedSemesters.has(sem.index)
+                                           border: selectedSemester === sem.index
                                              ? '2px solid #811331'
                                              : '1px solid rgba(128, 128, 128, 0.2)',
                                            padding: 12,
                                            width: SEMESTER_BOX_WIDTH,
-                                           boxShadow: selectedSemesters.has(sem.index)
+                                           boxShadow: selectedSemester === sem.index
                                              ? '0 4px 12px rgba(129, 19, 49, 0.2)'
                                              : '0 2px 8px rgba(0, 0, 0, 0.05)',
                                            display: 'block',
@@ -541,8 +488,8 @@ control: {
                                            paddingBottom: 12,
                                            borderTopLeftRadius: '1rem',
                                            borderTopRightRadius: '1rem',
-                                           borderBottomLeftRadius: !closedAccordion.includes(sem.index) ? '0' : '1rem',
-                                           borderBottomRightRadius: !closedAccordion.includes(sem.index) ? '0' : '1rem',
+                                           borderBottomLeftRadius: !closedAccordion.includes(getFallIndex(sem.index)) ? '0' : '1rem',
+                                           borderBottomRightRadius: !closedAccordion.includes(getFallIndex(sem.index)) ? '0' : '1rem',
                                            cursor: 'pointer',
                                            transition: 'all 0.2s ease',
                                          },
@@ -562,7 +509,7 @@ control: {
                                     <Accordion.Item value={sem.index} key={sem.index}>
                                       <Accordion.Control onClick={(e) => {
                                         e.stopPropagation();
-                                        toggleSemesterSelection(sem.index);
+                                        handleSemesterClick(sem.index, getFallIndex(sem.index));
                                       }}>
                                         <Text>
                                           {season} {season === '🍂 Fall' ? year : parseInt(year) + 1}
@@ -626,7 +573,7 @@ control: {
                                                         fixedWidth
                                                         fontSize="15px"
                                                         source="plan"
-                                                        contextMenuItems={courseDetails ? getContextMenuItems(courseDetails, sem.index) : []}
+                                                        contextMenuRows={courseDetails ? getContextMenuRows(courseDetails, sem.index) : []}
                                                       />
                                                     );
                                                   })}
@@ -641,15 +588,14 @@ control: {
                                   </Accordion>
                                 );
 });
-                             })()}
-                           </Flex>
-                           </Flex>
-                         );
-                       })}
-                     </>
-                   );
-                 })()}
-               </Flex>
+                              })()}
+                            </Flex>
+                          );
+                        })}
+                      </>
+                    );
+                  })()}
+                </Flex>
 </ScrollArea>
             <Box
                style={{

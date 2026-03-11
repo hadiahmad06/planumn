@@ -10,7 +10,7 @@ import { DisplaySettingsContext } from "@/contexts/visual/DisplaySettingsContext
 import { PreviewContext } from "@/contexts/visual/PreviewContext";
 import styles from "./CourseCard.module.css";
 import { PlanAuditContext } from "@/contexts/data/PlanAuditContext";
-import ContextMenu, { MenuItem } from "@/components/atoms/ContextMenu";
+import ContextMenu, { MenuRow } from "@/components/atoms/ContextMenu";
 
 const CARD_FIXED_WIDTH = 110;
 const CARD_FIXED_HEIGHT = 40;
@@ -33,7 +33,7 @@ interface CourseCardProps {
   isAlternative?: boolean;
   isPlannedAlternative?: boolean;
   showContextMenu?: boolean;
-  contextMenuItems?: MenuItem[];
+  contextMenuRows?: MenuRow[];
 }
 
 export default function CourseCard({
@@ -51,7 +51,7 @@ export default function CourseCard({
   isAlternative = false,
   isPlannedAlternative = false,
   showContextMenu = true,
-  contextMenuItems = [],
+  contextMenuRows = [],
 }: CourseCardProps) {
   const { cachedCourses, cachedSearchResults } = useContext(PlanContext);
   const { cachedReqCourses } = useContext(PlanAuditContext);
@@ -175,7 +175,7 @@ export default function CourseCard({
         }
       }}
       onContextMenu={(event) => {
-        if (showContextMenu && contextMenuItems.length > 0) {
+        if (showContextMenu && contextMenuRows.length > 0) {
           event.preventDefault();
           event.stopPropagation();
           setContextMenuPosition({ x: event.clientX, y: event.clientY });
@@ -184,11 +184,11 @@ export default function CourseCard({
       }}
     >
       {course.dept_abbr} {course.course_num}
-      {showContextMenu && contextMenuItems.length > 0 && (
+      {showContextMenu && contextMenuRows.length > 0 && (
         <ContextMenu
           opened={contextMenuOpened}
           onClose={() => setContextMenuOpened(false)}
-          items={contextMenuItems}
+          rows={contextMenuRows}
           position={contextMenuPosition}
         />
       )}

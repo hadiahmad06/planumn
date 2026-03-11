@@ -1,7 +1,7 @@
 "use client";
 
-import { Accordion, Box, Collapse, Container, Flex, Group, ScrollArea, Stack, Text, Title, Badge, ThemeIcon, TextInput, ActionIcon, Select } from '@mantine/core';
-import { IconCheck, IconClock, IconX, IconSearch, IconX as IconClose, IconFilter, IconChartBar, IconCopy, IconExternalLink, IconPlus } from '@tabler/icons-react';
+import { Accordion, Box, Flex, Group, ScrollArea, Stack, Text, Title, Badge, ThemeIcon, TextInput, ActionIcon, Select } from '@mantine/core';
+import { IconCheck, IconClock, IconX, IconSearch, IconX as IconClose, IconFilter, IconChartBar, IconPlus, IconCopy, IconExternalLink } from '@tabler/icons-react';
 import { DragDropContext, Draggable, Droppable, DropResult } from "@hello-pangea/dnd";
 import { ColorKey, Course, CourseDetails, CourseStub } from '@/types/plan';
 import SearchBar from '@/components/molecules/SearchBar';
@@ -15,7 +15,7 @@ import { ReqCondition, ReqRule, ReqGroup } from '@/types/program';
 import CourseCard from '../molecules/CourseCard';
 import styles from './programRequirements.module.css';
 import ProgressDashboard from './ProgressDashboard';
-import { MenuItem } from "@/components/atoms/ContextMenu";
+import { MenuRow } from "@/components/atoms/ContextMenu";
 import { notifications } from "@mantine/notifications";
 
 type FilterStatus = 'all' | 'completed' | 'inProgress' | 'notStarted';
@@ -47,26 +47,7 @@ export default function SearchLayout() {
     return altGroup?.plannedCourse === courseCode;
   };
 
-  const getAlternativeIndicator = (courseCode: string, reqId: string) => {
-    const altGroup = getAlternativeInfo(courseCode, reqId);
-    if (!altGroup) return null;
 
-    const remainingAlternatives = altGroup.courses.filter(c => c !== courseCode).length;
-
-    if (remainingAlternatives > 0) {
-      return (
-        <Badge
-          size="xs"
-          variant="light"
-          color={altGroup.satisfied ? 'green' : 'blue'}
-          ml="xs"
-        >
-          {remainingAlternatives + 1} options
-        </Badge>
-      );
-    }
-    return null;
-  };
 
   const handleAddToPlan = (courseCode: string) => {
     if (!plan) {
@@ -134,22 +115,26 @@ export default function SearchLayout() {
     window.open(`https://onestop2.umn.edu/psp/ps/EMPLOYEE/HRMS/c/SA_LEARNER_SERVICES.CLASS_SEARCH.GBL?Page=CLASS_SRCH_WRK2_SSRPB_SCR_DESCR&Action=U&ACAD_YEAR=2024&STRM=1249&SUBJ=${dept}&CATALOG_NBR=${num}`, "_blank");
   };
 
-  const getContextMenuItems = (courseCode: string): MenuItem[] => [
+  const getContextMenuRows = (courseCode: string): MenuRow[] => [
     {
-      label: "Add to Plan",
-      icon: <IconPlus size={16} />,
-      onClick: () => handleAddToPlan(courseCode),
-      color: "green",
-    },
-    {
-      label: "Copy Course Code",
-      icon: <IconCopy size={16} />,
-      onClick: () => handleCopyCourseCode(courseCode),
-    },
-    {
-      label: "Open in Catalog",
-      icon: <IconExternalLink size={16} />,
-      onClick: () => handleOpenInCatalog(courseCode),
+      buttons: [
+        {
+          label: "Add to Plan",
+          icon: <IconPlus size={16} />,
+          onClick: () => handleAddToPlan(courseCode),
+          color: "green",
+        },
+        {
+          label: "Copy Course Code",
+          icon: <IconCopy size={16} />,
+          onClick: () => handleCopyCourseCode(courseCode),
+        },
+        {
+          label: "Open in Catalog",
+          icon: <IconExternalLink size={16} />,
+          onClick: () => handleOpenInCatalog(courseCode),
+        },
+      ],
     },
   ];
 
@@ -203,7 +188,7 @@ export default function SearchLayout() {
                                       position: 'relative'
                                     }}
                                   >
-                                    <CourseCard
+<CourseCard
                                       courseId={code}
                                       isDraggable={true}
                                       fixedHeight={true}
@@ -211,10 +196,7 @@ export default function SearchLayout() {
                                       isCompleted={completedCourses.has(code)}
                                       isAlternative={isAlternativeCourse(code, reqId || '')}
                                       isPlannedAlternative={isPlannedAlternative(code, reqId || '')}
-                                      source="program"
-                                      contextMenuItems={getContextMenuItems(code)}
                                     />
-                                    {reqId && getAlternativeIndicator(code, reqId)}
                                   </Box>
                                 )}
                               </Draggable>

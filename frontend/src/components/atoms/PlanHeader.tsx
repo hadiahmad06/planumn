@@ -102,9 +102,51 @@ export default function PlanHeader() {
           data={programOptions}
           searchable
           aria-label="Add Programs Here"
-          placeholder={programIds.length===0 ? "Select a program" : ""}
+          placeholder={programIds.length === 0 ? "Select a program" : ""}
           value={programIds}
           onChange={setProgramIds}
+          styles={{
+            input: {
+              background: 'rgba(245, 242, 242, 0.6)',
+              border: '1px solid rgba(128, 128, 128, 0.15)',
+              borderRadius: '0.6rem',
+              boxShadow: '0 1px 4px rgba(0, 0, 0, 0.04)',
+              fontSize: '14px',
+              color: '#2D2A32',
+              transition: 'all 0.2s ease',
+              '&:focus-within': {
+                border: '1.5px solid rgba(129, 19, 49, 0.4)',
+                boxShadow: '0 2px 8px rgba(129, 19, 49, 0.08)',
+              },
+            },
+            pill: {
+              background: 'rgba(129, 19, 49, 0.07)',
+              color: '#6b1028',
+              border: '1px solid rgba(129, 19, 49, 0.15)',
+              borderRadius: '0.4rem',
+              fontWeight: 500,
+              fontSize: '13px',
+            },
+            dropdown: {
+              background: 'rgba(250, 248, 248, 0.97)',
+              border: '1px solid rgba(128, 128, 128, 0.15)',
+              borderRadius: '0.6rem',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.06)',
+            },
+            option: {
+              borderRadius: '0.4rem',
+              color: '#2D2A32',
+              fontSize: '14px',
+              '&[data-selected]': {
+                background: 'rgba(129, 19, 49, 0.08)',
+                color: '#811331',
+                fontWeight: 500,
+              },
+              '&[data-hovered]': {
+                background: 'rgba(129, 19, 49, 0.04)',
+              },
+            },
+          }}
         />
         {!session ? (
         <Text

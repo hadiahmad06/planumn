@@ -1,5 +1,4 @@
-import { cached } from "sqlite3";
-import { CourseDetails, PlanNullable, Semester } from "./plan";
+import { CourseDetails, PlanNullable } from "./plan";
 import { ReqGroup, ReqRule, ReqValue, ReqCondition } from "./program";
 
 export type CompletionStatus = {
@@ -17,7 +16,7 @@ export type RequirementWithCompletion = {
   completionStatus?: CompletionStatus;
 };
 
-function extractPlannedCourseCodes(plan: PlanNullable | null, cachedCourses: Record<string, CourseDetails>): Set<string> {
+function extractPlannedCourseCodes(plan: PlanNullable | null, cachedCourses: Record<number, CourseDetails>): Set<string> {
   if (!plan || !plan.semesters) return new Set();
 
   const courseCodes = new Set<string>();
@@ -81,7 +80,7 @@ function extractCourseCodesFromReqGroup(reqGroup: ReqGroup): string[] {
   return [...new Set(codes)];
 }
 
-function calculateCredits(courseCodes: string[], plan: PlanNullable | null, cachedCourses: Record<string, CourseDetails>): number {
+function calculateCredits(courseCodes: string[], plan: PlanNullable | null, cachedCourses: Record<number, CourseDetails>): number {
   if (!plan || !plan.semesters) return 0;
 
   let totalCredits = 0;
@@ -105,7 +104,7 @@ function calculateCredits(courseCodes: string[], plan: PlanNullable | null, cach
   return totalCredits;
 }
 
-function checkRequirementCompletion(reqGroup: ReqGroup, plan: PlanNullable | null, cachedCourses: Record<string, CourseDetails>): CompletionStatus {
+function checkRequirementCompletion(reqGroup: ReqGroup, plan: PlanNullable | null, cachedCourses: Record<number, CourseDetails>): CompletionStatus {
   const requiredCourseCodes = extractCourseCodesFromReqGroup(reqGroup);
   const plannedCourseCodes = extractPlannedCourseCodes(plan, cachedCourses);
 
@@ -165,11 +164,11 @@ function checkRequirementCompletion(reqGroup: ReqGroup, plan: PlanNullable | nul
 export function calculateAllRequirementsCompletion(
   reqGroups: Record<string, ReqGroup[]>,
   plan: PlanNullable | null,
-  cachedCourses: Record<string, CourseDetails>
+  cachedCourses: Record<number, CourseDetails>
 ): Record<string, CompletionStatus> {
   const completionStatus: Record<string, CompletionStatus> = {};
 
-  for (const [key, groups] of Object.entries(reqGroups)) {
+  for (const groups of Object.values(reqGroups)) {
     for (const group of groups) {
       completionStatus[group.id] = checkRequirementCompletion(group, plan, cachedCourses);
     }
@@ -186,7 +185,7 @@ export type CourseAlternativeGroup = {
   plannedCourse: string | null;
 };
 
-export function findCourseAlternatives(reqGroup: ReqGroup, plan: PlanNullable | null, cachedCourses: Record<string, CourseDetails>): CourseAlternativeGroup[] {
+export function findCourseAlternatives(reqGroup: ReqGroup, plan: PlanNullable | null, cachedCourses: Record<number, CourseDetails>): CourseAlternativeGroup[] {
   const alternativeGroups: CourseAlternativeGroup[] = [];
   const plannedCourses = extractPlannedCourseCodes(plan, cachedCourses);
   let groupIdCounter = 0;
@@ -197,7 +196,7 @@ export function findCourseAlternatives(reqGroup: ReqGroup, plan: PlanNullable | 
     for (const val of condition.values) {
       if (typeof val === 'object' && 'value' in val && Array.isArray(val.value) && val.value.length > 1) {
         const logic = ('logic' in val && (val.logic === 'AND' || val.logic === 'OR')) ? val.logic : 'OR';
-        const courses = val.value.filter((v: any) => typeof v === 'string');
+        const courses = val.value.filter((v: unknown) => typeof v === 'string');
         
         if (courses.length > 1) {
           const plannedCourse = courses.find((c: string) => plannedCourses.has(c)) || null;
