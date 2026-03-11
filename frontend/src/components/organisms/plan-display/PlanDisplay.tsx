@@ -17,6 +17,7 @@ import PlanHeader from "../../atoms/PlanHeader";
 import { IconMinus, IconPlus } from "@tabler/icons-react";
 import { MobileContext } from "@/contexts/visual/MobileContext";
 import PlanDisplayMobile from "./PlanDisplayMobile";
+import AdvisorChat from "@/components/organisms/AdvisorChat";
 
 const ALWAYS_VISIBLE_CREDITS = 4;
 const COURSE_VERTICAL_GAP = 0;
@@ -132,6 +133,7 @@ export function PlanDisplayDesktop() {
   }
 
   return (
+    <>
     <Group
       w="100vw"
       h="100vh"
@@ -445,5 +447,7 @@ export function PlanDisplayDesktop() {
         </Box>
       </Box>
     </Group>
+    <AdvisorChat />
+    </>
   );
 }

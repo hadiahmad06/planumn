@@ -160,7 +160,7 @@ export default function SearchBar() {
                     <Flex wrap="wrap" gap={2}>
                       {groupedResults[key].map((course, index) => (
                         <Draggable
-                          key={`search-${course.dept_abbr}-${course.course_num}`}
+                          key={`search-${course.id}-${course.dept_abbr}-${course.course_num}`}
                           draggableId={JSON.stringify(course)}
                           index={index}
                         >

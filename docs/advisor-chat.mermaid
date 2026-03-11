@@ -1,0 +1,33 @@
+flowchart TD
+    User([Student]) -->|types message| UINode
+
+    subgraph UI ["AdvisorChat.tsx (client)"]
+        UINode[Chat Panel] -->|reads| PlanCtx[(PlanContext\nplan + cachedCourses)]
+        UINode -->|buildPlanContext\nformats semesters + courses| Payload[POST /api/chat\nmessages, planContext, model]
+    end
+
+    Payload --> RouteNode
+
+    subgraph Route ["api/chat/route.ts (server)"]
+        RouteNode[Build system prompt\ninject formatted plan] --> Loop
+
+        Loop{{"Agentic loop\n(max 5 iterations)"}}
+        Loop -->|call OpenRouter| LLM[(OpenRouter\nLLM API)]
+        LLM -->|no tool_calls| Done[Return reply to client]
+        LLM -->|tool_calls| Dispatch
+
+        subgraph Tools ["lib/tools/"]
+            Dispatch[executeTool\ndispatcher]
+            Dispatch -->|search_courses| ST["searchCourses.ts\nSQLite LIKE query"]
+            Dispatch -->|get_course_details| DT["getCourseDetails.ts\nSQLite exact lookup"]
+            ST --> DB[(CourseInfo.db\ndept, number, title\ncredits, description)]
+            DT --> DB
+        end
+
+        ST -->|CourseResult| Loop
+        DT -->|CourseDetail| Loop
+    end
+
+    Done -->|reply string| UINode
+    UINode -->|renders message bubble| User
+    
