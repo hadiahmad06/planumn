@@ -37,7 +37,7 @@ export default function VideoPopup({ buttonSize }: VideoPopupProps) {
         onClick={open}
         leftSection={<IconPlayerPlayFilled size={18} />}
         variant="outline"
-        color="#334155"
+        color="var(--text-secondary)"
         size={buttonSize ?? "lg"}
         style={{
           borderRadius: "1rem",

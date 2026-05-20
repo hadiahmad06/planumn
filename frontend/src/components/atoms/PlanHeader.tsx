@@ -1,151 +1,227 @@
+"use client";
+
+import { useContext, useEffect, useRef, useState } from "react";
+import {
+  Box,
+  Button,
+  Flex,
+  Group,
+  Menu,
+  MultiSelect,
+  Skeleton,
+  Text,
+} from "@mantine/core";
+import { IconChevronDown } from "@tabler/icons-react";
+import { formatDistanceToNow, isAfter } from "date-fns";
 import { PlanContext } from "@/contexts/data/PlanContext";
-import { Box, Flex, Skeleton, Title, Text, MultiSelect } from "@mantine/core";
-import { useContext, useState, useEffect, useRef } from "react";
-import { formatDistance, formatDistanceToNow, isAfter } from "date-fns";
 import { UserSessionContext } from "@/contexts/data/UserSessionContext";
-import { useRouter } from "next/navigation";
-import programOptions from "@/lib/programOptions.json";
 import { PlanAuditContext } from "@/contexts/data/PlanAuditContext";
+import { useGlobalProgress } from "@/lib/progress/hooks";
+import programOptions from "@/lib/programOptions.json";
 
 export default function PlanHeader() {
   const planContext = useContext(PlanContext);
-  const { groupedPrograms, programIds, setProgramIds, onUpdate } = useContext(PlanAuditContext);
-  if (!planContext.plan) return <Skeleton w="90%"/>;
-
-  const { plan, setPlan, changesSaved, retryCount, setRetryCount, error } = planContext;
+  const { programIds, setProgramIds, onUpdate } = useContext(PlanAuditContext);
   const { session } = useContext(UserSessionContext);
 
-  const [titleLocal, setTitleLocal] = useState('');
-  const [inputWidth, setInputWidth] = useState(1);
-  const [hoveredInput, setHoveredInput] = useState(false);
-  const spanRef = useRef<HTMLSpanElement>(null);
-  const placeholder = "Edit Plan Title";
+  if (!planContext.plan) {
+    return <Skeleton h={72} w="100%" radius="md" />;
+  }
 
-  const [isProgramSelectorFocused, setIsProgramSelectorFocused] = useState<boolean>(false);
+  const { plan, setPlan, changesSaved, retryCount, setRetryCount, error } =
+    planContext;
+
+  const [titleLocal, setTitleLocal] = useState(plan.title);
+  const [inputWidth, setInputWidth] = useState(1);
+  const spanRef = useRef<HTMLSpanElement>(null);
+  const placeholder = "Untitled plan";
 
   useEffect(() => {
-    if (plan) {
-      setTitleLocal(plan.title);
-    }
+    setTitleLocal(plan.title);
   }, [plan]);
 
   useEffect(() => {
-    if (spanRef.current) setInputWidth(spanRef.current.offsetWidth + 2);
+    if (spanRef.current) setInputWidth(spanRef.current.offsetWidth + 4);
   }, [titleLocal]);
 
+  const programLabel =
+    programIds.length === 0
+      ? "No program selected"
+      : programIds.length === 1
+      ? (programOptions as Array<{ label: string; value: string }>).find(
+          (opt) => opt.value === programIds[0]
+        )?.label ?? programIds[0]
+      : `${programIds.length} programs`;
+
+  const savedStatus = (() => {
+    if (!session) return "Sign in to save to cloud";
+    if (retryCount > 5) return "Saving disabled (retry limit)";
+    if (error) return error;
+    if (changesSaved && plan.last_updated) {
+      return isAfter(Date.now(), plan.last_updated)
+        ? `Saved ${formatDistanceToNow(plan.last_updated, { addSuffix: true })}`
+        : "Saved just now";
+    }
+    return "Saving…";
+  })();
+
   return (
-    <Flex
+    <Box
       style={{
-        width: '100%',
-        marginBottom: '1.5rem',
-        justifyContent: 'flex-end',
+        width: "100%",
+        padding: "16px 24px",
+        background: "transparent",
       }}
-      >
-      <Box style={{ textAlign: 'right' }}>
-        <form>
-          <div style={{ position: "relative", width: "100%" }}>
-            <div
-              onMouseEnter={() => setHoveredInput(true)}
-              onMouseLeave={() => setHoveredInput(false)}
-            >
-              <input 
-                type="text" 
+    >
+      <Flex justify="space-between" align="flex-start" gap="md" wrap="nowrap">
+        <Box style={{ minWidth: 0, flex: 1 }}>
+          <form onSubmit={(e) => e.preventDefault()}>
+            <Box style={{ position: "relative" }}>
+              <input
+                type="text"
                 name="title"
                 placeholder={placeholder}
                 value={titleLocal}
                 onChange={(e) => setTitleLocal(e.target.value)}
                 onBlur={() => setPlan({ ...plan, title: titleLocal })}
-                maxLength={32}
+                maxLength={64}
                 style={{
-                  background: "none",
+                  background: "transparent",
                   border: "none",
-                  boxShadow: "none",
                   outline: "none",
                   margin: 0,
-                  font: "inherit",
-                  color: "inherit",
-                  maxWidth: "100%",
-                  minWidth: "1ch",
-                  marginBottom: "0.25rem",
-                  fontWeight: 700,
-                  fontSize: "1.5rem",
-                  cursor: "text",
-                  borderBottom: "1px dashed gray",
-                  paddingBottom: "2px",
                   padding: 0,
-                  textAlign: "right",
-                  width: inputWidth,
-                  transition: "transform 0.2s ease",
-                  transform: hoveredInput ? "scale(1.05)" : "none",
+                  fontWeight: 700,
+                  fontSize: "var(--font-size-title)",
+                  color: "var(--text-primary)",
+                  width: Math.max(inputWidth, 80),
+                  minWidth: "1ch",
+                  borderBottom: "1px dashed transparent",
+                  transition: "border-color 0.15s ease",
                 }}
+                onFocus={(e) =>
+                  (e.currentTarget.style.borderBottomColor =
+                    "var(--border-subtle)")
+                }
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.borderBottomColor =
+                    "var(--border-subtle)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.borderBottomColor =
+                    document.activeElement === e.currentTarget
+                      ? "var(--border-subtle)"
+                      : "transparent")
+                }
               />
-            </div>
-            <span
-              ref={spanRef}
-              style={{
-                visibility: "hidden",
-                position: "absolute",
-                whiteSpace: "pre",
-                font: "inherit",
-                fontWeight: 700,
-                fontSize: "1.5rem",
-                padding: 0,
-                margin: 0,
-                border: "none",
-                boxSizing: "content-box",
+              <span
+                ref={spanRef}
+                style={{
+                  visibility: "hidden",
+                  position: "absolute",
+                  whiteSpace: "pre",
+                  fontWeight: 700,
+                  fontSize: "var(--font-size-title)",
+                  padding: 0,
+                  margin: 0,
+                }}
+              >
+                {titleLocal || placeholder}
+              </span>
+            </Box>
+          </form>
+
+          <Group gap="sm" align="center" mt={6}>
+            <Menu shadow="md" position="bottom-start" width={360}>
+              <Menu.Target>
+                <Button
+                  variant="default"
+                  radius="xl"
+                  size="xs"
+                  rightSection={<IconChevronDown size={14} />}
+                  styles={{
+                    root: {
+                      background: "var(--bg-surface)",
+                      borderColor: "var(--border-subtle)",
+                      color: "var(--text-primary)",
+                      fontWeight: 500,
+                    },
+                  }}
+                >
+                  {programLabel}
+                </Button>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Box p="xs">
+                  <Text size="xs" c="dimmed" mb={6}>
+                    Change program
+                  </Text>
+                  <MultiSelect
+                    data={programOptions as any}
+                    searchable
+                    placeholder={
+                      programIds.length === 0 ? "Select a program" : ""
+                    }
+                    value={programIds}
+                    onChange={setProgramIds}
+                    onBlur={onUpdate}
+                    comboboxProps={{ withinPortal: false }}
+                  />
+                </Box>
+              </Menu.Dropdown>
+            </Menu>
+
+            <Text
+              size="sm"
+              c={
+                error || (retryCount > 5)
+                  ? "var(--accent-primary)"
+                  : "var(--text-secondary)"
+              }
+              style={{ cursor: error ? "pointer" : "default" }}
+              onClick={() => {
+                if (error) setRetryCount(retryCount + 1);
               }}
             >
-              {titleLocal || placeholder}
-            </span>
-          </div>
-        </form>
-        {/*  */}
-        <MultiSelect
-          // onFocus={() => setIsProgramSelectorFocused(true)}
-          onBlur={onUpdate}
-          data={programOptions}
-          searchable
-          aria-label="Add Programs Here" //brotisserie chicken we need to add accessibility stuff eventually prob
-          placeholder={programIds.length===0 ? "Select a program" : ""}
-          value={programIds}
-          onChange={setProgramIds}
-        />
-        {!session ? (
-        <Text
-          size="md"
-          c="#811331"
-        >
-          You must be logged in to Save to Cloud
-        </Text>
-        ) : (
-          <Text size="md">
-            {retryCount > 5 ? (
-              <Text
-                style={{ color: "#811331" }}
-              >
-                Saving disabled due to repeated failures (limit reached).
-              </Text>
-            ) : error ? (
-              <Text
-                onClick={() => setRetryCount(retryCount + 1)}
-                style={{ color: "#811331", textDecoration: "underline", cursor: "pointer" }}
-              >
-                {error}
-              </Text>
-            ) : changesSaved && plan.last_updated !== null ? (() => {
+              {savedStatus}
+            </Text>
+          </Group>
+        </Box>
 
-              // now using TIMESTAMPTZ instead of TIMESTAMP, so no manual logic required.
-              // const offset = new Date().getTimezoneOffset();
-              // const now = new Date(Date.now() + offset * 60 * 1000);
-              return isAfter(Date.now(), plan.last_updated)
-                ? `Saved ${formatDistanceToNow(plan.last_updated, { addSuffix: true })}`
-                : "Saved just now."
-            })() 
-              : "Saving..." 
-            }
-          </Text>
-        )}
-      </Box>
+        <ProgressWidget />
+      </Flex>
+    </Box>
+  );
+}
+
+function ProgressWidget() {
+  const { met, total } = useGlobalProgress();
+  const display = total > 0 ? `${met}/${total}` : "—/—";
+  return (
+    <Flex
+      direction="column"
+      align="flex-end"
+      gap={2}
+      style={{ flexShrink: 0, paddingLeft: 16 }}
+    >
+      <Text
+        size="xs"
+        tt="uppercase"
+        c="var(--text-tertiary)"
+        style={{ letterSpacing: "0.04em" }}
+      >
+        Requirements met
+      </Text>
+      <Text
+        style={{
+          fontWeight: 700,
+          fontSize: "var(--font-size-title)",
+          color: "var(--text-primary)",
+          lineHeight: 1,
+        }}
+      >
+        {display}
+      </Text>
     </Flex>
   );
 }

@@ -49,14 +49,14 @@ export default function SearchLayout() {
                                         {...provided.dragHandleProps}
                                         style={{ 
                                           // flexShrink: 0,
-                                          backgroundColor: "#d0d0d0", 
+                                          backgroundColor: "var(--border-subtle)",
                                           borderRadius: "0.5rem",
                                           boxShadow: valObj.value.length > 1 ? [
-                                            j === 0 && "-2px 0 0 0 #000000",
-                                            j === valObj.value.length - 1 && "2px 0 0 0 #000000"
+                                            j === 0 && "-2px 0 0 0 var(--text-primary)",
+                                            j === valObj.value.length - 1 && "2px 0 0 0 var(--text-primary)"
                                           ].filter(Boolean).join(", ") : "",
-                                          borderLeft: (j === 0 && valObj.value.length > 1 ? "2px solid #ffffff" : "0px solid #ffffff"),
-                                          borderRight: (j === valObj.value.length -1 && valObj.value.length > 1 ? "2px solid #ffffff" : "0px solid #ffffff")
+                                          borderLeft: (j === 0 && valObj.value.length > 1 ? "2px solid var(--bg-surface)" : "0px solid var(--bg-surface)"),
+                                          borderRight: (j === valObj.value.length -1 && valObj.value.length > 1 ? "2px solid var(--bg-surface)" : "0px solid var(--bg-surface)")
                                         }}
                                       >
                                         {/* {code} */}
@@ -172,16 +172,16 @@ export default function SearchLayout() {
     >
       <Accordion.Item key={requisite.id || index} value={requisite.name} 
         style={{
-          backgroundColor: index % 2 === 0 ? "#f8f8f8f9" : "#e8e8e8f9",
+          backgroundColor: index % 2 === 0 ? "var(--bg-surface)" : "var(--border-subtle)",
           borderRadius: "1rem",
-          border: "0px solid #000000",
+          border: "0px solid var(--text-primary)",
           boxShadow: "0px 1px 3px rgba(0, 0, 0, 0.1)",
         }}
       >
         <Accordion.Control>
           <Flex justify="space-between" align="center" >
             <Title order={4}>{requisite.name}</Title>
-            <Box style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+            <Box style={{ fontSize: "0.875rem", color: "var(--text-secondary)" }}>
               {requisite.type}
             </Box>
           </Flex>
@@ -214,7 +214,7 @@ export default function SearchLayout() {
             style={{
               fontSize: "1.5rem",
               fontWeight: "bold",
-              color: "#0f172a",
+              color: "var(--text-primary)",
               marginBottom: "0.5rem",
             }}
             >
@@ -231,7 +231,7 @@ export default function SearchLayout() {
             // ref={provided.innerRef}
             offsetScrollbars
             scrollbarSize={8}
-            styles={{ scrollbar: { backgroundColor: "#f1f5f9" } }}
+            styles={{ scrollbar: { backgroundColor: "var(--border-subtle)" } }}
             h="80vh"
             style={{
               // marginTop: "1rem",

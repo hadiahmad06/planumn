@@ -12,7 +12,6 @@ import {
   Paper
 } from "@mantine/core";
 import { IconX } from "@tabler/icons-react";
-import theme from "@/styles/theme";
 import { useContext, useState, useRef, useEffect } from "react";
 import { DisplaySettingsContext } from "@/contexts/visual/DisplaySettingsContext";
 
@@ -24,8 +23,7 @@ type Props = {
 const BOX_HEIGHT = 400; // Adjust if your box is taller/shorter
 
 export default function DisplaySettings({ opened, onClose }: Props) {
-  const { colorKey, setColorKey } = useContext(DisplaySettingsContext);
-  const [hiddenSemesters, setHiddenSemesters] = useState<string[]>([]);
+  const { colorKey, setColorKey, hiddenSemesters, setHiddenSemesters } = useContext(DisplaySettingsContext);
   const [position, setPosition] = useState<{ x: number; y: number }>({ x: 24, y: 24 });
   const dragging = useRef(false);
   const offset = useRef({ x: 0, y: 0 });
@@ -84,7 +82,7 @@ export default function DisplaySettings({ opened, onClose }: Props) {
         position: "fixed",
         zIndex: 2000,
         width: "min(400px, 90vw)",
-        backgroundColor: "#fff",
+        backgroundColor: "var(--bg-surface)",
         padding: "2rem 1.5rem 1.5rem 1.5rem",
         minWidth: 320,
         left: position.x,
@@ -106,14 +104,14 @@ export default function DisplaySettings({ opened, onClose }: Props) {
         style={{
           fontSize: "1.5rem",
           fontWeight: 700,
-          color: "#811331",
+          color: "var(--accent-primary)",
           textAlign: "left",
           marginBottom: "1.5rem",
         }}
       >
         Display Settings
       </Text>
-      <SimpleGrid cols={1} spacing="lg" style={{ fontSize: "0.9rem", color: "#555" }}>
+      <SimpleGrid cols={1} spacing="lg" style={{ fontSize: "0.9rem", color: "var(--text-secondary)" }}>
         <Box>
           <Text style={{ marginBottom: "0.5rem", fontWeight: 500 }}>Color Coding:</Text>
           <SegmentedControl
@@ -146,18 +144,18 @@ export default function DisplaySettings({ opened, onClose }: Props) {
             disabled
             fullWidth
             style={{
-              backgroundColor: "#811331",
-              color: "#fff",
+              backgroundColor: "var(--accent-primary)",
+              color: "var(--bg-surface)",
               fontSize: "0.9rem",
               padding: "0.5rem 1rem",
               borderRadius: "6px",
               transition: "all 0.2s ease",
             }}
             onMouseEnter={e => {
-              e.currentTarget.style.backgroundColor = "#5e0f27";
+              e.currentTarget.style.backgroundColor = "var(--accent-primary-hover)";
             }}
             onMouseLeave={e => {
-              e.currentTarget.style.backgroundColor = "#811331";
+              e.currentTarget.style.backgroundColor = "var(--accent-primary)";
             }}
           >
             Autofill Plan

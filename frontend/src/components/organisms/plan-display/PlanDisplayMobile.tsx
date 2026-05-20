@@ -5,6 +5,7 @@ import { Carousel } from "@mantine/carousel";
 import { Box, Flex, Text, Skeleton, Title } from "@mantine/core";
 import { Droppable } from "@hello-pangea/dnd";
 import { PlanContext } from "@/contexts/data/PlanContext";
+import { DisplaySettingsContext, isSemesterHidden } from "@/contexts/visual/DisplaySettingsContext";
 import CourseCard from "../../molecules/CourseCard";
 import { Semester } from "@/types/plan";
 import classes from './PlanDisplayMobile.module.css';
@@ -15,6 +16,7 @@ type SlideItem =
 
 export default function PlanDisplayMobile() {
   const { plan, cachedCourses } = useContext(PlanContext);
+  const { hiddenSemesters } = useContext(DisplaySettingsContext);
   const [initialSlide, setInitialSlide] = useState(0);
   const [activeSlide, setActiveSlide] = useState(0);
 
@@ -46,7 +48,9 @@ export default function PlanDisplayMobile() {
 
   const slideItems : SlideItem[] = [
     // { type: 'edge', position: 'left' as const },
-    ...plan.semesters.map((sem, idx) => ({ type: 'semester' as const, sem, idx })),
+    ...plan.semesters
+      .filter((sem) => !isSemesterHidden(sem.index, hiddenSemesters))
+      .map((sem, idx) => ({ type: 'semester' as const, sem, idx })),
     // { type: 'edge', position: 'right' as const },
   ] ;
 
@@ -83,7 +87,7 @@ export default function PlanDisplayMobile() {
                         className={classes.edgeCard}
                         style={{
                             transform: activeSlide === idx ? "scale(0.95)" : "scale(0.85)",
-                            border: activeSlide === idx ? '1px solid #811331' : '0px solid #811331',
+                            border: activeSlide === idx ? '1px solid var(--accent-primary)' : '0px solid var(--accent-primary)',
                         }}
                     >
                         + -
@@ -113,7 +117,7 @@ export default function PlanDisplayMobile() {
                   className={classes.semesterCard}
                   style={{
                     transform: activeSlide === idx ? "scale(0.95)" : "scale(0.85)",
-                    border: activeSlide === idx ? '1px solid #811331' : '0px solid #811331',
+                    border: activeSlide === idx ? '1px solid var(--accent-primary)' : '0px solid var(--accent-primary)',
                   }}
                 >
                   <Title order={3} mb="md">

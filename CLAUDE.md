@@ -97,3 +97,17 @@ Both are public keys safe for client-side use. Supabase RLS enforces authorizati
 - The `data/scripts/` directory contains Python scripts used to build `ProcessedData.db` from GopherGrades data — not part of the running app
 - The `archived/` directory contains old code — ignore it
 - `frontend/public/ProcessedData.db` is a 36MB binary tracked in git; do not modify it directly
+
+## Agent skills
+
+### Issue tracker
+
+Local markdown — features live under `.scratch/<feature-slug>/`, with `PRD.md` at the top and per-issue files under `issues/NN-slug.md`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Five canonical roles using default names (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.

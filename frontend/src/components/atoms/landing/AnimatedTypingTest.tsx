@@ -45,9 +45,9 @@ export default function AnimatedTypingText({ blink = true }: { blink?: boolean }
         component="span"
         style={{
           fontFamily: "monospace",
-          color: "#811331",
+          color: "var(--accent-primary)",
           display: "inline-block",
-          borderRight: blinking ? "2px solid #811331" : "none",
+          borderRight: blinking ? "2px solid var(--accent-primary)" : "none",
           paddingRight: "0.25rem",
           animation: blinking ? "blink .75s step-end infinite" : "none",
         }}

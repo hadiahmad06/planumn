@@ -1,263 +1,76 @@
-// import { ThemeConfig, extendBaseTheme } from "@chakra-ui/react";
+import { createTheme, MantineColorsTuple } from "@mantine/core";
 
-const colors = {
-  primary: "#007BFF", // Primary color for buttons and highlights
-  primaryHover: "#0056b3", // Hover color for primary elements
-  secondary: "#6c757d", // Secondary color for less emphasized elements
-  secondaryHover: "#5a6268", // Hover color for secondary elements
-  background: "rgba(255, 255, 255, 0.8)", // Translucent background for the main layout
-  glassBackground: "rgba(255, 255, 255, 0.5)", // Translucent background for glass-like components
-};
+/**
+ * Mantine theme — consumes CSS variables defined in `frontend/src/app/globals.css`.
+ *
+ * Source of truth for design tokens is `:root` in globals.css. This file is the
+ * Mantine-side bridge: every Mantine primitive should be able to pick up the
+ * canvas/surface/text/accent tokens without ever redeclaring a literal value.
+ */
 
-// Define reusable styles for components
-export const cardStyles = {
-  base: {
-    bg: "rgba(0, 0, 0, 0.8)", // Translucent background for cards
-    color: "black",
-    p: 4,
-    borderRadius: "md",
-    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-  },
-  glass: {
-    bg: "rgba(0, 0, 0, 0.5)", // Translucent background for glass cards
-    color: "black",
-    p: 4,
-    borderRadius: "md",
-    boxShadow: "0 8px 12px rgba(0, 0, 0, 0.2)",
-  },
-};
+const cssVar = (name: string): string => `var(--${name})`;
 
-export const buttonStyles = {
-  base: {
-    bg: "transparent", // Transparent background for buttons
-    color: "white",
-    _hover: {
-      bg: "rgba(0, 0, 255, 0.2)",
-    },
-  },
-  glass: {
-    bg: "transparent", // Transparent background for glass buttons
-    color: "white",
-    _hover: {
-      bg: "rgba(0, 0, 255, 0.3)",
-    },
-  },
-};
+const tupleFromVar = (name: string): MantineColorsTuple =>
+  Array(10).fill(cssVar(name)) as unknown as MantineColorsTuple;
 
-export const globalSearchLayoutStyles = {
-  container: {
-    padding: 12,
-    gap: 4,
-    bg: "transparent", // Transparent background for layout
-    border: "1px solid rgba(255, 255, 255, 0.5)",
-    borderColor: "rgba(200, 200, 200, 0.5)",
-    borderRadius: "lg",
-  },
-  heading: {
-    size: "lg",
-    margin: 4,
-  },
-  searchMargin: 4,
-};
+export const theme = createTheme({
+  fontFamily: cssVar("font-sans"),
+  fontFamilyMonospace: cssVar("font-mono"),
 
-export const planDisplayStyles = {
-  container: {
-    padding: 8,
-    bg: "transparent", // Transparent background for plan display
-    position: "relative",
-    gap: 8,
+  white: cssVar("bg-surface"),
+
+  primaryColor: "accent",
+  primaryShade: 6,
+
+  colors: {
+    accent: tupleFromVar("accent-primary"),
+    "accent-hover": tupleFromVar("accent-primary-hover"),
+    success: tupleFromVar("success"),
+    canvas: tupleFromVar("bg-canvas"),
+    surface: tupleFromVar("bg-surface"),
+    "text-primary": tupleFromVar("text-primary"),
+    "text-secondary": tupleFromVar("text-secondary"),
+    "text-tertiary": tupleFromVar("text-tertiary"),
+    "border-subtle": tupleFromVar("border-subtle"),
+    "stripe-cs-math": tupleFromVar("stripe-cs-math"),
+    "stripe-humanities": tupleFromVar("stripe-humanities"),
+    "stripe-sciences": tupleFromVar("stripe-sciences"),
+    "stripe-neutral": tupleFromVar("stripe-neutral"),
   },
-  heading: {
-    size: "2xl",
-    margin: 4,
+
+  fontSizes: {
+    xs: cssVar("font-size-micro"),
+    sm: cssVar("font-size-body"),
+    md: cssVar("font-size-label"),
+    lg: cssVar("font-size-label"),
+    xl: cssVar("font-size-title"),
   },
-  majorText: {
-    margin: 6,
-    color: "rgba(50, 50, 50, 0.8)",
+
+  radius: {
+    xs: cssVar("radius-sm"),
+    sm: cssVar("radius-sm"),
+    md: cssVar("radius-md"),
+    lg: cssVar("radius-lg"),
+    xl: cssVar("radius-pill"),
   },
-  semesterBox: {
-    bg: "rgba(240, 240, 240, 0.5)", // Translucent background for semester boxes
-    border: "1px solid rgba(200, 200, 200, 0.5)",
-    borderColor: "rgba(180, 180, 180, 0.5)",
-    padding: 3,
-    width: "160px",
-    minHeight: "160px",
+
+  defaultRadius: "md",
+
+  shadows: {
+    xs: cssVar("shadow-card"),
+    sm: cssVar("shadow-card"),
+    md: cssVar("shadow-card"),
+    lg: cssVar("shadow-overlay"),
+    xl: cssVar("shadow-overlay"),
   },
-};
 
-export const coursePreviewPanelStyles = {
-  container: {
-    width: "100%",
-    bg: "rgba(255, 255, 255, 0.5)", // Translucent background for course preview panel
-    padding: 4,
-    borderRadius: "lg",
-    boxShadow: "0 4px 6px rgba(0, 0, 0, 0.2)",
-    border: "1px solid rgba(255, 255, 255, 0.5)",
-    borderColor: "rgba(200, 200, 200, 0.5)",
+  spacing: {
+    xs: cssVar("space-1"),
+    sm: cssVar("space-2"),
+    md: cssVar("space-3"),
+    lg: cssVar("space-4"),
+    xl: cssVar("space-6"),
   },
-  text: {
-    fontSize: "xl",
-    fontWeight: "bold",
-    color: "rgba(100, 0, 0, 0.8)",
-  },
-};
+});
 
-export const searchBarStyles = {
-  container: {
-    position: "relative",
-    width: "100%",
-    border: "1px solid rgba(255, 255, 255, 0.5)",
-    borderColor: "rgba(200, 200, 200, 0.5)",
-    borderRadius: "lg",
-    boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-    bg: "transparent", // Transparent background for search bar
-    display: "flex",
-    flexDirection: "column",
-  },
-  input: {
-    paddingLeft: 12,
-    paddingY: 3,
-    border: "1px solid rgba(255, 255, 255, 0.5)",
-    borderColor: "rgba(200, 200, 200, 0.5)",
-    rounded: "md",
-    fontSize: "md",
-    _focus: {
-      outline: "none",
-      ring: "2px",
-      ringColor: "rgba(255, 255, 255, 0.5)",
-      borderColor: "rgba(200, 200, 200, 0.5)",
-    },
-  },
-};
-
-// Export all styles for easy import
-export default {
-  cardStyles,
-  buttonStyles,
-  planDisplayStyles,
-  globalSearchLayoutStyles,
-  coursePreviewPanelStyles,
-  searchBarStyles,
-};
-
-// export const cardStyles = {
-//   base: {
-//     bg: "white",
-//     color: "black",
-//     p: 4,
-//     borderRadius: "md",
-//     boxShadow: "md",
-//   },
-//   glass: {
-//     bg: "rgba(255, 255, 255, 0.8)",
-//     color: "black",
-//     p: 4,
-//     borderRadius: "md",
-//     boxShadow: "lg",
-//     backdropFilter: "blur(10px)",
-//   },
-// };
-
-// export const buttonStyles = {
-//   base: {
-//     bg: "blue.500",
-//     color: "white",
-//     _hover: {
-//       bg: "blue.600",
-//     },
-//   },
-//   glass: {
-//     bg: "rgba(0, 0, 255, 0.5)",
-//     color: "white",
-//     _hover: {
-//       bg: "rgba(0, 0, 255, 0.7)",
-//     },
-//     backdropFilter: "blur(5px)",
-//   },
-// };
-
-// export const globalSearchLayoutStyles = {
-//   container: {
-//     padding: 12,
-//     gap: 4,
-//     bg: "transparent", // Transparent background for layout
-//     border: "1px solid rgba(255, 255, 255, 0.5)",
-//     borderColor: "rgba(200, 200, 200, 0.5)",
-//     borderRadius: "lg",
-//   },
-//   heading: {
-//     size: "lg",
-//     margin: 4,
-//   },
-//   searchMargin: 4,
-// };
-
-// export const planDisplayStyles = {
-//   container: {
-//     padding: 8,
-//     bg: "transparent", // Transparent background for plan display
-//     position: "relative",
-//     gap: 8,
-//   },
-//   heading: {
-//     size: "2xl",
-//     margin: 4,
-//   },
-//   majorText: {
-//     margin: 6,
-//     color: "rgba(50, 50, 50, 0.8)",
-//   },
-//   semesterBox: {
-//     bg: "rgba(240, 240, 240, 0.5)", // Translucent background for semester boxes
-//     border: "1px solid rgba(200, 200, 200, 0.5)",
-//     borderColor: "rgba(180, 180, 180, 0.5)",
-//     padding: 3,
-//     width: "160px",
-//     minHeight: "160px",
-//   },
-// };
-
-// export const coursePreviewPanelStyles = {
-//   container: {
-//     width: "100%",
-//     bg: "rgba(255, 255, 255, 0.5)", // Translucent background for course preview panel
-//     padding: 4,
-//     borderRadius: "lg",
-//     boxShadow: "0 4px 6px rgba(0, 0, 0, 0.2)",
-//     border: "1px solid rgba(255, 255, 255, 0.5)",
-//     borderColor: "rgba(200, 200, 200, 0.5)",
-//   },
-//   text: {
-//     fontSize: "xl",
-//     fontWeight: "bold",
-//     color: "rgba(100, 0, 0, 0.8)",
-//   },
-// };
-
-// export const searchBarStyles = {
-//   container: {
-//     position: "relative",
-//     width: "100%",
-//     border: "1px solid rgba(255, 255, 255, 0.5)",
-//     borderColor: "rgba(200, 200, 200, 0.5)",
-//     borderRadius: "lg",
-//     boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
-//     bg: "transparent", // Transparent background for search bar
-//     display: "flex",
-//     flexDirection: "column",
-//   },
-//   input: {
-//     paddingLeft: 12,
-//     paddingY: 3,
-//     border: "1px solid rgba(255, 255, 255, 0.5)",
-//     borderColor: "rgba(200, 200, 200, 0.5)",
-//     rounded: "md",
-//     fontSize: "md",
-//     _focus: {
-//       outline: "none",
-//       ring: "2px",
-//       ringColor: "rgba(255, 255, 255, 0.5)",
-//       borderColor: "rgba(200, 200, 200, 0.5)",
-//     },
-//   },
-// };
+export default theme;

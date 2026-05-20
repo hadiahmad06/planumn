@@ -1,39 +1,142 @@
 @import "tailwindcss";
 
+/* =============================================================================
+ * Design tokens — single source of truth (per ADR-0004 / PRD redesign-v1).
+ * Tailwind consumes these via the @theme inline block below; Mantine consumes
+ * them via frontend/src/styles/theme.ts. Do not redefine values elsewhere.
+ * ========================================================================== */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --primary: #7A0019;
-  --primary-dark: #5c0014;
-  --secondary: #64748b;
-  --accent: #FFB300;
-  --success: #10b981;
-  --error: #ef4444;
-  --border: #e2e8f0;
-  --card: #f8fafc;
-  --hover: #f1f5f9;
+  /* Color — neutrals & surfaces */
+  --bg-canvas: #F8ECE8;
+  --bg-surface: #FFFFFF;
+  --text-primary: #1A1414;
+  --text-secondary: #6B6363;
+  --text-tertiary: #A89E9C;
+  --border-subtle: #E8DCD9;
+
+  /* Color — brand & status */
+  --accent-primary: #811331;
+  --accent-primary-hover: #6A0F28;
+  --success: #1F8B4C;
+  --info: #3b82f6;
+
+  /* Department-stripe palette (consumed by the course-color resolver) */
+  --stripe-cs-math: #811331;
+  --stripe-humanities: #D49A2E;
+  --stripe-sciences: #B97250;
+  --stripe-neutral: #A89E9C;
+
+  /* Typography */
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-size-micro: 11px;   /* uppercase labels */
+  --font-size-body: 14px;
+  --font-size-label: 16px;
+  --font-size-title: 32px;
+
+  /* Radii */
+  --radius-sm: 4px;    /* rail rows */
+  --radius-md: 8px;    /* cards */
+  --radius-lg: 12px;   /* modals */
+  --radius-pill: 999px; /* search input, share button, program tag pill */
+
+  /* Shadows */
+  --shadow-card: 0 1px 2px rgba(26, 20, 20, 0.06), 0 2px 6px rgba(26, 20, 20, 0.04);
+  --shadow-overlay: 0 8px 24px rgba(26, 20, 20, 0.12), 0 2px 6px rgba(26, 20, 20, 0.06);
+
+  /* Grade-distribution chart palette (areachart / barchart) */
+  --grade-f: #ff0000;
+  --grade-d: #ec6c17;
+  --grade-c-low: #e89029;
+  --grade-c-high: #ecc94b;
+  --grade-b-low: #c0c246;
+  --grade-b-high: #93ba41;
+  --grade-a: #38a169;
+  --grade-w-warning: #ff0d14;
+  --chart-axis-ink: #1B202B;
+
+  /* Landing-page gradient stops (rose ramp) */
+  --rose-100: #F8E8EA;
+  --rose-200: #e4a5b2;
+  --rose-300: #E78AB4;
+  --rose-400: #C96D94;
+  --rose-500: #C15D8E;
+  --rose-600: #D16391;
+  --rose-700: #9D3D5F;
+  --rose-800: #6B102C;
+
+  /* Schedule card */
+  --card-credit-row-height: 20px; /* per-credit pixel height for schedule cards */
+
+  /* Spacing — 8px grid */
+  --space-1: 8px;
+  --space-2: 16px;
+  --space-3: 24px;
+  --space-4: 32px;
+  --space-5: 40px;
+  --space-6: 48px;
+  --space-7: 56px;
+  --space-8: 64px;
+  --space-9: 72px;
+  --space-10: 80px;
+  --space-11: 88px;
+  --space-12: 96px;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-primary-dark: var(--primary-dark);
-  --color-secondary: var(--secondary);
-  --color-accent: var(--accent);
+  /* Colors */
+  --color-bg-canvas: var(--bg-canvas);
+  --color-bg-surface: var(--bg-surface);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-border-subtle: var(--border-subtle);
+  --color-accent-primary: var(--accent-primary);
+  --color-accent-primary-hover: var(--accent-primary-hover);
   --color-success: var(--success);
-  --color-error: var(--error);
-  --color-border: var(--border);
-  --color-card: var(--card);
-  --color-hover: var(--hover);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-stripe-cs-math: var(--stripe-cs-math);
+  --color-stripe-humanities: var(--stripe-humanities);
+  --color-stripe-sciences: var(--stripe-sciences);
+  --color-stripe-neutral: var(--stripe-neutral);
+
+  /* Typography */
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --text-micro: var(--font-size-micro);
+  --text-body: var(--font-size-body);
+  --text-label: var(--font-size-label);
+  --text-title: var(--font-size-title);
+
+  /* Radii */
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-pill: var(--radius-pill);
+
+  /* Shadows */
+  --shadow-card: var(--shadow-card);
+  --shadow-overlay: var(--shadow-overlay);
+
+  /* Spacing */
+  --spacing-1: var(--space-1);
+  --spacing-2: var(--space-2);
+  --spacing-3: var(--space-3);
+  --spacing-4: var(--space-4);
+  --spacing-5: var(--space-5);
+  --spacing-6: var(--space-6);
+  --spacing-7: var(--space-7);
+  --spacing-8: var(--space-8);
+  --spacing-9: var(--space-9);
+  --spacing-10: var(--space-10);
+  --spacing-11: var(--space-11);
+  --spacing-12: var(--space-12);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg-canvas);
+  color: var(--text-primary);
   font-family: var(--font-sans);
+  font-size: var(--font-size-body);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -42,29 +145,21 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
   line-height: 1.25;
   margin-bottom: 1rem;
-  color: var(--foreground);
+  color: var(--text-primary);
 }
 
-h1 {
-  font-size: 2.5rem;
-}
-
-h2 {
-  font-size: 2rem;
-}
-
-h3 {
-  font-size: 1.5rem;
-}
+h1 { font-size: var(--font-size-title); }
+h2 { font-size: 2rem; }
+h3 { font-size: 1.5rem; }
 
 a {
-  color: var(--primary);
+  color: var(--accent-primary);
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 a:hover {
-  color: var(--primary-dark);
+  color: var(--accent-primary-hover);
 }
 
 button {
@@ -77,29 +172,4 @@ button {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 1rem;
-}
-
-/* Light theme specific styles */
-.bg-card {
-  background-color: var(--card);
-}
-
-.bg-hover {
-  background-color: var(--hover);
-}
-
-.text-primary {
-  color: var(--primary);
-}
-
-.text-secondary {
-  color: var(--secondary);
-}
-
-.border-border {
-  border-color: var(--border);
-}
-
-.hover\:bg-hover:hover {
-  background-color: var(--hover);
 }

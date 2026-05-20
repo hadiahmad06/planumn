@@ -20,7 +20,7 @@ export default function LoggedInLandingButtons() {
             <Group justify="center" gap="lg" style={{ paddingTop: "1rem" }}>
                 <Button.Group>
                     <ImportTranscriptButton
-                        gradient={{ from: "#6B102C", to: isMobile ? "#C15D8E" : "#9D3D5F", deg: 90 }}
+                        gradient={{ from: "var(--rose-800)", to: isMobile ? "var(--rose-500)" : "var(--rose-700)", deg: 90 }}
                         size={isMobile ? "sm" : "lg"}
                         style={{
                             borderTopLeftRadius: "1rem",
@@ -37,7 +37,7 @@ export default function LoggedInLandingButtons() {
                     />
                     {!isMobile && (
                       <ProgramCatalogButton
-                          gradient={{ from: "#9D3D5F", to: "#C96D94", deg: 90 }}
+                          gradient={{ from: "var(--rose-700)", to: "var(--rose-400)", deg: 90 }}
                           size={isMobile ? "sm" : "lg"}
                           style={{
                               borderRadius: "0.25rem",
@@ -47,7 +47,7 @@ export default function LoggedInLandingButtons() {
                               transition: "transform 0.2s ease, margin-left 0.2s ease, margin-right 0.2s ease",
                           }}
                           onClick={() => notifications.show({
-                              color: "#811331",
+                              color: "var(--accent-primary)",
                               title: 'Unadded Feature',
                               message: 'We are working on the program catalog page. Please check back later!',
                           })}
@@ -56,7 +56,7 @@ export default function LoggedInLandingButtons() {
                       />
                     )}
                     <StartFromScratchButton
-                        gradient={{ from: isMobile ? "#C15D8E" : "#C96D94", to: "#E78AB4", deg: 90 }}
+                        gradient={{ from: isMobile ? "var(--rose-500)" : "var(--rose-400)", to: "var(--rose-300)", deg: 90 }}
                         size={isMobile ? "sm" : "lg"}
                         style={{
                             borderTopRightRadius: "1rem",

@@ -14,6 +14,7 @@ import { PlanProvider } from "@/contexts/data/PlanProvider";
 import { DisplaySettingsProvider } from "@/contexts/visual/DisplaySettingsProvider";
 import { MobileProvider } from "@/contexts/visual/MobileProvider";
 import { PlanAuditProvider } from "@/contexts/data/PlanAuditProvider";
+import { theme } from "@/styles/theme";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -54,7 +55,7 @@ export default function RootLayout({
         <meta name="author" content="Hadi Ahmad, Michael Zewdie" />
       </head>
       <body>
-        <MantineProvider>
+        <MantineProvider theme={theme}>
           <Notifications autoClose={4000}/>
           <MobileProvider>
             <UserSessionProvider>

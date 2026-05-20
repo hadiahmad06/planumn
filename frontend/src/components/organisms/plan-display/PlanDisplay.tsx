@@ -1,112 +1,153 @@
 "use client";
 
-import { Droppable } from "@hello-pangea/dnd";
-import { Box, Flex, Text, Title, Skeleton, Button, Menu, Portal, Stack, Space, Accordion, ScrollArea, Container, Group, ActionIcon } from '@mantine/core';
-// Accordion control open/closed styles
-// You may move these to a CSS module or stylesheet if preferred
-const SEMESTER_BACKGROUND = 'linear-gradient(135deg, rgba(221, 208, 208, 0.8), rgba(245, 245, 255, 0.6))';
+import {
+  DragDropContext,
+  Droppable,
+  DropResult,
+} from "@hello-pangea/dnd";
+import {
+  Box,
+  Flex,
+  Text,
+  Skeleton,
+  Menu,
+  ScrollArea,
+} from "@mantine/core";
 
-import ManipulateYear from "@/lib/ManipulateYear";
 import CourseCard from "../../molecules/CourseCard";
-import { ColorKey, Course, CourseDetails, CourseMetadata, Plan, QueriedCourse, Semester } from "@/types/plan";
+import { CourseMetadata, QueriedCourse, Semester } from "@/types/plan";
 import { useContext, useEffect, useState } from "react";
-import theme from "@/styles/theme";
 import { PlanContext } from "@/contexts/data/PlanContext";
-import SearchLayout from "@/components/organisms/SearchLayout";
+import TopBar from "./TopBar";
 import PlanHeader from "../../atoms/PlanHeader";
-import { IconMinus, IconPlus } from "@tabler/icons-react";
+import { IconPlus } from "@tabler/icons-react";
 import { MobileContext } from "@/contexts/visual/MobileContext";
+import {
+  DisplaySettingsContext,
+  isSemesterHidden,
+} from "@/contexts/visual/DisplaySettingsContext";
 import PlanDisplayMobile from "./PlanDisplayMobile";
 import AdvisorChat from "@/components/organisms/AdvisorChat";
+import Rail from "./Rail";
+import { PlanAuditContext } from "@/contexts/data/PlanAuditContext";
+import planDisplayClasses from "./PlanDisplay.module.css";
 
-const ALWAYS_VISIBLE_CREDITS = 4;
-const COURSE_VERTICAL_GAP = 0;
+function semesterLabel(index: string): string {
+  const yy = parseInt(index.slice(1, 3), 10);
+  const season = index[3];
+  if (season === "9") return `Fall ${2000 + yy}`;
+  if (season === "3") return `Spring ${2000 + yy - 1}`;
+  if (season === "5") return `Summer ${2000 + yy - 1}`;
+  return index;
+}
 
-
-
-// Layout
-const CONTAINER_PADDING = 8;
-const ROW_GAP = 8;
-const SEMESTER_GAP = 6;
-const CREDIT_LINE_GAP = 2;
-const SEMESTER_BOX_PADDING = 3;
-const CREDIT_NUMBER_PADDING = 0;
-
-// Dimensions
-const SEMESTER_BOX_WIDTH = "160px";
-const SEMESTER_BOX_MIN_HEIGHT = "90px";
-const CREDIT_LINE_HEIGHT = "20px";
-
-// Accordion control open/closed styles
-const accordionControlStyles = {
-  open: {
-    fontWeight: 700,
-  },
-  closed: {
-    fontWeight: 500,
+function nextSemesterIndex(index: string): string {
+  const decade = index[0];
+  const yy = index.slice(1, 3);
+  const season = index[3];
+  if (season === "9") {
+    const nyy = (parseInt(yy, 10) + 1).toString().padStart(2, "0");
+    return `${decade}${nyy}3`;
   }
-};
+  if (season === "3") {
+    return `${decade}${yy}5`;
+  }
+  return `${decade}${yy}9`;
+}
 
-// Typography
-const HEADING_SIZE = "2xl";
-const SEMESTER_TITLE_SIZE = "18px";
-const CREDIT_NUMBER_SIZE = "xs";
-const SEMESTER_TITLE_WEIGHT = "medium";
-
-// Margins
-const HEADING_MARGIN = 4;
-const MAJOR_TEXT_MARGIN = 6;
-const SEMESTER_TITLE_MARGIN = 1;
 
 export default function PlanDisplay() {
   const { isMobile } = useContext(MobileContext);
-  return isMobile ? <PlanDisplayMobile/> : <PlanDisplayDesktop/>;
+  const { plan, setPlan, cachedCourses, setCachedCourses } =
+    useContext(PlanContext);
+  const { cachedReqCourses } = useContext(PlanAuditContext);
+
+  const handleDragEnd = (result: DropResult) => {
+    if (!plan) return;
+    const { source, destination } = result;
+    if (!destination) return;
+
+    const updated = [...plan.semesters];
+    const destSem = updated.find((sem) => sem.index === destination.droppableId);
+    if (!destSem) return;
+    const courses: CourseMetadata[] = destSem.courses;
+
+    if (source.droppableId === "search") {
+      const courseData = JSON.parse(result.draggableId) as QueriedCourse;
+      courses.splice(destination.index, 0, {
+        ...courseData,
+        lock: "unlocked",
+      });
+      // Best-effort: hydrate the stub into a full CourseDetails so the
+      // schedule card shows credits, height, grade dist, etc.
+      void (async () => {
+        try {
+          const res = await fetch(`/api/course/full`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ids: [String((courseData as any).id)] }),
+          });
+          if (!res.ok) return;
+          const rows = (await res.json()) as any[];
+          const full = rows?.[0];
+          if (!full) return;
+          setCachedCourses({
+            ...cachedCourses,
+            [full.id]: { ...full, lock: "unlocked" },
+          });
+        } catch {
+          /* silent — card falls back to the stub */
+        }
+      })();
+    } else if (source.droppableId === "rail") {
+      // draggableId format: `rail-<reqIdx>-<ruleIdx>-<leafId>-<idx>`
+      const parts = result.draggableId.split("-");
+      const leafId = parts[3];
+      const details = cachedReqCourses[leafId];
+      if (!details) return;
+      courses.splice(destination.index, 0, {
+        ...details,
+        lock: "unlocked",
+      } as any);
+      // Hydrate cachedCourses so the schedule card renders without a Skeleton.
+      setCachedCourses({
+        ...cachedCourses,
+        [details.id]: { ...details, lock: "unlocked" } as any,
+      });
+    } else {
+      const sourceSem = updated.find(
+        (sem) => sem.index === source.droppableId
+      );
+      if (!sourceSem) return;
+      const [moved] = sourceSem.courses.splice(source.index, 1);
+      courses.splice(destination.index, 0, moved);
+    }
+
+    setPlan({ ...plan, semesters: updated });
+  };
+
+  return (
+    <DragDropContext
+      onDragStart={() =>
+        window.dispatchEvent(new CustomEvent("planumn:dragstart"))
+      }
+      onDragEnd={(result) => {
+        window.dispatchEvent(new CustomEvent("planumn:dragend"));
+        handleDragEnd(result);
+      }}
+    >
+      {isMobile ? <PlanDisplayMobile /> : <PlanDisplayDesktop />}
+    </DragDropContext>
+  );
 }
 
 export function PlanDisplayDesktop() {
-  const { plan, setPlan, cachedCourses } = useContext(PlanContext);
-
-  // Accordion control open/closed state for bottom border radius
-  const [closedAccordion, setClosedAccordion] = useState<string[]>([]);
-
-  const [yearManipulate, setYearManipulate] = useState<string>('')
+  const { plan, setPlan } = useContext(PlanContext);
 
   useEffect(() => {
-    const handleMessage = async (event: MessageEvent) => {
+    const handleMessage = (event: MessageEvent) => {
       if (!plan) return;
-      // setClosedAccordion([]);
-      if (event.data.type === 'DRAG_END') {
-        console.log("Received drag end event:", event.data.result);
-        const { source, destination } = event.data.result;
-        if (!destination) return;
-
-        const updated = [...plan.semesters];
-
-        const destSem = updated.find(sem => sem.index === destination.droppableId);
-        if (!destSem) return;
-        const courses: CourseMetadata[] = destSem.courses;
-        if (source.droppableId === "search") {
-
-          const courseData = JSON.parse(event.data.result.draggableId) as QueriedCourse;
-
-          // const details = cachedCourses;
-          // details[courseData.id] = courseData;
-          // setCachedCourses(details);
-
-          courses.splice(destination.index, 0, {
-            ...courseData,
-            lock: "unlocked"
-          });
-
-        } else {
-          const sourceSem = updated.find(sem => sem.index === source.droppableId);
-          if (!sourceSem) return;
-          const [moved] = sourceSem.courses.splice(source.index, 1);
-          courses.splice(destination.index, 0, moved);
-        }
-
-        setPlan({ ...plan, semesters: updated });
-      } else if (event.data.type === 'AUTOFILL') {
+      if (event.data.type === "AUTOFILL") {
         const updated = [...plan.semesters];
         let moved = false;
         for (const sem of updated) {
@@ -122,332 +163,268 @@ export function PlanDisplayDesktop() {
         setPlan({ ...plan, semesters: updated });
       }
     };
-
-    window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
   }, [plan, setPlan]);
 
+  // Auto-inject Summer semesters after every Spring on plan load.
+  useEffect(() => {
+    if (!plan) return;
+    const existing = new Set(plan.semesters.map((s) => s.index));
+    const toAdd: Semester[] = [];
+    for (const sem of plan.semesters) {
+      if (sem.index[3] === "3") {
+        const summerIdx = sem.index.slice(0, 3) + "5";
+        if (!existing.has(summerIdx)) {
+          existing.add(summerIdx);
+          toAdd.push({ index: summerIdx, courses: [] });
+        }
+      }
+    }
+    if (toAdd.length > 0) {
+      setPlan({
+        ...plan,
+        semesters: [...plan.semesters, ...toAdd].sort((a, b) =>
+          a.index.localeCompare(b.index)
+        ),
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plan?.id]);
 
   if (!plan) {
-    return <Skeleton height="100%" />; // Handle loading state
+    return (
+      <Box style={{ width: "100vw", height: "100vh" }}>
+        <Skeleton height="100%" />
+      </Box>
+    );
   }
 
   return (
     <>
-    <Group
-      w="100vw"
-      h="100vh"
-      justify="space-between"
-      align="stretch"
-      wrap="nowrap"
-      grow
-      style={{padding:"16px"}}
-    >
       <Box
-        w="40%"
-      >
-        <SearchLayout />
-      </Box>
-      <Box
-        w="60%"
         style={{
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%',
+          width: "100vw",
+          height: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          background: "var(--bg-canvas)",
         }}
       >
-        {/* CENTERED SEMESTER CONTAINER */}
+        <TopBar />
+        <PlanHeader />
 
         <Box
           style={{
-            width: '100%',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            paddingTop: '4em',
-            paddingBottom: '2rem',
+            flex: 1,
+            minHeight: 0,
+            display: "grid",
+            gridTemplateColumns: "minmax(280px, 360px) 1fr",
+            gap: 24,
+            padding: "0 24px 24px",
           }}
         >
-          <PlanHeader/>
-          <Box
-          style={{
-            position: 'relative',
-            width: '100%',
-            height: '100%',
-            background: 'rgba(129, 19, 49, 0.1)',
-            borderRadius: '1rem',
-            padding: '2rem',
-            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.08)',
-          }}
-          >
-            <ScrollArea
-              style={{
-                height: 'calc(100vh - 20rem)', // adjust to leave space for headers
-                overflow: 'auto',
-              }}
-              type="scroll"
-              scrollbars="y"
-              offsetScrollbars
-              scrollHideDelay={0}
-            >
-              <Flex
-              direction="row"
-              align="flex-start"
-              justify="center"
-              gap={theme.planDisplayStyles.container.gap}
-              wrap="wrap"
-              >
-                {(() => {
-                  // console.log(plan.semesters)
-                  // Group semesters by year, only Fall and Spring
-                  const groupedByAcademicYear: Record<string, { Fall?: Semester; Spring?: Semester; Summer?: Semester }> = {};
-                  const seasonLabels: Record<string, string> = { '9': 'Fall', '3': 'Spring', '5': 'Summer' };
-
-                  // Accordion control open/closed state for bottom border radius
-
-                  plan.semesters.forEach((sem) => {
-                    const seasonCode = sem.index[3];
-                    const season = seasonLabels[seasonCode];
-                    if (!season) return;
-                    let year = parseInt('20' + sem.index.slice(1, 3), 10);
-                    // For Spring and Summer, assign to previous year
-                    if (season === 'Spring' || season === 'Summer') year -= 1;
-                    const yearStr = year.toString();
-                    if (!groupedByAcademicYear[yearStr]) groupedByAcademicYear[yearStr] = {};
-                    (groupedByAcademicYear[yearStr] as any)[season] = sem;
-                  });
-
-                  return (
-                    <>
-
-                      {Object.entries(groupedByAcademicYear)
-                        .sort(([a], [b]) => a.localeCompare(b))
-                        .map(([year, semGroupRaw]) => {
-
-                        const semGroup = semGroupRaw as Record<'Fall' | 'Spring' | 'Summer', Semester | undefined>;
-                        return (
-                          <Flex
-                            // bg="blue"
-                            key={year}
-                            direction="row"
-                            align="left"
-                            justify="flex-start"
-                            gap={theme.planDisplayStyles.container.gap + 10}
-                            wrap="nowrap"
-                            // style={{ width: '150px' }}
-                          >
-                            {/*<Title>*/}
-                            {/*  /!* {year}–{(parseInt(year) + 1).toString().slice(-2)} *!/*/}
-                            {/*</Title>*/}
-                            {(() => {
-                              const { Fall, Spring, Summer } = semGroup as { Fall?: Semester; Spring?: Semester; Summer?: Semester };
-                              return (['🍂 Fall', '🌱 Spring', '☀️ Summer'] as const).map((season) => {
-                                const sem = season === '🍂 Fall' ? Fall : season === '🌱 Spring' ? Spring : Summer;
-                                if (!sem) {
-                                  return;
-                                  // return <Box key={`${year}-${season}`} style={{ width: SEMESTER_BOX_WIDTH, minHeight: SEMESTER_BOX_MIN_HEIGHT }} />;
-                                }
-                                const totalCredits = Math.max(
-                                  ALWAYS_VISIBLE_CREDITS,
-                                  sem.courses.reduce((sum, c) => sum + (cachedCourses[c.id]?.cred_min || 0), 0)
-                                );
-                                return (
-                                    <Accordion
-                                      multiple
-                                      value={plan.semesters.map(sem => sem.index).filter(index => !closedAccordion.includes(index))}
-                                      onChange={(newValues) => {
-                                        const allIndices = plan.semesters.map(sem => sem.index);
-                                        const newlyClosed = allIndices.filter(index => !newValues.includes(index));
-                                        setClosedAccordion(newlyClosed);
-                                      }}
-                                      key={`${year}-${season}`}
-                                      style={{
-                                        width: '100%',
-                                        background: 'transparent',
-                                        boxShadow: 'none',
-                                        padding: 0,
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                      }}
-                                      styles={{
-                                        content: { margin: 0, padding: 0 },
-                                        item: {
-                                          border: 'none',
-                                          margin: 0,
-                                          padding: 0,
-                                          borderBottomLeftRadius: '1rem',
-                                          borderBottomRightRadius: '1rem',
-                                        },
-                                        control: {
-                                          textAlign: 'center',
-                                          fontSize: SEMESTER_TITLE_SIZE,
-                                          color: '#2D2A32',
-                                          background: SEMESTER_BACKGROUND,
-                                          border: '1px solid rgba(128, 128, 128, 0.2)',
-                                          padding: 12,
-                                          width: SEMESTER_BOX_WIDTH,
-                                          boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-                                          display: 'block',
-                                          marginBottom: 0,
-                                          paddingBottom: 12,
-                                          borderTopLeftRadius: '1rem',
-                                          borderTopRightRadius: '1rem',
-                                          borderBottomLeftRadius: !closedAccordion.includes(sem.index) ? '0' : '1rem',
-                                          borderBottomRightRadius: !closedAccordion.includes(sem.index) ? '0' : '1rem',
-                                        },
-                                        panel: {
-                                          padding: 0,
-                                          margin: 0,
-                                          background: 'transparent',
-                                          boxShadow: 'none',
-                                          border: 'none',
-                                          display: 'block',
-                                          borderBottomLeftRadius: '1rem',
-                                          borderBottomRightRadius: '1rem',
-                                        },
-                                        chevron: { display: 'none' }
-                                      }}
-                                    >
-                                    <Accordion.Item value={sem.index} key={sem.index}>
-                                      <Accordion.Control>
-                                        <Text>
-                                          {season} {season === '🍂 Fall' ? year : parseInt(year) + 1}
-                                        </Text>
-                                      </Accordion.Control>
-                                      <Accordion.Panel>
-                                        <Droppable droppableId={String(sem.index)} key={sem.index}>
-                                          {(provided) => (
-                                            <Box
-                                              ref={provided.innerRef}
-                                              {...provided.droppableProps}
-                                              style={{
-                                                background: SEMESTER_BACKGROUND,
-                                                borderLeft: '1px solid rgba(128, 128, 128, 0.2)',
-                                                borderRight: '1px solid rgba(128, 128, 128, 0.2)',
-                                                borderBottom: '1px solid rgba(128, 128, 128, 0.2)',
-                                                borderTop: 'none',
-                                                borderTopLeftRadius: 0,
-                                                borderTopRightRadius: 0,
-                                                borderBottomLeftRadius: '1rem',
-                                                borderBottomRightRadius: '1rem',
-                                                padding: 12,
-                                                width: SEMESTER_BOX_WIDTH,
-                                                minHeight: SEMESTER_BOX_MIN_HEIGHT,
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                alignItems: 'center',
-                                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
-                                                marginTop: '0px'
-                                              }}
-                                            >
-                                              <Flex style={{ width: '100%', gap: CREDIT_LINE_GAP }}>
-                                                <Flex direction="column" align="flex-end" >
-                                                  {Array.from({ length: totalCredits }).map((_, i) => (
-                                                    <Text
-                                                      key={i}
-                                                      style={{
-                                                        fontSize: '10px',
-                                                        color: 'rgba(0, 0, 0, 0.35)',
-                                                        height: CREDIT_LINE_HEIGHT,
-                                                        lineHeight: CREDIT_LINE_HEIGHT,
-                                                        textAlign: 'left',
-                                                        width: '100%',
-                                                        letterSpacing: 0,
-                                                        minWidth: '2ch',
-                                                      }}
-                                                    >
-                                                      {i + 1}
-                                                    </Text>
-                                                  ))}
-                                                </Flex>
-                                                <Flex direction="column" gap={COURSE_VERTICAL_GAP} style={{ width: '100%', alignItems: 'center' }}>
-                                                  {(sem.courses as CourseMetadata[]).map((course, j) => {
-                                                    return <CourseCard
-                                                      key={`${sem.index}-${j}`}
-                                                      courseId={course.id}
-                                                      index={j}
-                                                      semName={sem.index}
-                                                      fixedWidth
-                                                      fontSize="15px"
-                                                      source="plan"/>
-                                                  })}
-                                                  {provided.placeholder}
-                                                </Flex>
-                                              </Flex>
-                                            </Box>
-                                          )}
-                                        </Droppable>
-                                      </Accordion.Panel>
-                                    </Accordion.Item>
-                                  </Accordion>
-                                );
-                              });
-                            })()}
-                          </Flex>
-                        );
-                      })}
-                    </>
-                  );
-                })()}
-              </Flex>
-            </ScrollArea>
-            <Box
-              style={{
-                display: "flex",
-                flexDirection: 'column',
-                gap: '0.5rem',
-                position: 'absolute',
-                left: '5%',
-                top: '10%',
-                transform: 'translateY(-50%)',
-              }}
-            >
-              <ActionIcon 
-                bg='rgba(129, 19, 49, 0.1)' 
-                radius='md'  
-                onClick={() => {ManipulateYear(plan, setPlan, "AddPrecedingYear")}}
-              >
-                <IconPlus color={'Green'}/>
-              </ActionIcon>
-              <ActionIcon  
-                bg='rgba(129, 19, 49, 0.1)'
-                radius='md'
-                onClick={() => {ManipulateYear(plan, setPlan,"RemovePrecedingYear")}}
-              >
-                <IconMinus color={'Red'}/>
-              </ActionIcon>
-            </Box>
-            <Box style={{
-                display: "flex",
-                flexDirection: 'column',
-                gap: '0.5rem',
-                position: 'absolute',
-                right: '5%',
-                top: '10%',
-                transform: 'translateY(-50%)',
-              }}
-            >
-              <ActionIcon 
-                bg='rgba(129, 19, 49, 0.1)'
-                radius='md'
-                onClick={() => {ManipulateYear(plan, setPlan, "AddLatestYear")}}
-              >
-                <IconPlus color={'Green'}/>
-              </ActionIcon>
-
-              <ActionIcon 
-                bg='rgba(129, 19, 49, 0.1)'  
-                radius='md'
-                onClick={() => {ManipulateYear(plan, setPlan, "RemoveLatestYear")}}
-              >
-                <IconMinus color={'Red'}/>
-              </ActionIcon>
-            </Box>
-          </Box>
+          <Rail />
+          <ScheduleColumn />
         </Box>
       </Box>
-    </Group>
-    <AdvisorChat />
+      <AdvisorChat />
+    </>
+  );
+}
+
+function ScheduleColumn() {
+  const { plan, setPlan, cachedCourses } = useContext(PlanContext);
+  const { hiddenSemesters } = useContext(DisplaySettingsContext);
+
+  if (!plan) return null;
+
+  const visibleSemesters = [...plan.semesters]
+    .filter(
+      (sem) => !isSemesterHidden(sem.index, hiddenSemesters) && !!sem.index[3]
+    )
+    .sort((a, b) => a.index.localeCompare(b.index));
+
+  const removeSemester = (semIndex: string) => {
+    const sem = plan.semesters.find((s) => s.index === semIndex);
+    if (!sem) return;
+    if (sem.courses.length > 0) {
+      const label = semesterLabel(semIndex);
+      const ok = window.confirm(
+        `Remove ${label}? It has ${sem.courses.length} course${
+          sem.courses.length === 1 ? "" : "s"
+        } that will be deleted.`
+      );
+      if (!ok) return;
+    }
+    setPlan({
+      ...plan,
+      semesters: plan.semesters.filter((s) => s.index !== semIndex),
+    });
+  };
+
+  const lastIndex =
+    visibleSemesters.length > 0
+      ? visibleSemesters[visibleSemesters.length - 1].index
+      : null;
+  const nextIndex = lastIndex
+    ? nextSemesterIndex(lastIndex)
+    : (() => {
+        const yy = new Date().getFullYear() - 2000;
+        return `1${yy.toString().padStart(2, "0")}9`;
+      })();
+
+  const addNextSemester = () => {
+    if (plan.semesters.some((s) => s.index === nextIndex)) return;
+    setPlan({
+      ...plan,
+      semesters: [...plan.semesters, { index: nextIndex, courses: [] }].sort(
+        (a, b) => a.index.localeCompare(b.index)
+      ),
+    });
+  };
+
+  return (
+    <Box
+      style={{
+        background: "transparent",
+        overflow: "hidden",
+        minHeight: 0,
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <ScrollArea
+        style={{ flex: 1 }}
+        type="scroll"
+        scrollbars="y"
+        offsetScrollbars
+        scrollHideDelay={0}
+      >
+        <Box className={planDisplayClasses.scheduleGrid}>
+          {visibleSemesters.map((sem) => (
+            <SemesterCard
+              key={sem.index}
+              sem={sem}
+              onRemove={() => removeSemester(sem.index)}
+              creditTotal={sem.courses.reduce(
+                (sum, c) => sum + (cachedCourses[c.id]?.cred_min || 0),
+                0
+              )}
+            />
+          ))}
+          <Box
+            className={planDisplayClasses.addTile}
+            role="button"
+            tabIndex={0}
+            onClick={addNextSemester}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                addNextSemester();
+              }
+            }}
+          >
+            <Flex align="center" gap={6}>
+              <IconPlus size={16} />
+              <Text className={planDisplayClasses.addTileTitle}>
+                Add semester
+              </Text>
+            </Flex>
+            <Text className={planDisplayClasses.addTileHint}>
+              Next: {semesterLabel(nextIndex).replace(/^[^\s]+\s/, "")}
+            </Text>
+          </Box>
+        </Box>
+      </ScrollArea>
+    </Box>
+  );
+}
+
+function SemesterCard({
+  sem,
+  onRemove,
+  creditTotal,
+}: {
+  sem: Semester;
+  onRemove: () => void;
+  creditTotal: number;
+}) {
+  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
+
+  return (
+    <>
+      <Box
+        className={planDisplayClasses.semesterCard}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          setMenu({ x: e.clientX, y: e.clientY });
+        }}
+      >
+        <Box className={planDisplayClasses.semesterHeader}>
+          <span className={planDisplayClasses.semesterTitle}>
+            {semesterLabel(sem.index)}
+          </span>
+          <span className={planDisplayClasses.semesterCredits}>
+            {creditTotal} cr
+          </span>
+        </Box>
+
+        <Droppable droppableId={String(sem.index)} key={sem.index}>
+          {(provided) => (
+            <Box
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+              className={planDisplayClasses.dropZone}
+            >
+              {(sem.courses as CourseMetadata[]).map((course, j) => (
+                <CourseCard
+                  key={`${sem.index}-${j}`}
+                  courseId={course.id}
+                  index={j}
+                  semName={sem.index}
+                  fontSize="14px"
+                  source="plan"
+                />
+              ))}
+              {provided.placeholder}
+            </Box>
+          )}
+        </Droppable>
+      </Box>
+
+      <Menu
+        opened={menu !== null}
+        onClose={() => setMenu(null)}
+        position="bottom-start"
+        withinPortal
+        shadow="md"
+      >
+        <Menu.Target>
+          <span
+            style={{
+              position: "fixed",
+              left: menu?.x ?? -9999,
+              top: menu?.y ?? -9999,
+              width: 1,
+              height: 1,
+              pointerEvents: "none",
+            }}
+          />
+        </Menu.Target>
+        <Menu.Dropdown>
+          <Menu.Item
+            color="red"
+            onClick={() => {
+              setMenu(null);
+              onRemove();
+            }}
+          >
+            Remove semester
+          </Menu.Item>
+        </Menu.Dropdown>
+      </Menu>
     </>
   );
 }

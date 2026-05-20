@@ -18,7 +18,7 @@ export default function LoggedOutLandingButtons() {
         <Group justify="center" gap="lg" style={{ paddingTop: "1rem" }}>
             <Button.Group>
                 <ImportTranscriptButton
-                    gradient={{ from: "#6B102C", to: "#C15D8E", deg: 90 }}
+                    gradient={{ from: "var(--rose-800)", to: "var(--rose-500)", deg: 90 }}
                     size={isMobile ? "sm" : "lg"}
                     style={{
                         borderTopLeftRadius: "1rem",
@@ -34,7 +34,7 @@ export default function LoggedOutLandingButtons() {
                     onMouseLeave={() => setHoverLeft(false)}
                 />
                 <StartFromScratchButton
-                    gradient={{ from: "#C15D8E", to: "#E78AB4", deg: 90 }}
+                    gradient={{ from: "var(--rose-500)", to: "var(--rose-300)", deg: 90 }}
                     size={isMobile ? "sm" : "lg"}
                     style={{
                         borderTopRightRadius: "1rem",

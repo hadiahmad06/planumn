@@ -75,15 +75,15 @@ export default function PlanRow({ plan, index, creditMap, onDelete, isDeleted = 
       ) : (
         <Box style={{margin: "4px 0", display: "flex", alignItems: "center", gap: 8 }}>
           {!isMobile && 
-            <Text size="sm" fw={700} c="#811331" style={{ width: 32, textAlign: "right" }}>
+            <Text size="sm" fw={700} c="var(--accent-primary)" style={{ width: 32, textAlign: "right" }}>
                 {percent}%
             </Text>
           }
           <Progress
             value={percent}
-            color="#811331"
+            color="var(--accent-primary)"
             size={isMobile ? "md" : "xl"}
-            bg="#d0d0d0"
+            bg="var(--border-subtle)"
             style={{ boxShadow: "0 2px 8px 0 rgba(0,0,0,0.08)", flex: 1 }}
           />
         </Box>
@@ -92,11 +92,11 @@ export default function PlanRow({ plan, index, creditMap, onDelete, isDeleted = 
       {!isMobile && <>
         <Text size="sm">
             <span style={{ fontWeight: 500 }}>{courseCount}</span>{" "}
-            <span style={{ color: "#868e96" }}>courses</span>
+            <span style={{ color: "var(--text-secondary)" }}>courses</span>
         </Text>
         <Text size="sm">
             <span style={{ fontWeight: 500 }}>{creditCount}</span>{" "}
-            <span style={{ color: "#868e96" }}>credits</span>
+            <span style={{ color: "var(--text-secondary)" }}>credits</span>
         </Text>
       </>}
       <Text size="sm" c="dimmed">

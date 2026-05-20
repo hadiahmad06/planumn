@@ -54,7 +54,7 @@ export default function Home() {
             <Text
               style={{
                 fontSize: "1.5rem",
-                color: "#334155",
+                color: "var(--text-secondary)",
                 fontWeight: "300",
                 marginTop: "0.5rem",
               }}
@@ -67,7 +67,7 @@ export default function Home() {
             style={{
               fontSize: "1.25rem",
               maxWidth: "min(40rem, 85vw)",
-              color: "#334155",
+              color: "var(--text-secondary)",
               textAlign: "center",
             }}
           >
@@ -81,40 +81,40 @@ export default function Home() {
           <Group
             justify="center"
             gap="lg"
-            style={{ color: "#64748b", fontSize: "0.875rem", paddingTop: "2rem" }}
+            style={{ color: "var(--text-secondary)", fontSize: "0.875rem", paddingTop: "2rem" }}
           >
             <Group gap="xs">
               <Box
                 style={{
                   width: "0.5rem",
                   height: "0.5rem",
-                  backgroundColor: "#22c55e",
+                  backgroundColor: "var(--success)",
                   borderRadius: "50%",
                 }}
               />
-              <Text color="#334155">Live course data</Text>
+              <Text color="var(--text-secondary)">Live course data</Text>
             </Group>
             <Group gap="xs">
               <Box
                 style={{
                   width: "0.5rem",
                   height: "0.5rem",
-                  backgroundColor: "#3b82f6",
+                  backgroundColor: "var(--info)",
                   borderRadius: "50%",
                 }}
               />
-              <Text color="#334155">Past grade distributions</Text>
+              <Text color="var(--text-secondary)">Past grade distributions</Text>
             </Group>
             <Group gap="xs">
               <Box
                 style={{
                   width: "0.5rem",
                   height: "0.5rem",
-                  backgroundColor: "#811331",
+                  backgroundColor: "var(--accent-primary)",
                   borderRadius: "50%",
                 }}
               />
-              <Text color="#334155">Built by students</Text>
+              <Text color="var(--text-secondary)">Built by students</Text>
             </Group>
             {isMobile && (
               <Paper
@@ -123,9 +123,9 @@ export default function Home() {
                 p="md"
                 style={{
                   margin: "0",
-                  backgroundColor: "#F8E8EA",
-                  color: "#811331",
-                  borderColor: "#e4a5b2",
+                  backgroundColor: "var(--rose-100)",
+                  color: "var(--accent-primary)",
+                  borderColor: "var(--rose-200)",
                   textAlign: "center",
                   display: "inline-flex",
                   alignItems: "center",
@@ -156,14 +156,14 @@ export default function Home() {
               // zIndex: 2,
               // fontSize: "4rem",
               fontWeight: 500,
-              color: "#811331",
+              color: "var(--accent-primary)",
             }}
           >
             <Button
               component="a"
               variant="subtle"
               style={{
-                color: "#811331",
+                color: "var(--accent-primary)",
               }}
               onClick={() => {
                 router.push("/info/privacy")
@@ -175,7 +175,7 @@ export default function Home() {
               component="a"
               variant="subtle"
               style={{
-                color: "#811331",
+                color: "var(--accent-primary)",
               }}
               onClick={() => {
                 router.push("/info/contact")

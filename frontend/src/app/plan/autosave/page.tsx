@@ -33,7 +33,7 @@ export default function LoadLocalPlanPage() {
                     miw="max(20vw, 150px)"
                 >
                     <Button
-                    color="#881311"
+                    color="var(--accent-primary)"
                     onClick={() => {
                         router.push("/");
                     }}

@@ -164,7 +164,7 @@ export default function AdvisorChat() {
           bottom: 24,
           right: 24,
           zIndex: 1100,
-          background: "#811331",
+          background: "var(--accent-primary)",
           color: "white",
           boxShadow: "0 4px 12px rgba(129,19,49,0.4)",
         }}
@@ -206,8 +206,8 @@ export default function AdvisorChat() {
             }}
           >
             <Group gap="xs">
-              <IconMessageCircle size={17} color="#811331" />
-              <Text fw={600} size="sm" c="#811331">AI Advisor</Text>
+              <IconMessageCircle size={17} color="var(--accent-primary)" />
+              <Text fw={600} size="sm" c="var(--accent-primary)">AI Advisor</Text>
             </Group>
             <CloseButton size="sm" onClick={() => setIsOpen(false)} />
           </Group>
@@ -258,8 +258,8 @@ export default function AdvisorChat() {
                     gap: 8,
                   }}
                 >
-                  <Loader size={12} color="#811331" />
-                  <Text size="xs" c="#811331">{toolStatus}</Text>
+                  <Loader size={12} color="var(--accent-primary)" />
+                  <Text size="xs" c="var(--accent-primary)">{toolStatus}</Text>
                 </Box>
               )}
 
@@ -309,7 +309,7 @@ export default function AdvisorChat() {
                 radius="md"
                 onClick={handleSubmit}
                 disabled={isLoading || !input.trim() || !plan}
-                style={{ background: "#811331", color: "white" }}
+                style={{ background: "var(--accent-primary)", color: "white" }}
               >
                 <IconSend size={15} />
               </ActionIcon>

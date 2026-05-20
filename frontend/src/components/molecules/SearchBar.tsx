@@ -97,7 +97,7 @@ export default function SearchBar() {
         boxShadow: isFocused
           ? '0 0 0 4px rgba(209, 99, 145, 0.25), 0 6px 18px rgba(0, 0, 0, 0.1)'
           : '0 2px 8px rgba(0, 0, 0, 0.06)',
-        outline: isFocused ? '1px solid #811331' : '1px solid #ccc',
+        outline: isFocused ? '1px solid var(--accent-primary)' : '1px solid var(--border-subtle)',
         transition: 'all 0.2s ease',
         overflow: 'visible',
       }}
@@ -127,7 +127,7 @@ export default function SearchBar() {
               width: '100%',
               fontSize: '0.95rem',
               background: 'transparent',
-              color: '#333',
+              color: 'var(--text-primary)',
             }
           }}
         />

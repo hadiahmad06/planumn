@@ -10,34 +10,29 @@ import {
   SimpleGrid,
   Accordion,
 } from "@mantine/core";
-import theme from "@/styles/theme";
 import { useContext } from "react";
 import { DisplaySettingsContext } from "@/contexts/visual/DisplaySettingsContext";
 
 type Props = {
   onAutofill: () => void;
-  hiddenSemesters: string[];
-  setHiddenSemesters: (value: string[]) => void;
 };
 
 export default function SettingsPanel({
   onAutofill,
-  hiddenSemesters,
-  setHiddenSemesters,
 }: Props) {
-  const { colorKey, setColorKey } = useContext(DisplaySettingsContext);
+  const { colorKey, setColorKey, hiddenSemesters, setHiddenSemesters } = useContext(DisplaySettingsContext);
   return (
     <Box
       style={{
         width: "max(375px, 50%)",
-        backgroundColor: "#ffffff",
-        border: "1px solid #e0e0e0",
-        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
-        borderRadius: "12px",
+        backgroundColor: "var(--bg-surface)",
+        border: "1px solid var(--border-subtle)",
+        boxShadow: "var(--shadow-card)",
+        borderRadius: "var(--radius-lg)",
         padding: "1rem",
         height: "fit-content",
         position: "sticky",
-        top: theme.globalSearchLayoutStyles.heading.size,
+        top: 0,
       }}
     >
       <Accordion defaultValue="settings">
@@ -47,14 +42,14 @@ export default function SettingsPanel({
               style={{
                 fontSize: "1.25rem",
                 fontWeight: 700,
-                color: "#811331",
+                color: "var(--accent-primary)",
               }}
             >
               Settings
             </Text>
           </Accordion.Control>
           <Accordion.Panel>
-            <SimpleGrid cols={1} spacing="lg" style={{ fontSize: "0.9rem", color: "#555" }}>
+            <SimpleGrid cols={1} spacing="lg" style={{ fontSize: "0.9rem", color: "var(--text-secondary)" }}>
               <Box>
                 <Text style={{ marginBottom: "0.5rem", fontWeight: 500 }}>Color Coding:</Text>
                 <SegmentedControl
@@ -90,18 +85,18 @@ export default function SettingsPanel({
                   onClick={onAutofill}
                   fullWidth
                   style={{
-                    backgroundColor: "#811331",
-                    color: "#ffffff",
+                    backgroundColor: "var(--accent-primary)",
+                    color: "var(--bg-surface)",
                     fontSize: "0.9rem",
                     padding: "0.5rem 1rem",
                     borderRadius: "6px",
                     transition: "all 0.2s ease",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#5e0f27";
+                    e.currentTarget.style.backgroundColor = "var(--accent-primary-hover)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = "#811331";
+                    e.currentTarget.style.backgroundColor = "var(--accent-primary)";
                   }}
                 >
                   Autofill Plan

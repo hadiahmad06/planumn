@@ -6,7 +6,7 @@ import { IconLogin, IconUserPlus } from "@tabler/icons-react";
 import { UserSessionContext } from "@/contexts/data/UserSessionContext";
 import { handleLogin, handleRegister, handleResend } from "./authenticationActions";
 
-const PRIMARY_COLOR = "#811331";
+const PRIMARY_COLOR = "var(--accent-primary)";
 
 export default function AuthButton() {
   const { user, setUser, session, setSession } = useContext(UserSessionContext);

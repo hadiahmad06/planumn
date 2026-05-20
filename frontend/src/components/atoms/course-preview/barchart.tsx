@@ -43,7 +43,7 @@ export const BarChart = ({ distribution, isMobile = true }: { distribution: Dist
     grade,
     count,
     (count / maxValue) * BAR_GRAPH_HEIGHT,
-    grade === "W" && count > 0.075 * totalStudents ? "#ff0d14" : "#1B202B",
+    grade === "W" && count > 0.075 * totalStudents ? "var(--grade-w-warning)" : "var(--chart-axis-ink)",
   ]));
 
 

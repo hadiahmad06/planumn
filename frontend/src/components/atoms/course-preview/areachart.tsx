@@ -50,7 +50,7 @@ export const AreaChart = ({ distribution, isMobile = true }: { distribution: Dis
           width: 'fit-content',
           margin: '0 auto',
           textAlign: 'center',
-          color: '#888',
+          color: 'var(--text-tertiary)',
           fontStyle: 'italic',
           padding: '16px 0'
         }}>
@@ -187,15 +187,15 @@ export const AreaChart = ({ distribution, isMobile = true }: { distribution: Dis
             x2={"1"}
             y2={"0.5"}
           >
-            <stop offset={"0%"} stopColor={"#ff0000"} />
-            <stop offset={"40.5%"} stopColor={"#ec6c17"} />
-            <stop offset={"50%"} stopColor={"#e89029"} />
-            <stop offset={"65%"} stopColor={"#ecc94b"} />
-            <stop offset={"80%"} stopColor={"#ecc94b"} />
-            <stop offset={"85%"} stopColor={"#c0c246"} />
-            <stop offset={"90%"} stopColor={"#93ba41"} />
-            <stop offset={"95%"} stopColor={"#38a169"} />
-            <stop offset={"100%"} stopColor={"#38a169"} />
+            <stop offset={"0%"} stopColor={"var(--grade-f)"} />
+            <stop offset={"40.5%"} stopColor={"var(--grade-d)"} />
+            <stop offset={"50%"} stopColor={"var(--grade-c-low)"} />
+            <stop offset={"65%"} stopColor={"var(--grade-c-high)"} />
+            <stop offset={"80%"} stopColor={"var(--grade-c-high)"} />
+            <stop offset={"85%"} stopColor={"var(--grade-b-low)"} />
+            <stop offset={"90%"} stopColor={"var(--grade-b-high)"} />
+            <stop offset={"95%"} stopColor={"var(--grade-a)"} />
+            <stop offset={"100%"} stopColor={"var(--grade-a)"} />
           </linearGradient>
         </defs>
         <line
@@ -271,7 +271,7 @@ export const AreaChart = ({ distribution, isMobile = true }: { distribution: Dis
                 fontSize: 12,
                 userSelect: "none",
                 fontWeight: "bold",
-                fill: "#1B202B",
+                fill: "var(--chart-axis-ink)",
               }}
             >
               {hoveredGrade.gradeCount} student

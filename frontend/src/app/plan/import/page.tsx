@@ -103,13 +103,13 @@ export default function PlanPage() {
           >
             <Stack align="center" justify="center" gap="md" style={{ pointerEvents: 'none' }}>
               <Dropzone.Accept>
-                <IconUpload size={120} color="#811331" stroke={1.5} />
+                <IconUpload size={120} color="var(--accent-primary)" stroke={1.5} />
               </Dropzone.Accept>
               <Dropzone.Reject>
-                <IconX size={120} color="#D16391" stroke={1.5} />
+                <IconX size={120} color="var(--rose-600)" stroke={1.5} />
               </Dropzone.Reject>
               <Dropzone.Idle>
-                <IconFileText size={120} color="#D16391" stroke={1.5} />
+                <IconFileText size={120} color="var(--rose-600)" stroke={1.5} />
               </Dropzone.Idle>
               <Text size="xl" ta="center" fw={600}>
                 Drag or click to upload your UMN Unofficial Transcript
@@ -121,7 +121,7 @@ export default function PlanPage() {
                 <Button
                   w="100%"
                   variant="gradient"
-                  gradient={{ from: "#811331", to: "#D16391", deg: 30 }}
+                  gradient={{ from: "var(--accent-primary)", to: "var(--rose-600)", deg: 30 }}
                   loading={file !== null}
                   loaderProps={{ type: "dots" }}
                   size="lg"

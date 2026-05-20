@@ -3,9 +3,12 @@ import {
   IconSettings,
   IconRefresh,
   IconTrash,
-  IconUser
+  IconUser,
+  IconLayoutList,
+  IconArrowsExchange,
 } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
+import { useRouter } from "next/navigation";
 import SettingsModal from "@/components/molecules/authentication/SettingsModal";
 import DeletionConfirmationModal from "./DeletionConfirmationModal";
 import { UserSessionContext } from "@/contexts/data/UserSessionContext";
@@ -20,6 +23,7 @@ export default function ProfileDropdown() {
   const [openedSettings, { open: openSettings, close: closeSettings }] = useDisclosure(false);
   const [openedDeletionConfirmation, { open: openDeletionConfirmation, close: closeDeletionConfirmation }] = useDisclosure(false);
   const [openedDisplaySettings, { open: openDisplaySettings, close: closeDisplaySettings }] = useDisclosure(false);
+  const router = useRouter();
 
   return (
     <>
@@ -34,6 +38,26 @@ export default function ProfileDropdown() {
 
         <Menu.Dropdown>
           <Stack gap="0.25rem">
+            <Space h="0.1rem" />
+            <Text size="xs" c="dimmed" px="xs">Plans</Text>
+
+            <Menu.Item
+              leftSection={<IconArrowsExchange size={16} style={{ marginLeft: "6px" }} />}
+              style={{ fontSize: "0.95rem", paddingRight: "1rem" }}
+              onClick={() => router.push("/plan")}
+            >
+              Switch plan
+            </Menu.Item>
+
+            <Menu.Item
+              leftSection={<IconLayoutList size={16} style={{ marginLeft: "6px" }} />}
+              style={{ fontSize: "0.95rem", paddingRight: "1rem" }}
+              onClick={() => router.push("/plan")}
+            >
+              My plans
+            </Menu.Item>
+
+            <Divider />
             <Space h="0.1rem" />
             <Text size="xs" c="dimmed" px="xs">Application</Text>
 
@@ -50,7 +74,7 @@ export default function ProfileDropdown() {
             <Text size="xs" c="dimmed" px="xs">Account</Text>
             <Menu.Item
               leftSection={
-                <IconUser size={20} color="#111" />
+                <IconUser size={20} color="var(--text-primary)" />
               }
               style={{ fontSize: "0.95rem", paddingRight: "1rem" }}
               onClick={openSettings}

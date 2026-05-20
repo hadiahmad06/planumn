@@ -46,7 +46,7 @@ export default function OverwriteSavedPrompt({ setPromptVisible, onOverwrite, me
                   miw="max(20vw, 150px)"
                 >
                   <Button
-                    color="#881311"
+                    color="var(--accent-primary)"
                     onClick={() => {
                       onOverwrite();
                       setPromptVisible(false);
