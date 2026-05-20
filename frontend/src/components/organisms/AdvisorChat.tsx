@@ -158,15 +158,15 @@ export default function AdvisorChat() {
       {/* Toggle button */}
       <ActionIcon
         size="xl"
-        radius="xl"
+        radius="var(--radius-pill)"
         style={{
           position: "fixed",
           bottom: 24,
           right: 24,
           zIndex: 1100,
           background: "var(--accent-primary)",
-          color: "white",
-          boxShadow: "0 4px 12px rgba(129,19,49,0.4)",
+          color: "var(--bg-surface)",
+          boxShadow: "var(--shadow-overlay)",
         }}
         onClick={() => setIsOpen((o) => !o)}
         title="AI Advisor"
@@ -177,9 +177,6 @@ export default function AdvisorChat() {
       {/* Chat panel */}
       {isOpen && (
         <Paper
-          withBorder
-          shadow="xl"
-          radius="lg"
           style={{
             position: "fixed",
             bottom: 80,
@@ -190,33 +187,50 @@ export default function AdvisorChat() {
             display: "flex",
             flexDirection: "column",
             overflow: "hidden",
-            border: "1px solid rgba(129,19,49,0.3)",
-            boxShadow: "0 0 0 4px rgba(129,19,49,0.08), 0 8px 24px rgba(0,0,0,0.12)",
+            backgroundColor: "var(--bg-surface)",
+            border: "1px solid var(--border-subtle)",
+            borderRadius: "var(--radius-lg)",
+            boxShadow: "var(--shadow-overlay)",
           }}
         >
           {/* Header */}
           <Group
             justify="space-between"
-            px="md"
-            py="sm"
+            px="var(--space-2)"
+            py="var(--space-1)"
             style={{
-              background: "rgba(129,19,49,0.06)",
-              borderBottom: "1px solid rgba(129,19,49,0.12)",
+              backgroundColor: "var(--rose-100)",
+              borderBottom: "1px solid var(--border-subtle)",
               flexShrink: 0,
             }}
           >
-            <Group gap="xs">
+            <Group gap={6}>
               <IconMessageCircle size={17} color="var(--accent-primary)" />
-              <Text fw={600} size="sm" c="var(--accent-primary)">AI Advisor</Text>
+              <Text
+                fw={600}
+                style={{
+                  fontSize: "var(--font-size-body)",
+                  color: "var(--accent-primary)",
+                }}
+              >
+                AI Advisor
+              </Text>
             </Group>
             <CloseButton size="sm" onClick={() => setIsOpen(false)} />
           </Group>
 
           {/* Messages */}
-          <ScrollArea flex={1} viewportRef={scrollViewport} p="md">
-            <Stack gap="sm">
+          <ScrollArea flex={1} viewportRef={scrollViewport} p="var(--space-2)">
+            <Stack gap="var(--space-1)">
               {messages.length === 0 && (
-                <Text size="sm" c="dimmed" ta="center" mt="xl">
+                <Text
+                  ta="center"
+                  mt="xl"
+                  style={{
+                    fontSize: "var(--font-size-body)",
+                    color: "var(--text-tertiary)",
+                  }}
+                >
                   Ask me about your courses, requirements, or graduation plan.
                 </Text>
               )}
@@ -226,18 +240,27 @@ export default function AdvisorChat() {
                   return null;
                 }
 
+                const isUser = msg.role === "user";
                 return (
                   <Box
                     key={i}
                     style={{
-                      alignSelf: msg.role === "user" ? "flex-end" : "flex-start",
+                      alignSelf: isUser ? "flex-end" : "flex-start",
                       maxWidth: "85%",
-                      background: msg.role === "user" ? "rgba(129,19,49,0.1)" : "rgba(230,230,230,0.8)",
-                      borderRadius: msg.role === "user" ? "12px 12px 4px 12px" : "12px 12px 12px 4px",
+                      backgroundColor: isUser ? "var(--rose-100)" : "var(--bg-canvas)",
+                      color: "var(--text-primary)",
+                      border: "1px solid var(--border-subtle)",
+                      borderRadius: isUser ? "12px 12px 4px 12px" : "12px 12px 12px 4px",
                       padding: "8px 12px",
                     }}
                   >
-                    <Text size="sm" style={{ whiteSpace: "pre-wrap" }}>
+                    <Text
+                      style={{
+                        fontSize: "var(--font-size-body)",
+                        whiteSpace: "pre-wrap",
+                        color: "var(--text-primary)",
+                      }}
+                    >
                       {msg.content}
                     </Text>
                   </Box>
@@ -249,9 +272,9 @@ export default function AdvisorChat() {
                 <Box
                   style={{
                     alignSelf: "flex-start",
-                    background: "rgba(129,19,49,0.06)",
-                    border: "1px solid rgba(129,19,49,0.15)",
-                    borderRadius: "8px",
+                    backgroundColor: "var(--rose-100)",
+                    border: "1px solid var(--border-subtle)",
+                    borderRadius: "var(--radius-md)",
                     padding: "6px 10px",
                     display: "flex",
                     alignItems: "center",
@@ -259,7 +282,15 @@ export default function AdvisorChat() {
                   }}
                 >
                   <Loader size={12} color="var(--accent-primary)" />
-                  <Text size="xs" c="var(--accent-primary)">{toolStatus}</Text>
+                  <Text
+                    style={{
+                      fontSize: "var(--font-size-micro)",
+                      color: "var(--accent-primary)",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {toolStatus}
+                  </Text>
                 </Box>
               )}
 
@@ -268,12 +299,13 @@ export default function AdvisorChat() {
                 <Box
                   style={{
                     alignSelf: "flex-start",
-                    background: "rgba(230,230,230,0.8)",
+                    backgroundColor: "var(--bg-canvas)",
+                    border: "1px solid var(--border-subtle)",
                     borderRadius: "12px 12px 12px 4px",
                     padding: "8px 12px",
                   }}
                 >
-                  <Loader size="xs" type="dots" />
+                  <Loader size="xs" type="dots" color="var(--accent-primary)" />
                 </Box>
               )}
             </Stack>
@@ -281,10 +313,14 @@ export default function AdvisorChat() {
 
           {/* Input */}
           <Box
-            px="md"
-            pb="md"
-            pt="xs"
-            style={{ borderTop: "1px solid rgba(0,0,0,0.07)", flexShrink: 0 }}
+            px="var(--space-2)"
+            pb="var(--space-2)"
+            pt="var(--space-1)"
+            style={{
+              borderTop: "1px solid var(--border-subtle)",
+              flexShrink: 0,
+              backgroundColor: "var(--bg-surface)",
+            }}
           >
             <Group gap="xs" align="flex-end">
               <Textarea
@@ -306,10 +342,13 @@ export default function AdvisorChat() {
               />
               <ActionIcon
                 size="lg"
-                radius="md"
+                radius="var(--radius-md)"
                 onClick={handleSubmit}
                 disabled={isLoading || !input.trim() || !plan}
-                style={{ background: "var(--accent-primary)", color: "white" }}
+                style={{
+                  background: "var(--accent-primary)",
+                  color: "var(--bg-surface)",
+                }}
               >
                 <IconSend size={15} />
               </ActionIcon>

@@ -1,11 +1,12 @@
-import { Menu, Button, Group, Text, Divider, Stack, Space } from "@mantine/core";
+import { Menu, UnstyledButton, Text, Divider, Avatar } from "@mantine/core";
 import {
-  IconSettings,
-  IconRefresh,
+  IconLogout,
   IconTrash,
   IconUser,
   IconLayoutList,
   IconArrowsExchange,
+  IconAdjustmentsHorizontal,
+  IconChevronDown,
 } from "@tabler/icons-react";
 import { useDisclosure } from "@mantine/hooks";
 import { useRouter } from "next/navigation";
@@ -17,6 +18,23 @@ import { PlanContext } from "@/contexts/data/PlanContext";
 import DisplaySettings from "../DisplaySettings";
 import { handleLogout } from "./authenticationActions";
 
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <Text
+      style={{
+        fontSize: "var(--font-size-micro)",
+        textTransform: "uppercase",
+        letterSpacing: "0.06em",
+        color: "var(--text-tertiary)",
+        fontWeight: 600,
+        padding: "var(--space-1) var(--space-2) calc(var(--space-1) / 2)",
+      }}
+    >
+      {children}
+    </Text>
+  );
+}
+
 export default function ProfileDropdown() {
   const { user, setUser } = useContext(UserSessionContext);
   const { setPlan, changesSaved } = useContext(PlanContext);
@@ -25,104 +43,128 @@ export default function ProfileDropdown() {
   const [openedDisplaySettings, { open: openDisplaySettings, close: closeDisplaySettings }] = useDisclosure(false);
   const router = useRouter();
 
+  const initial = user?.email?.[0]?.toUpperCase() ?? "?";
+
   return (
     <>
-      <Menu shadow="md">
+      <Menu
+        shadow="var(--shadow-overlay)"
+        radius="var(--radius-md)"
+        width={240}
+        position="bottom-end"
+        offset={6}
+        styles={{
+          dropdown: {
+            backgroundColor: "var(--bg-surface)",
+            border: "1px solid var(--border-subtle)",
+            padding: "var(--space-1)",
+          },
+          item: {
+            fontSize: "var(--font-size-body)",
+            color: "var(--text-primary)",
+            borderRadius: "var(--radius-sm)",
+            padding: "calc(var(--space-1) * 0.75) var(--space-1)",
+          },
+        }}
+      >
         <Menu.Target>
-          <Button variant="light" color="dark" radius="md" size="md" px="md" py="sm">
-            <Group gap="sm">
-              <Text fw={500} size="sm">{user?.email}</Text>
-            </Group>
-          </Button>
+          <UnstyledButton
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "calc(var(--space-1) * 0.75)",
+              padding: "calc(var(--space-1) / 2) var(--space-1)",
+              borderRadius: "var(--radius-pill)",
+              border: "1px solid var(--border-subtle)",
+              backgroundColor: "var(--bg-surface)",
+              color: "var(--text-primary)",
+            }}
+          >
+            <Avatar
+              radius="xl"
+              size={26}
+              styles={{
+                root: {
+                  backgroundColor: "var(--accent-primary)",
+                  color: "var(--bg-surface)",
+                },
+              }}
+            >
+              {initial}
+            </Avatar>
+            <Text size="sm" style={{ color: "var(--text-primary)" }}>
+              {user?.email}
+            </Text>
+            <IconChevronDown size={14} color="var(--text-tertiary)" />
+          </UnstyledButton>
         </Menu.Target>
 
         <Menu.Dropdown>
-          <Stack gap="0.25rem">
-            <Space h="0.1rem" />
-            <Text size="xs" c="dimmed" px="xs">Plans</Text>
+          <SectionLabel>Plans</SectionLabel>
 
-            <Menu.Item
-              leftSection={<IconArrowsExchange size={16} style={{ marginLeft: "6px" }} />}
-              style={{ fontSize: "0.95rem", paddingRight: "1rem" }}
-              onClick={() => router.push("/plan")}
-            >
-              Switch plan
-            </Menu.Item>
+          <Menu.Item
+            leftSection={<IconArrowsExchange size={16} color="var(--text-secondary)" />}
+            onClick={() => router.push("/plan")}
+          >
+            Switch plan
+          </Menu.Item>
 
-            <Menu.Item
-              leftSection={<IconLayoutList size={16} style={{ marginLeft: "6px" }} />}
-              style={{ fontSize: "0.95rem", paddingRight: "1rem" }}
-              onClick={() => router.push("/plan")}
-            >
-              My plans
-            </Menu.Item>
+          <Menu.Item
+            leftSection={<IconLayoutList size={16} color="var(--text-secondary)" />}
+            onClick={() => router.push("/plan")}
+          >
+            My plans
+          </Menu.Item>
 
-            <Divider />
-            <Space h="0.1rem" />
-            <Text size="xs" c="dimmed" px="xs">Application</Text>
+          <Divider my="var(--space-1)" color="var(--border-subtle)" />
+          <SectionLabel>Application</SectionLabel>
 
-            <Menu.Item
-              leftSection={<IconSettings size={16} style={{ marginLeft: "6px" }} />}
-              style={{ fontSize: "0.95rem", paddingRight: "1rem" }}
-              onClick={openDisplaySettings}
-            >
-              Display Settings
-            </Menu.Item>
+          <Menu.Item
+            leftSection={<IconAdjustmentsHorizontal size={16} color="var(--text-secondary)" />}
+            onClick={openDisplaySettings}
+          >
+            Display settings
+          </Menu.Item>
 
-            <Divider />
-            <Space h="0.1rem" />
-            <Text size="xs" c="dimmed" px="xs">Account</Text>
-            <Menu.Item
-              leftSection={
-                <IconUser size={20} color="var(--text-primary)" />
-              }
-              style={{ fontSize: "0.95rem", paddingRight: "1rem" }}
-              onClick={openSettings}
-            >
-              Preferences
-            </Menu.Item>
+          <Divider my="var(--space-1)" color="var(--border-subtle)" />
+          <SectionLabel>Account</SectionLabel>
 
-            <Divider />
-            <Space h="0.1rem" />
+          <Menu.Item
+            leftSection={<IconUser size={16} color="var(--text-secondary)" />}
+            onClick={openSettings}
+          >
+            Preferences
+          </Menu.Item>
 
-            <Text size="xs" c="dimmed" px="xs">Danger zone</Text>
+          <Divider my="var(--space-1)" color="var(--border-subtle)" />
+          <SectionLabel>Danger zone</SectionLabel>
 
-            <Menu.Item
-              leftSection={<IconRefresh size={16} />}
-              style={{ fontSize: "0.95rem", paddingRight: "1rem" }}
-              onClick={() => {handleLogout({ setUser, setPlan, changesSaved})}}
-            >
-              Log out
-            </Menu.Item>
+          <Menu.Item
+            leftSection={<IconLogout size={16} color="var(--text-secondary)" />}
+            onClick={() => handleLogout({ setUser, setPlan, changesSaved })}
+          >
+            Log out
+          </Menu.Item>
 
-            <Menu.Item
-              leftSection={<IconTrash size={16} />}
-              color="red"
-              style={{ fontSize: "0.95rem", paddingRight: "1rem" }}
-              onClick={openDeletionConfirmation}
-            >
-              Delete my account
-            </Menu.Item>
-          </Stack>
+          <Menu.Item
+            leftSection={<IconTrash size={16} />}
+            color="red"
+            onClick={openDeletionConfirmation}
+          >
+            Delete my account
+          </Menu.Item>
         </Menu.Dropdown>
       </Menu>
 
-      <DisplaySettings
-        opened={openedDisplaySettings}
-        onClose={closeDisplaySettings}
-      />
+      <DisplaySettings opened={openedDisplaySettings} onClose={closeDisplaySettings} />
 
-      <SettingsModal
-        opened={openedSettings}
-        onClose={closeSettings} 
-        user={user}
-      />
+      <SettingsModal opened={openedSettings} onClose={closeSettings} user={user} />
 
       <DeletionConfirmationModal
         opened={openedDeletionConfirmation}
         onClose={closeDeletionConfirmation}
         user={user}
-      /> 
+      />
     </>
   );
 }

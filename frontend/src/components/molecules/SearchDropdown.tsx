@@ -15,6 +15,8 @@ import { Draggable, Droppable } from "@hello-pangea/dnd";
 import { CourseStub } from "@/types/plan";
 import { PlanContext } from "@/contexts/data/PlanContext";
 import { PreviewContext } from "@/contexts/visual/PreviewContext";
+import { MobileContext } from "@/contexts/visual/MobileContext";
+import { requestMobileAdd } from "@/components/molecules/MobileAddPicker";
 
 const DROPDOWN_MAX_ROWS = 8;
 const ROW_HEIGHT = 48;
@@ -22,6 +24,7 @@ const ROW_HEIGHT = 48;
 export default function SearchDropdown() {
   const { cachedCourses, setCachedSearchResults } = useContext(PlanContext);
   const { addPersistPreview } = useContext(PreviewContext);
+  const { isMobile } = useContext(MobileContext);
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<CourseStub[]>([]);
@@ -29,7 +32,21 @@ export default function SearchDropdown() {
   const [isDragging, setIsDragging] = useState(false);
   const inputBoxRef = useRef<HTMLDivElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null);
+
+  // Cmd+K (Mac) / Ctrl+K (Win/Linux) focuses the search input.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, []);
 
   // Track input rect for portal positioning.
   const updateAnchor = useCallback(() => {
@@ -114,6 +131,7 @@ export default function SearchDropdown() {
   return (
     <Box style={{ width: "100%", maxWidth: 520 }} ref={inputBoxRef}>
       <TextInput
+        ref={inputRef}
         placeholder="Search courses…"
         leftSection={<IconSearch size={16} />}
         radius="xl"
@@ -155,77 +173,139 @@ export default function SearchDropdown() {
               zIndex: 1500,
             }}
           >
-            <Droppable droppableId="search" isDropDisabled>
-              {(provided) => (
-                <Box ref={provided.innerRef} {...provided.droppableProps}>
-                  {results.map((course, index) => (
-                    <Draggable
-                      key={`search-${course.id}`}
-                      draggableId={JSON.stringify(course)}
-                      index={index}
+            {isMobile ? (
+              <Box>
+                {results.map((course) => (
+                  <Box
+                    key={`search-${course.id}`}
+                    onClick={() => {
+                      setIsOpen(false);
+                      requestMobileAdd({
+                        course: { id: course.id },
+                        label: `${course.dept_abbr} ${course.course_num}`,
+                      });
+                    }}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 8,
+                      height: ROW_HEIGHT,
+                      padding: "0 14px",
+                      borderBottom: "1px solid var(--border-subtle)",
+                      background: "var(--bg-surface)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <Box
+                      style={{
+                        minWidth: 0,
+                        display: "flex",
+                        flexDirection: "column",
+                      }}
                     >
-                      {(p) => (
-                        <Box
-                          ref={p.innerRef}
-                          {...p.draggableProps}
-                          {...p.dragHandleProps}
-                          onClick={() => {
-                            addPersistPreview(course, "right");
-                          }}
-                          style={{
-                            ...p.draggableProps.style,
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            gap: 8,
-                            height: ROW_HEIGHT,
-                            padding: "0 14px",
-                            borderBottom: "1px solid var(--border-subtle)",
-                            background: "var(--bg-surface)",
-                            cursor: "pointer",
-                          }}
-                        >
+                      <Text size="sm" fw={600} c="var(--text-primary)">
+                        {course.dept_abbr} {course.course_num}
+                      </Text>
+                      <Text
+                        size="xs"
+                        c="var(--text-secondary)"
+                        style={{
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {(course as any).class_desc ??
+                          (course as any).title ??
+                          ""}
+                      </Text>
+                    </Box>
+                    <Text
+                      size="xs"
+                      c="var(--text-tertiary)"
+                      style={{ flexShrink: 0 }}
+                    >
+                      {(course as any).cred_min != null
+                        ? `${(course as any).cred_min} cr`
+                        : ""}
+                    </Text>
+                  </Box>
+                ))}
+              </Box>
+            ) : (
+              <Droppable droppableId="search" isDropDisabled>
+                {(provided) => (
+                  <Box ref={provided.innerRef} {...provided.droppableProps}>
+                    {results.map((course, index) => (
+                      <Draggable
+                        key={`search-${course.id}`}
+                        draggableId={JSON.stringify(course)}
+                        index={index}
+                      >
+                        {(p) => (
                           <Box
+                            ref={p.innerRef}
+                            {...p.draggableProps}
+                            {...p.dragHandleProps}
+                            onClick={() => {
+                              addPersistPreview(course, "right");
+                            }}
                             style={{
-                              minWidth: 0,
+                              ...p.draggableProps.style,
                               display: "flex",
-                              flexDirection: "column",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              gap: 8,
+                              height: ROW_HEIGHT,
+                              padding: "0 14px",
+                              borderBottom: "1px solid var(--border-subtle)",
+                              background: "var(--bg-surface)",
+                              cursor: "pointer",
                             }}
                           >
-                            <Text size="sm" fw={600} c="var(--text-primary)">
-                              {course.dept_abbr} {course.course_num}
-                            </Text>
-                            <Text
-                              size="xs"
-                              c="var(--text-secondary)"
+                            <Box
                               style={{
-                                whiteSpace: "nowrap",
-                                overflow: "hidden",
-                                textOverflow: "ellipsis",
+                                minWidth: 0,
+                                display: "flex",
+                                flexDirection: "column",
                               }}
                             >
-                              {(course as any).class_desc ??
-                                (course as any).title ??
-                                ""}
+                              <Text size="sm" fw={600} c="var(--text-primary)">
+                                {course.dept_abbr} {course.course_num}
+                              </Text>
+                              <Text
+                                size="xs"
+                                c="var(--text-secondary)"
+                                style={{
+                                  whiteSpace: "nowrap",
+                                  overflow: "hidden",
+                                  textOverflow: "ellipsis",
+                                }}
+                              >
+                                {(course as any).class_desc ??
+                                  (course as any).title ??
+                                  ""}
+                              </Text>
+                            </Box>
+                            <Text
+                              size="xs"
+                              c="var(--text-tertiary)"
+                              style={{ flexShrink: 0 }}
+                            >
+                              {(course as any).cred_min != null
+                                ? `${(course as any).cred_min} cr`
+                                : ""}
                             </Text>
                           </Box>
-                          <Text
-                            size="xs"
-                            c="var(--text-tertiary)"
-                            style={{ flexShrink: 0 }}
-                          >
-                            {(course as any).cred_min != null
-                              ? `${(course as any).cred_min} cr`
-                              : ""}
-                          </Text>
-                        </Box>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </Box>
-              )}
-            </Droppable>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </Box>
+                )}
+              </Droppable>
+            )}
           </Box>,
           document.body
         )}

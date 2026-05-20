@@ -1,73 +1,40 @@
-.control {
-  &[data-inactive] {
-    opacity: 0;
-    cursor: default;
-  }
-}
-.root {
-  &:hover {
-    .controls {
-      opacity: 1;
-    }
-  }
-}
-.carouselContainer {
-  margin-top: 4rem;
-  width: 100dvw;
-  height: 50dvh;
-}
-.edgeWrapper {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-}
-.edgeCard {
-  width: 75%;
-  aspect-ratio: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #aaa;
-  font-size: 2rem;
-  font-weight: bold;
-  padding: 1.5rem;
-  background: rgba(255,255,255,0.5);
-  box-shadow: 0 0 0 4px rgba(209, 99, 145, 0.25), 0 6px 18px rgba(0, 0, 0, 0.1);
-  border-radius: 10rem;
-  transition: transform 0.3s ease, border 0.3s ease;
-}
 .semesterCard {
-  width: 100%;
-  height: 100%;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  padding: 1.5rem;
-  background: rgba(255,255,255,0.5);
-  box-shadow: 0 0 0 4px rgba(209, 99, 145, 0.25), 0 6px 18px rgba(0, 0, 0, 0.1);
-  border-radius: 1rem;
-  transition: transform 0.3s ease, border 0.3s ease;
+  gap: 8px;
 }
-.courseWrapper {
-  justify-content: center;
-  align-items: center;
-  flex-direction: column;
-  gap: 0.3rem;
+
+.semesterHeader {
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: 8px;
 }
-.bubbleWrapper {
-  justify-content: center;
-  margin-top: 1rem;
-  gap: 0.5rem;
+
+.semesterTitle {
+  font-size: var(--font-size-label);
+  font-weight: 600;
+  color: var(--text-primary);
 }
-.bubble {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 1rem;
-  background-color: #ccc;
-  transition: all 0.3s ease;
+
+.semesterCredits {
+  font-size: var(--font-size-micro);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-tertiary);
+  font-weight: 600;
 }
-.activeBubble {
-  width: 1rem;
-  background-color: #811331;
+
+.dropZone {
+  min-height: 24px;
+}
+
+.emptyHint {
+  font-size: var(--font-size-micro);
+  color: var(--text-tertiary);
+  font-style: italic;
+  padding: 6px 0;
 }

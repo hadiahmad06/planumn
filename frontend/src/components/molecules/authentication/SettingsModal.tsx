@@ -1,4 +1,4 @@
-import { Modal, Text, Stack, Button } from "@mantine/core";
+import { Modal, Text, Stack, Group } from "@mantine/core";
 import { User } from "@supabase/supabase-js";
 
 interface ProfileModalProps {
@@ -7,37 +7,77 @@ interface ProfileModalProps {
   user: User | null;
 }
 
+function Row({ label, value }: { label: string; value: string | undefined }) {
+  if (!value) return null;
+  return (
+    <Group justify="space-between" align="flex-start" wrap="nowrap" gap="var(--space-2)">
+      <Text
+        style={{
+          fontSize: "var(--font-size-micro)",
+          textTransform: "uppercase",
+          letterSpacing: "0.04em",
+          color: "var(--text-tertiary)",
+          fontWeight: 600,
+          flexShrink: 0,
+        }}
+      >
+        {label}
+      </Text>
+      <Text
+        style={{
+          fontSize: "var(--font-size-body)",
+          color: "var(--text-primary)",
+          wordBreak: "break-word",
+          textAlign: "right",
+        }}
+      >
+        {value}
+      </Text>
+    </Group>
+  );
+}
+
 export default function SettingsModal({ opened, onClose, user }: ProfileModalProps) {
   return (
     <Modal
-        opened={opened}
-        onClose={onClose}
-        title="Account Settings"
-        centered
+      opened={opened}
+      onClose={onClose}
+      centered
+      size="md"
+      title={
+        <Text
+          style={{
+            fontSize: "var(--font-size-label)",
+            fontWeight: 600,
+            color: "var(--accent-primary)",
+          }}
+        >
+          Account
+        </Text>
+      }
+      radius="var(--radius-lg)"
+      overlayProps={{ backgroundOpacity: 0.4, blur: 2 }}
+      styles={{
+        content: {
+          backgroundColor: "var(--bg-surface)",
+          boxShadow: "var(--shadow-overlay)",
+          border: "1px solid var(--border-subtle)",
+        },
+        header: {
+          backgroundColor: "var(--bg-surface)",
+          borderBottom: "1px solid var(--border-subtle)",
+        },
+        body: {
+          padding: "var(--space-2)",
+        },
+      }}
     >
-        <Stack gap="xs">
-            <Text size="sm"><strong>Email:</strong> {user?.email}</Text>
-            <Text size="sm"><strong>User ID:</strong> {user?.id}</Text>
-            {user?.user_metadata?.full_name && (
-            <Text size="sm"><strong>Name:</strong> {user.user_metadata.full_name}</Text>
-            )}
-            {user?.phone && (
-            <Text size="sm"><strong>Phone:</strong> {user.phone}</Text>
-            )}
-            {/* <Button
-            variant="light"
-            color="pink"
-            mt="md"
-            onClick={async () => {
-                if (user?.email) {
-                await supabase.auth.resetPasswordForEmail(user.email);
-                alert("Password reset email sent!");
-                }
-            }}
-            >
-            Reset Password
-            </Button> */}
-        </Stack>
+      <Stack gap="var(--space-2)">
+        <Row label="Email" value={user?.email} />
+        <Row label="User ID" value={user?.id} />
+        <Row label="Name" value={user?.user_metadata?.full_name} />
+        <Row label="Phone" value={user?.phone} />
+      </Stack>
     </Modal>
   );
 }

@@ -4,10 +4,26 @@ import { Container, Title, Text, Paper, Avatar, Group, ActionIcon, Stack } from 
 
 export default function ContactPage() {
   return (
-    <Container size="md" py="xl">
+    <Container size="md" py="xl" style={{ backgroundColor: "var(--bg-canvas)", minHeight: "100vh" }}>
       <Stack align="center">
-        <Title order={1} mb="xs">Contact Us</Title>
-        <Text mb="xl">
+        <Title
+          order={1}
+          mb="xs"
+          style={{
+            color: "var(--accent-primary)",
+            fontWeight: 700,
+            letterSpacing: "-0.01em",
+          }}
+        >
+          Contact Us
+        </Title>
+        <Text
+          mb="xl"
+          style={{
+            color: "var(--text-secondary)",
+            fontSize: "var(--font-size-body)",
+          }}
+        >
           If you have any questions or need assistance, feel free to reach out to us:
         </Text>
         <Group justify="center" wrap="wrap" gap="xl">
@@ -26,18 +42,52 @@ export default function ContactPage() {
             email: "mailto:zewdi021@umn.edu",
             github: "https://github.com/Michael-Zewdie"
           }].map(({ name, role, img, linkedin, email, github }) => (
-            <Paper key={name} shadow="sm" radius="md" p="md" withBorder style={{ width: 280, textAlign: "center" }}>
+            <Paper
+              key={name}
+              p="md"
+              withBorder
+              style={{
+                width: 280,
+                textAlign: "center",
+                backgroundColor: "var(--bg-surface)",
+                borderColor: "var(--border-subtle)",
+                borderRadius: "var(--radius-lg)",
+                boxShadow: "var(--shadow-card)",
+              }}
+            >
               <Avatar src={img} size={120} radius={120} mx="auto" mb="sm" />
-              <Text fw={500} size="lg">{name}</Text>
-              <Text c="dimmed" size="sm">{role}</Text>
+              <Text fw={600} size="lg" style={{ color: "var(--text-primary)" }}>{name}</Text>
+              <Text size="sm" style={{ color: "var(--text-secondary)" }}>{role}</Text>
               <Group justify="center" mt="sm">
-                <ActionIcon size="lg" component="a" href={linkedin} target="_blank" rel="noopener noreferrer" color="gray">
+                <ActionIcon
+                  size="lg"
+                  component="a"
+                  href={linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  variant="subtle"
+                  style={{ color: "var(--text-secondary)" }}
+                >
                   <FiLinkedin />
                 </ActionIcon>
-                <ActionIcon size="lg" component="a" href={email} color="gray">
+                <ActionIcon
+                  size="lg"
+                  component="a"
+                  href={email}
+                  variant="subtle"
+                  style={{ color: "var(--text-secondary)" }}
+                >
                   <FiMail />
                 </ActionIcon>
-                <ActionIcon size="lg" component="a" href={github} target="_blank" rel="noopener noreferrer" color="gray">
+                <ActionIcon
+                  size="lg"
+                  component="a"
+                  href={github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  variant="subtle"
+                  style={{ color: "var(--text-secondary)" }}
+                >
                   <FiGithub />
                 </ActionIcon>
               </Group>

@@ -4,15 +4,13 @@ import { ColorKey } from "@/types/plan";
 import {
   Box,
   Button,
+  Modal,
   Text,
   SegmentedControl,
   MultiSelect,
-  SimpleGrid,
-  ActionIcon,
-  Paper
+  Stack,
 } from "@mantine/core";
-import { IconX } from "@tabler/icons-react";
-import { useContext, useState, useRef, useEffect } from "react";
+import { useContext } from "react";
 import { DisplaySettingsContext } from "@/contexts/visual/DisplaySettingsContext";
 
 type Props = {
@@ -20,104 +18,60 @@ type Props = {
   onClose: () => void;
 };
 
-const BOX_HEIGHT = 400; // Adjust if your box is taller/shorter
-
 export default function DisplaySettings({ opened, onClose }: Props) {
-  const { colorKey, setColorKey, hiddenSemesters, setHiddenSemesters } = useContext(DisplaySettingsContext);
-  const [position, setPosition] = useState<{ x: number; y: number }>({ x: 24, y: 24 });
-  const dragging = useRef(false);
-  const offset = useRef({ x: 0, y: 0 });
-  const wasOpened = useRef(false);
-
-  // Set initial position to bottom left when opened
-  useEffect(() => {
-    if (opened && !wasOpened.current) {
-      setPosition({
-        x: 24,
-        y: window.innerHeight - BOX_HEIGHT - 24,
-      });
-      wasOpened.current = true;
-    }
-    if (!opened) {
-      wasOpened.current = false;
-    }
-  }, [opened]);
-
-  if (!opened) return null;
-
-  const onMouseDown = (e: React.MouseEvent) => {
-    if (e.button !== 0) return;
-    dragging.current = true;
-    offset.current = {
-      x: e.clientX - position.x,
-      y: e.clientY - position.y,
-    };
-    document.body.style.userSelect = "none";
-    document.addEventListener("mousemove", onMouseMove);
-    document.addEventListener("mouseup", onMouseUp);
-  };
-
-  const onMouseMove = (e: MouseEvent) => {
-    if (!dragging.current) return;
-    setPosition({
-      x: e.clientX - offset.current.x,
-      y: e.clientY - offset.current.y,
-    });
-  };
-
-  const onMouseUp = () => {
-    dragging.current = false;
-    document.body.style.userSelect = "";
-    document.removeEventListener("mousemove", onMouseMove);
-    document.removeEventListener("mouseup", onMouseUp);
-  };
+  const { colorKey, setColorKey, hiddenSemesters, setHiddenSemesters } =
+    useContext(DisplaySettingsContext);
 
   return (
-    <Paper
-      shadow="lg"
-      radius="md"
-      withBorder
-      onMouseDown={onMouseDown}
-      style={{
-        position: "fixed",
-        zIndex: 2000,
-        width: "min(400px, 90vw)",
-        backgroundColor: "var(--bg-surface)",
-        padding: "2rem 1.5rem 1.5rem 1.5rem",
-        minWidth: 320,
-        left: position.x,
-        top: position.y,
-        userSelect: dragging.current ? "none" : "auto",
-        cursor: "move",
+    <Modal
+      opened={opened}
+      onClose={onClose}
+      centered
+      size="md"
+      title={
+        <Text
+          style={{
+            fontSize: "var(--font-size-label)",
+            fontWeight: 600,
+            color: "var(--accent-primary)",
+          }}
+        >
+          Display Settings
+        </Text>
+      }
+      radius="var(--radius-lg)"
+      overlayProps={{ backgroundOpacity: 0.4, blur: 2 }}
+      styles={{
+        content: {
+          backgroundColor: "var(--bg-surface)",
+          boxShadow: "var(--shadow-overlay)",
+          border: "1px solid var(--border-subtle)",
+        },
+        header: {
+          backgroundColor: "var(--bg-surface)",
+          borderBottom: "1px solid var(--border-subtle)",
+        },
+        body: {
+          padding: "var(--space-2)",
+        },
       }}
     >
-      <ActionIcon
-        onClick={onClose}
-        style={{ position: "absolute", top: 12, right: 12, zIndex: 10, cursor: "pointer" }}
-        size="lg"
-        variant="subtle"
-        aria-label="Close display settings"
-      >
-        <IconX size={22} />
-      </ActionIcon>
-      <Text
-        style={{
-          fontSize: "1.5rem",
-          fontWeight: 700,
-          color: "var(--accent-primary)",
-          textAlign: "left",
-          marginBottom: "1.5rem",
-        }}
-      >
-        Display Settings
-      </Text>
-      <SimpleGrid cols={1} spacing="lg" style={{ fontSize: "0.9rem", color: "var(--text-secondary)" }}>
+      <Stack gap="var(--space-2)">
         <Box>
-          <Text style={{ marginBottom: "0.5rem", fontWeight: 500 }}>Color Coding:</Text>
+          <Text
+            style={{
+              marginBottom: "var(--space-1)",
+              fontWeight: 500,
+              fontSize: "var(--font-size-body)",
+              color: "var(--text-primary)",
+            }}
+          >
+            Color Coding
+          </Text>
           <SegmentedControl
             fullWidth
             value={colorKey}
-            onChange={(value) => setColorKey(value as any)}
+            onChange={(value) => setColorKey(value as ColorKey)}
             data={[
               { label: "None", value: "none" },
               { label: "Department", value: "department" },
@@ -125,8 +79,18 @@ export default function DisplaySettings({ opened, onClose }: Props) {
             ]}
           />
         </Box>
+
         <Box>
-          <Text style={{ marginBottom: "0.5rem", fontWeight: 500 }}>Hide Semesters:</Text>
+          <Text
+            style={{
+              marginBottom: "var(--space-1)",
+              fontWeight: 500,
+              fontSize: "var(--font-size-body)",
+              color: "var(--text-primary)",
+            }}
+          >
+            Hide Semesters
+          </Text>
           <MultiSelect
             data={[
               { value: "fall", label: "Fall" },
@@ -139,29 +103,20 @@ export default function DisplaySettings({ opened, onClose }: Props) {
             clearable
           />
         </Box>
-        <Box>
-          <Button
-            disabled
-            fullWidth
-            style={{
-              backgroundColor: "var(--accent-primary)",
-              color: "var(--bg-surface)",
-              fontSize: "0.9rem",
-              padding: "0.5rem 1rem",
-              borderRadius: "6px",
-              transition: "all 0.2s ease",
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.backgroundColor = "var(--accent-primary-hover)";
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.backgroundColor = "var(--accent-primary)";
-            }}
-          >
-            Autofill Plan
-          </Button>
-        </Box>
-      </SimpleGrid>
-    </Paper>
+
+        <Button
+          disabled
+          fullWidth
+          style={{
+            backgroundColor: "var(--accent-primary)",
+            color: "var(--bg-surface)",
+            fontSize: "var(--font-size-body)",
+            borderRadius: "var(--radius-md)",
+          }}
+        >
+          Autofill Plan
+        </Button>
+      </Stack>
+    </Modal>
   );
 }

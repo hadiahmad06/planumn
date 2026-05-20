@@ -9,6 +9,12 @@ interface LandingButtonProps extends ButtonProps {
     onMouseLeave?: () => void;
 }
 
+const gradientButtonBase = {
+    boxShadow: "var(--shadow-card)",
+    fontWeight: 600,
+    letterSpacing: "0.01em",
+};
+
 export function ImportTranscriptButton({ onClick, style, onMouseEnter, onMouseLeave, ...props }: LandingButtonProps) {
     return (
         <Button
@@ -17,10 +23,7 @@ export function ImportTranscriptButton({ onClick, style, onMouseEnter, onMouseLe
             onClick={onClick}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
-            style={{
-                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3)",
-                ...style
-            }}
+            style={{ ...gradientButtonBase, ...style }}
             {...props}
         >
             Import Transcript
@@ -36,10 +39,7 @@ export function StartFromScratchButton({ onClick, style, onMouseEnter, onMouseLe
             onClick={onClick}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
-            style={{
-                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3)",
-                ...style
-            }}
+            style={{ ...gradientButtonBase, ...style }}
             {...props}
         >
             Start from Scratch
@@ -55,10 +55,7 @@ export function ProgramCatalogButton({ onClick, style, onMouseEnter, onMouseLeav
             onClick={onClick}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
-            style={{
-                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.3)",
-                ...style
-            }}
+            style={{ ...gradientButtonBase, ...style }}
             {...props}
         >
             View Program Catalog
@@ -74,9 +71,12 @@ export function MyPlansButton({ onClick, style, onMouseEnter, onMouseLeave, ...p
             onClick={onClick}
             onMouseEnter={onMouseEnter}
             onMouseLeave={onMouseLeave}
-            style={{ 
-                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.15)",
-                ...style
+            style={{
+                boxShadow: "var(--shadow-card)",
+                borderColor: "var(--border-subtle)",
+                color: "var(--accent-primary)",
+                fontWeight: 600,
+                ...style,
             }}
             {...props}
         >

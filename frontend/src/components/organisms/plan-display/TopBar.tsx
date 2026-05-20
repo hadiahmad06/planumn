@@ -5,12 +5,14 @@ import Link from "next/link";
 import { Box, Button, Flex, Group, Tooltip } from "@mantine/core";
 import { IconShare3 } from "@tabler/icons-react";
 import { UserSessionContext } from "@/contexts/data/UserSessionContext";
+import { MobileContext } from "@/contexts/visual/MobileContext";
 import ProfileDropdown from "@/components/molecules/authentication/ProfileDropdown";
 import AuthButton from "@/components/molecules/authentication/AuthenticationModal";
 import SearchDropdown from "@/components/molecules/SearchDropdown";
 
 export default function TopBar() {
   const { user, session } = useContext(UserSessionContext);
+  const { isMobile } = useContext(MobileContext);
 
   return (
     <Box
@@ -19,15 +21,15 @@ export default function TopBar() {
         width: "100%",
         background: "var(--bg-surface)",
         borderBottom: "1px solid var(--border-subtle)",
-        padding: "12px 24px",
+        padding: isMobile ? "8px 12px" : "12px 24px",
       }}
     >
-      <Flex align="center" gap="md" wrap="nowrap">
+      <Flex align="center" gap={isMobile ? "sm" : "md"} wrap="nowrap">
         <Link
           href="/"
           style={{
             fontWeight: 700,
-            fontSize: "1.125rem",
+            fontSize: isMobile ? "1rem" : "1.125rem",
             color: "var(--text-primary)",
             letterSpacing: "-0.01em",
             flexShrink: 0,
@@ -41,26 +43,28 @@ export default function TopBar() {
         </Box>
 
         <Group gap="sm" wrap="nowrap" style={{ flexShrink: 0 }}>
-          <Tooltip label="Coming soon" withArrow>
-            <Button
-              leftSection={<IconShare3 size={16} />}
-              radius="xl"
-              variant="default"
-              data-disabled
-              onClick={(e) => e.preventDefault()}
-              styles={{
-                root: {
-                  background: "var(--bg-surface)",
-                  color: "var(--text-secondary)",
-                  borderColor: "var(--border-subtle)",
-                  cursor: "not-allowed",
-                  opacity: 0.7,
-                },
-              }}
-            >
-              Share
-            </Button>
-          </Tooltip>
+          {!isMobile && (
+            <Tooltip label="Coming soon" withArrow>
+              <Button
+                leftSection={<IconShare3 size={16} />}
+                radius="xl"
+                variant="default"
+                data-disabled
+                onClick={(e) => e.preventDefault()}
+                styles={{
+                  root: {
+                    background: "var(--bg-surface)",
+                    color: "var(--text-secondary)",
+                    borderColor: "var(--border-subtle)",
+                    cursor: "not-allowed",
+                    opacity: 0.7,
+                  },
+                }}
+              >
+                Share
+              </Button>
+            </Tooltip>
+          )}
 
           {user && session ? <ProfileDropdown /> : <AuthButton />}
         </Group>
