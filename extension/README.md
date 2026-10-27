@@ -19,7 +19,8 @@ bridge.js ──postMessage {report, nonce}──▶ planu.mn page (keeps it in 
 ```
 
 - **Files:** `src/protocol.js` (constants shared with `src/features/apas/protocol.ts`; a test keeps them in sync), `src/background.js`, `src/bridge.js`, `src/apas.js`, `src/popup.html` and `src/popup.js` (lets you grant site access, which Firefox requires).
-- **Stored:** only the pending import (`nonce`, two tab ids, start time) in `storage.session`. Never the report.
+- **Stored:** only the pending import (`nonce`, two tab ids, start time, and during audit automation the step plus the ids of audits that already existed) in `storage.session`. Never the report.
+- **Audit automation** (Hadi's Claude, Hadi's decision 2026-10-27; `src/automation.js`): after sign-in, the bar offers **Run my audit automatically** or **I'll pick a report**. Automatic: note the existing audits on *View Previous APAS*, open *Request New APAS*, click **Run Declared Programs**, wait on the list for an audit that wasn't there before (a degree program first), open it, and send it. **Stop** is always shown; giving up after 4 minutes falls back to the manual Send.
 - **Permissions:** `storage`, plus host access to `https://umn.uachieve.com/*` and `https://planu.mn/plan/*`. No `tabs`, `cookies`, `scripting` or `<all_urls>`.
 
 ## Build and load

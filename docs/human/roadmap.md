@@ -56,3 +56,11 @@ Hadi, 2026-10-27 (transcribed by Hadi's Claude):
 - Moving courses between semesters must work for every user, for ADA friendliness and ease of use: "we should be able to select a semester then click a "+" button on a course to automatically add it to the selected semester."
 - "moving between semesters should be possible via arrows, like a < and > arrow can move a course between semesters and years. this should snap to the previous semseter where the course is offered. so a fall only course doesnt snap to spring, it snaps to the previous or next fall."
 - Hadi's Claude builds this next; remaining queued features are delegated to Ishaan's Claude.
+
+## APAS automation and injection
+
+Hadi, 2026-10-27 (transcribed by Hadi's Claude):
+
+- "lets do apas injection and audit automation. ill take any responsibility of risk. since this is not in production, i can test it for my own account without bypassing umn policy. keep the policy check in phase y though."
+- Audit automation: the extension may run the student's audit in APAS and bring the result back. APAS injection: planu.mn information may be shown on APAS pages.
+- The UMN policy check stays in **Phase Y**.

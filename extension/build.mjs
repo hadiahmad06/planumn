@@ -29,7 +29,7 @@ const shared = {
   action: { default_popup: "popup.html", default_title: "planu.mn APAS import" },
   content_scripts: [
     { matches: planumnMatches, js: ["protocol.js", "bridge.js"], run_at: "document_idle" },
-    { matches: [`${APAS}/*`], js: ["protocol.js", "apas.js"], run_at: "document_idle" },
+    { matches: [`${APAS}/*`], js: ["protocol.js", "automation.js", "apas.js"], run_at: "document_idle" },
   ],
 };
 
