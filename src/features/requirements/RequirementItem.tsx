@@ -11,7 +11,7 @@ import { ActionMenu } from "@/components/ui/Menu";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { addCourseActions } from "@/features/plan-editor/courseActions";
 import { useDisplaySettings } from "@/features/plan-editor/displaySettings";
-import { usePlanStore } from "@/features/plan-editor/store";
+import { hoverCourse, usePlanStore } from "@/features/plan-editor/store";
 
 const MAX_CHOICES = 8;
 
@@ -21,7 +21,6 @@ function OptionChip({ option, primary, planned }: { option: CourseOption; primar
   const plan = usePlanStore((s) => s.plan);
   const hidden = useDisplaySettings((s) => s.hiddenSeasons);
   const openPreview = usePreviewStore((s) => s.openPreview);
-  const hoverPreview = usePreviewStore((s) => s.hoverPreview);
   const id = option.courseId;
   const data: DragData | undefined = id == null ? undefined : { type: "external", source: "requirement", courseId: id };
   // The same course can be listed in several requirements, so each chip needs its own drag id.
@@ -75,8 +74,8 @@ function OptionChip({ option, primary, planned }: { option: CourseOption; primar
       {...attributes}
       {...listeners}
       onClick={() => openPreview(id)}
-      onMouseEnter={() => hoverPreview(id)}
-      onMouseLeave={() => hoverPreview(null)}
+      onMouseEnter={() => hoverCourse(id)}
+      onMouseLeave={() => hoverCourse(null)}
       className={className}
     >
       {content}

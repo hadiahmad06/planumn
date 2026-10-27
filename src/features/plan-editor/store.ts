@@ -4,6 +4,7 @@ import { create } from "zustand";
 import type { CourseId } from "@/domain/course";
 import type { LockState, Plan } from "@/domain/plan";
 import * as ops from "@/domain/planOps";
+import { usePreviewStore } from "@/features/preview/store";
 import type { TermCode } from "@/domain/terms";
 
 /**
@@ -67,9 +68,18 @@ interface EditorUiState {
   /** Semester picked by clicking its header (A30): Enter in search adds there. */
   selectedTerm: TermCode | null;
   selectTerm: (term: TermCode | null) => void;
+  /** True while a course is being dragged; hover previews are suppressed then. */
+  dragging: boolean;
 }
 
 export const useEditorUi = create<EditorUiState>()((set) => ({
   selectedTerm: null,
   selectTerm: (selectedTerm) => set({ selectedTerm }),
+  dragging: false,
 }));
+
+/** Hover preview that stays quiet during drags (otherwise every card you drag across pops a panel). */
+export function hoverCourse(id: CourseId | null) {
+  if (id !== null && useEditorUi.getState().dragging) return;
+  usePreviewStore.getState().hoverPreview(id);
+}

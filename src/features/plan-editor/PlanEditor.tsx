@@ -28,7 +28,7 @@ import { CourseCardFace } from "./CourseCard";
 import { resolveDrop, type DragData, type DropData } from "./dnd";
 import { PlanHeader } from "./PlanHeader";
 import { Schedule } from "./Schedule";
-import { planActions, usePlanStore } from "./store";
+import { hoverCourse, planActions, useEditorUi, usePlanStore } from "./store";
 import { TopBar } from "./TopBar";
 
 // Prefer the droppable under the pointer; fall back to overlap (keyboard drags have no pointer).
@@ -63,9 +63,14 @@ export function PlanEditor({ initialPlan }: { initialPlan: Plan }) {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
-  const onDragStart = (e: DragStartEvent) => setDragging((e.active.data.current as DragData | undefined)?.courseId ?? null);
+  const onDragStart = (e: DragStartEvent) => {
+    setDragging((e.active.data.current as DragData | undefined)?.courseId ?? null);
+    useEditorUi.setState({ dragging: true });
+    hoverCourse(null);
+  };
   const onDragEnd = (e: DragEndEvent) => {
     setDragging(null);
+    useEditorUi.setState({ dragging: false });
     const current = usePlanStore.getState().plan;
     if (!current) return;
     const action = resolveDrop(
@@ -78,7 +83,10 @@ export function PlanEditor({ initialPlan }: { initialPlan: Plan }) {
   };
 
   return (
-    <DndContext sensors={sensors} collisionDetection={collision} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => setDragging(null)}>
+    <DndContext sensors={sensors} collisionDetection={collision} onDragStart={onDragStart} onDragEnd={onDragEnd} onDragCancel={() => {
+        setDragging(null);
+        useEditorUi.setState({ dragging: false });
+      }}>
       <div className="flex h-dvh flex-col">
         <TopBar />
         {plan && (
