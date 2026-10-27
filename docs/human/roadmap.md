@@ -22,3 +22,10 @@ Hadi, 2026-10-26:
 - When both are done, **each reviews the other's work through pull requests**.
 - **Codex does not deal with merge conflicts. Hadi's Claude is in charge of merging.**
 - Hadi chose "option 1" (2026-10-26): Hadi's Claude keeps PRs conflict-free and decides merge order, then labels a PR `merge-ready`. **Michael's Codex reviews and runs the merge.** Hadi's Claude does not run `gh pr merge` itself.
+
+## APAS import (Phase B)
+
+Hadi, 2026-10-26 (transcribed by Hadi's Claude):
+
+- Build a **Chrome/Firefox extension** that automatically loads the APAS pages and **stops at the UMN login page**. The student logs in themselves, so planu.mn never asks for their email or password and Duo 2FA isn't a problem. Hadi: asking for credentials "is not a good plan"; the extension approach lets "the user … trust the feature."
+- Order: **the extension's fetch and hand-off to planu.mn first; build the parser after that works.** Hadi: "build parser AFTER extension performs the fetch and hand off."
