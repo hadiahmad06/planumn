@@ -216,6 +216,12 @@ export function MyPlans() {
           <Link href="/plan/import" className="text-accent underline">
             Import transcript
           </Link>
+          {/* Ishaan's Claude (#36 follow-up): a plain <a>, not <Link>. The APAS extension's bridge
+              only loads on a full page load of /plan/*, which a client-side navigation skips. */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- full navigation on purpose (see above) */}
+          <a href="/plan/apas" className="text-accent underline">
+            Import from APAS
+          </a>
           <Link
             href="/plan/new"
             className="rounded-row bg-accent px-4 py-2 text-surface"

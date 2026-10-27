@@ -14,7 +14,10 @@ const version = JSON.parse(readFileSync(path.join(here, "version.json"), "utf8")
 
 const APAS = "https://umn.uachieve.com";
 const planumnOrigins = ["https://planu.mn", ...(dev ? ["http://localhost:3000"] : [])];
-const planumnMatches = planumnOrigins.map((o) => `${o}/plan/*`);
+// Match patterns can't carry a port in Firefox (a ":3000" pattern never matches there), and a
+// port-less pattern matches every port in both browsers. The background still checks the exact
+// origin (planumnOrigins) before it accepts a start request.
+const planumnMatches = ["https://planu.mn/plan/*", ...(dev ? ["http://localhost/plan/*"] : [])];
 
 const shared = {
   manifest_version: 3,

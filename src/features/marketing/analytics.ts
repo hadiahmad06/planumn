@@ -5,7 +5,9 @@ export function analyticsUrl(raw: string) {
   url.hash = "";
   if (
     /^\/plan\/[^/]+/.test(url.pathname) &&
-    !["/plan/new", "/plan/autosave", "/plan/import"].includes(url.pathname)
+    !["/plan/new", "/plan/autosave", "/plan/import", "/plan/apas"].includes(
+      url.pathname,
+    )
   )
     url.pathname = "/plan/saved";
   return url.toString();
