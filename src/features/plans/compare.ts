@@ -43,13 +43,18 @@ function compareSlots(
 ): ComparedPlaceholder[] {
   const used = new Set<number>();
   const matches = new Map<number, number>();
-  for (const exact of [true, false])
+  // Keep unchanged identities before pairing equal contents across unrelated keys.
+  // Otherwise reordering two identical slots can hide an edit to one of them.
+  for (const pass of ["same-key", "same-contents", "edited"] as const)
     a.forEach((slot, ai) => {
       if (matches.has(ai)) return;
       const bi = b.findIndex(
         (other, i) =>
           !used.has(i) &&
-          (exact ? sameSlot(slot, other) : slot.key === other.key),
+          (pass === "edited"
+            ? slot.key === other.key
+            : sameSlot(slot, other) &&
+              (pass !== "same-key" || slot.key === other.key)),
       );
       if (bi >= 0) {
         matches.set(ai, bi);

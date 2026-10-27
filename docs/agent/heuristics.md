@@ -12,7 +12,7 @@ Columns: **Rule** (what the code assumes) · **Why** · **How it fails** · **Sh
 
 | Rule | Why | How it fails | Shown? | Where |
 |---|---|---|---|---|
-| Placeholder slots pair by **exact label, credits and CLE tag**, counting duplicates independently; a remaining shared slot key pairs an edit. Prior-credit semesters align by `kind: prior`, regardless of their synthetic term date. | Independently created identical slots have different generated IDs, and the prior-credit storage date follows each plan's start. | Differently worded slots with the same intention remain unmatched. A slot is a planning intention, not evidence of an earned course or fulfilled requirement. | Yes: the comparison explains exact slot matching and prior-credit alignment, and shows placeholder contents, counts, and semester types. | `src/features/plans/compare.ts`, `PlanComparison.tsx` (B13 integration repair) |
+| Placeholder slots pair by **exact label, credits and CLE tag**, counting duplicates independently; unchanged shared keys pair first, and a remaining shared slot key pairs an edit. Prior-credit semesters align by `kind: prior`, regardless of their synthetic term date. | Independently created identical slots have different generated IDs, and the prior-credit storage date follows each plan's start. | Differently worded slots with the same intention remain unmatched. A slot is a planning intention, not evidence of an earned course or fulfilled requirement. | Yes: the comparison explains exact slot matching and prior-credit alignment, and shows placeholder contents, counts, and semester types. | `src/features/plans/compare.ts`, `PlanComparison.tsx` (B13 integration repair) |
 
 ## 1. Data sources and known quality problems
 

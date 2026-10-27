@@ -197,3 +197,69 @@ describe("placeholder and special-semester comparison", () => {
     expect(left.semesters[0].placeholders![0].credits).toBe(3);
   });
 });
+
+it("keeps an unchanged slot with its own key when identical contents are reordered", () => {
+  const left = createEmptyPlan(),
+    right = createEmptyPlan();
+  left.semesters = [
+    {
+      index: "1269",
+      courses: [],
+      placeholders: [
+        { key: "edit", label: "Elective", credits: 3 },
+        { key: "keep", label: "Elective", credits: 3 },
+      ],
+    },
+  ];
+  right.semesters = [
+    {
+      index: "1269",
+      courses: [],
+      placeholders: [
+        { key: "keep", label: "Elective", credits: 3 },
+        { key: "edit", label: "Elective", credits: 4 },
+      ],
+    },
+  ];
+  const term = comparePlans(left, right)[0];
+  expect(term.leftSlots.map((p) => p.difference)).toEqual(["changed", "same"]);
+  expect(term.rightSlots.map((p) => p.difference)).toEqual(["same", "changed"]);
+});
+
+it("uses one matching for both sides so duplicate-slot counts agree", () => {
+  const orders = [
+    [0, 1, 2],
+    [2, 1, 0],
+    [1, 2, 0],
+  ];
+  for (let a = 0; a < 8; a++)
+    for (let b = 0; b < 8; b++)
+      for (const order of orders) {
+        const left = createEmptyPlan(),
+          right = createEmptyPlan();
+        const slot = (key: number, bits: number) => ({
+          key: `s${key}`,
+          label: bits & (1 << key) ? "Lab" : "Elective",
+          credits: 3,
+        });
+        left.semesters = [
+          {
+            index: "1269",
+            courses: [],
+            placeholders: [0, 1, 2].map((k) => slot(k, a)),
+          },
+        ];
+        right.semesters = [
+          {
+            index: "1269",
+            courses: [],
+            placeholders: order.map((k) => slot(k, b)),
+          },
+        ];
+        const term = comparePlans(left, right)[0];
+        for (const kind of ["same", "changed"])
+          expect(
+            term.leftSlots.filter((p) => p.difference === kind).length,
+          ).toBe(term.rightSlots.filter((p) => p.difference === kind).length);
+      }
+});
