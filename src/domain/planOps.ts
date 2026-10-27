@@ -1,6 +1,6 @@
 import type { CourseId, CreditRange } from "./course";
 import type { LockState, Plan, PlannedCourse, Semester } from "./plan";
-import { academicYear, nextTerm, toTermCode, type TermCode } from "./terms";
+import { academicYear, nextTerm, seasonOf, toTermCode, type Season, type TermCode } from "./terms";
 
 /**
  * Pure plan edits. Each returns a new Plan (or the same object when nothing changes).
@@ -88,11 +88,15 @@ function sortSemesters(semesters: Semester[]): Semester[] {
   return [...semesters].sort((a, b) => Number(a.index) - Number(b.index));
 }
 
-/** Add one semester right after the last one (Fall → Spring → Summer → Fall). */
-export function addNextSemester(plan: Plan): Plan {
-  const last = plan.semesters.at(-1)?.index;
-  const term = last ? nextTerm(last) : toTermCode({ year: new Date().getFullYear(), season: "fall" });
-  return { ...plan, semesters: [...plan.semesters, { index: term, courses: [] }] };
+/**
+ * Add one semester right after the last one (Fall → Spring → Summer → Fall), skipping seasons the
+ * user has hidden so the new semester is visible.
+ */
+export function addNextSemester(plan: Plan, skip: Season[] = []): Plan {
+  const last = sortSemesters(plan.semesters).at(-1)?.index;
+  let term = last ? nextTerm(last) : toTermCode({ year: new Date().getFullYear(), season: "fall" });
+  for (let i = 0; i < 3 && skip.includes(seasonOf(term)); i++) term = nextTerm(term);
+  return addSemester(plan, term);
 }
 
 /** Add a full academic year (Fall, Spring, Summer) after the last year. */

@@ -1,12 +1,12 @@
 "use client";
 
-import { useDndMonitor, useDraggable } from "@dnd-kit/core";
+import { useDndMonitor, useDraggable, useDroppable } from "@dnd-kit/core";
 import { useId, useRef, useState } from "react";
 import { courseCode, formatCredits, type CourseSummary } from "@/domain/course";
 import { cn } from "@/components/ui/cn";
 import { SearchIcon } from "@/components/ui/icons";
 import { usePreviewStore } from "@/features/preview/store";
-import { externalId, type DragData } from "@/features/plan-editor/dnd";
+import { CANCEL_DROP_ID, externalId, type DragData, type DropData } from "@/features/plan-editor/dnd";
 import { useCourseSearch } from "./useCourseSearch";
 
 function ResultRow({ course, active, id }: { course: CourseSummary; active: boolean; id: string }) {
@@ -61,6 +61,8 @@ export function SearchBox() {
   });
 
   const open = (focused || dragging) && query.trim().length > 0;
+  const cancelData: DropData = { type: "cancel" };
+  const { setNodeRef: setCancelRef } = useDroppable({ id: CANCEL_DROP_ID, data: cancelData, disabled: !open });
   const activeIndex = Math.min(active, Math.max(results.length - 1, 0));
 
   return (
@@ -79,7 +81,7 @@ export function SearchBox() {
           onKeyDown={(e) => {
             if (e.key === "ArrowDown") {
               e.preventDefault();
-              setActive((i) => Math.min(i + 1, results.length - 1));
+              setActive((i) => Math.max(0, Math.min(i + 1, results.length - 1)));
             } else if (e.key === "ArrowUp") {
               e.preventDefault();
               setActive((i) => Math.max(i - 1, 0));
@@ -102,6 +104,7 @@ export function SearchBox() {
       {open && (
         <div
           // Keep focus in the input while pressing on a result, so the dropdown doesn't close mid-drag.
+          ref={setCancelRef}
           onMouseDown={(e) => e.preventDefault()}
           className="absolute top-full right-0 left-0 z-40 mt-1 max-h-[60vh] overflow-auto rounded-card border border-border bg-surface p-1 shadow-overlay"
         >

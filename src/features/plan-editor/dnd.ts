@@ -10,7 +10,13 @@ export type DragData =
   | { type: "planned"; term: TermCode; index: number; courseId: CourseId }
   | { type: "external"; source: "search" | "requirement"; courseId: CourseId };
 
-export type DropData = { type: "semester"; term: TermCode } | { type: "planned"; term: TermCode; index: number; courseId: CourseId };
+export type DropData =
+  | { type: "semester"; term: TermCode }
+  | { type: "planned"; term: TermCode; index: number; courseId: CourseId }
+  /** Releasing over an overlay (e.g. the search dropdown) cancels instead of hitting what's underneath. */
+  | { type: "cancel" };
+
+export const CANCEL_DROP_ID = "drop-cancel";
 
 export const plannedId = (term: TermCode, courseId: CourseId) => `pc:${term}:${courseId}`;
 export const semesterId = (term: TermCode) => `sem:${term}`;
@@ -23,7 +29,7 @@ export type DropAction =
 
 /** Turn a finished drag into a plan edit. `semesterLength` = course count of the target semester. */
 export function resolveDrop(active: DragData | undefined, over: DropData | undefined, semesterLength: (term: TermCode) => number): DropAction {
-  if (!active || !over) return null;
+  if (!active || !over || over.type === "cancel") return null;
   const to: CourseSlot =
     over.type === "semester" ? { term: over.term, index: semesterLength(over.term) } : { term: over.term, index: over.index };
   if (active.type === "planned") {

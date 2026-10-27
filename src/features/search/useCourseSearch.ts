@@ -22,6 +22,7 @@ export function useCourseSearch(query: string, delayMs = 150): SearchState {
       setState((s) => ({ ...s, loading: true }));
       try {
         const res = await fetch(`/api/courses/search?q=${encodeURIComponent(q)}`, { signal: controller.signal });
+        if (!res.ok) throw new Error(`search ${res.status}`);
         const results = (await res.json()) as CourseSummary[];
         useCourseCache.getState().putSummaries(results);
         setState({ query: q, results, loading: false });

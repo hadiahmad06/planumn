@@ -18,6 +18,10 @@ describe("resolveDrop", () => {
       .toEqual({ kind: "move", from: { term: "1269", index: 0 }, to: { term: "1269", index: 2 } });
   });
 
+  it("cancels drops released over an overlay (review of #19)", () => {
+    expect(resolveDrop({ type: "external", source: "search", courseId: 9 }, { type: "cancel" }, len)).toBeNull();
+  });
+
   it("ignores drops outside any target", () => {
     expect(resolveDrop({ type: "planned", term: "1269", index: 0, courseId: 1 }, undefined, len)).toBeNull();
   });
