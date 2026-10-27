@@ -1,16 +1,15 @@
-# v2 Feature Evaluation — judged, ideated, ranked
+# v2 Feature Evaluation — judged, ideated, ordered for implementation
 
-> Written by **Hadi's Claude** (Claude Code, Opus 5.5), 2026-10-26.
-> Status: **proposal**. Every score is Hadi's Claude's estimate, not user research. Nothing here is decided until it's written into `docs/human/`.
-> Builds on `2025-feature-inventory.md`. Row IDs: `E*` = existing 2025 feature, `N*` = new idea.
+> Written by **Hadi's Claude** (Claude Code, Opus 5.5), 2026-10-26. Revised the same day to follow Hadi's sequencing.
+> Status: **proposal**, except the phase order, which Hadi decided (`docs/human/roadmap.md`). Every score is Hadi's Claude's estimate, not user research.
+> Builds on `2025-feature-inventory.md`. Row IDs: `E*` = 2025 feature, `N*` = new idea from 2026-10-26.
 
 ## Direction Hadi gave in chat (2026-10-26)
 
 - AI chatbot: "probably pointless."
 - APAS injection: "VERY USEFUL."
 - "Be more creative."
-
-These are Hadi's opinions as stated. Neither is a plan yet, so they're recorded here and not in `docs/human/`.
+- **Decided:** "first we want to implement features that we had already partially or successfully implemented in our 2025 version. THEN we can move onto new features that were added today." → `docs/human/roadmap.md`
 
 ---
 
@@ -27,132 +26,147 @@ These are Hadi's opinions as stated. Neither is a plan yet, so they're recorded 
 
 **Where Planumn fits:** the official tools are each authoritative about one thing (APAS = audit, Schedule Builder = one term, MyU Graduation Planner = an official but clunky plan). Students don't hate any single tool. They hate gluing them together. **Planumn v2 should be the place where your real record (APAS), the catalog, grade data and requirements meet on one multi-year canvas.**
 
-> Assumption to verify: the 2026 state of MyU's Graduation Planner and APAS UI. If UMN shipped a good planner since 2025, this positioning changes.
+> Assumption to verify: the 2026 state of MyU's Graduation Planner and APAS UI.
 
 ---
 
-## Metrics
+## Metrics (reference only; the order below follows dependencies, not score)
 
 | Metric | Scale | Meaning |
 |---|---|---|
 | **D**emand | 1–5 | How many UMN students would use it, and how much they care (counts ×2) |
-| **Diff**erentiation | 1–5 | How much it beats what students already have (APAS, Schedule Builder, GopherGrades, ChatGPT) |
-| **C**onfidence | 1–5 | How sure we are we can build it *correctly* (data availability, parsing risk, edge cases) |
+| **Diff**erentiation | 1–5 | How much it beats what students already have |
+| **C**onfidence | 1–5 | How sure we are we can build it *correctly* |
 | **Lev**erage | 0–5 | How many other features it unlocks |
 | **E**ffort | S/M/L/XL | Subtracted as 0 / 1 / 2 / 3 |
-| Data risk | Low/Med/High | Dependence on unofficial, scraped or stale data |
-| Retention | ✓ | Gives students a reason to come back every term |
 
-**Score = 2·D + Diff + C + Lev − E** (maximum 25). This gives a starting order, not a final ranking. Hadi and Michael should override it freely.
+**Score = 2·D + Diff + C + Lev − E** (max 25). "—" means foundation (not scored: the product doesn't work without it).
 
 ---
 
-## Foundations (not ranked; the product doesn't exist without them)
+## Phase A — rebuild what 2025 already had (Live, Branch or Partial)
 
-Semester grid with drag-and-drop (E4) · basic course search (E1) · cloud autosave + My Plans list with rename/delete/recover (E10, E12) · sign-in (recommend **UMN Google sign-in**, since umn.edu accounts are Google, instead of 2025's email/password) · undo/redo · landing/privacy pages (E20).
+Ordered so each row only depends on rows above it. "2025" = how far it got in the 2025 code.
 
----
-
-## Ranked features
-
-| # | ID | Feature | D | Diff | C | Lev | E | Score | Data risk | Ret. | Verdict |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | N1 | **APAS import**: pull your completed, in-progress, transfer/AP courses, catalog year, declared programs and per-requirement status from your APAS report | 5 | 5 | 3 | 5 | M | **22** | Med | ✓ | **MVP** |
-| 2 | N19 | **Plan health check**: one panel listing every problem (prereq out of order, course not offered that term, over the credit cap, missing Lib Ed/WI, under 120 credits) | 5 | 5 | 3 | 3 | M | **20** | Med | ✓ | **MVP** |
-| 3 | E15 | Requirement progress: x/y per requirement plus an overall "requirements met" widget (2025 evaluator, reworked) | 5 | 4 | 3 | 5 | L | **20** | High | ✓ | **MVP** |
-| 4 | E2 | Grade distributions in the course preview | 5 | 3 | 5 | 2 | S | **20** | Low* | | **MVP** |
-| 5 | N6 | **Lib Ed + Writing Intensive tracker**, auto-filled from course tags, following the student's catalog year | 5 | 4 | 4 | 2 | M | **19** | Low | ✓ | **MVP** |
-| 6 | N7 | **Smart search filters**: by Lib Ed theme, "satisfies requirement X", offering term, credits, level, average GPA, no prereqs | 5 | 4 | 4 | 2 | M | **19** | Low | | **MVP** |
-| 7 | N2 | **Offering-term warnings**: "CSCI 4061 has historically been Fall only" (inferred from term grade data) | 4 | 5 | 4 | 2 | S | **19** | Med* | | **MVP** |
-| 8 | N25 | **Placeholder courses**: drop in "any 3xxx CSCI elective" or "Lib Ed: Global Perspectives" before you know the exact course | 4 | 4 | 4 | 3 | S | **19** | Low | | **MVP** |
-| 9 | E18 | Prerequisite warnings on cards (2025 had this only inside the chatbot) | 5 | 4 | 3 | 3 | M | **19** | Med | | **MVP** |
-| 10 | N5 | **Double-dip finder**: courses that satisfy a major requirement, a Lib Ed and/or a minor at once | 5 | 5 | 3 | 1 | M | **18** | Med | | Next |
-| 11 | N16 | Professor insight in the preview: who usually teaches it, their grade distribution, RMP rating/difficulty | 5 | 3 | 4 | 1 | S | **18** | High (RMP) | | MVP (grades) / Next (RMP) |
-| 12 | N3 | **Semester workload meter**: credits plus historical GPA, SRT and RMP difficulty → "this semester looks heavy" | 4 | 5 | 4 | 1 | S | **18** | Low | | **MVP** |
-| 13 | E16 | Drag a course from a requirement row into a semester | 4 | 4 | 4 | 1 | S | **17** | — | | **MVP** |
-| 14 | N9 | **Graduation pacing**: credits toward 120, projected graduation term, "add 1 credit and it's free" (banded-tuition hint, *verify current UMN tuition policy*) | 4 | 4 | 4 | 1 | S | **17** | Low | ✓ | **MVP** |
-| 15 | N10 | **Advisor-ready export**: a one-page PDF/print of the plan with requirement status, to bring to advising | 4 | 3 | 5 | 1 | S | **17** | — | | **MVP** |
-| 16 | N4 | **Minor / certificate finder**: "you're 2 courses from a Math minor" | 5 | 5 | 3 | 1 | L | **17** | High | | Next |
-| 17 | N15 | What-if plans: duplicate a plan, switch programs, compare two plans side by side ("a double major costs +14 credits") | 4 | 4 | 4 | 1 | M | **16** | Med | | Next |
-| 18 | E21 | Sharing: read-only link and "copy to my plans" | 4 | 3 | 4 | 2 | M | **16** | — | | Next |
-| 19 | E13 | Transcript PDF import (2025) | 4 | 3 | 4 | 2 | M | 16 | Low | | **Merge into N1** (fallback only) |
-| 20 | N11 | **Registration handoff**: turn next semester into a ready-to-register list with links to Schedule Builder / Class Search | 4 | 4 | 3 | 1 | M | **15** | Med | ✓ | Next |
-| 21 | E11 | Try without an account (local autosave, 2025) | 4 | 2 | 4 | 1 | M | **14** | — | | Next |
-| 22 | N13 | Start from a department's published 4-year sample plan | 4 | 3 | 3 | 1 | M | **14** | Med | | Next |
-| 23 | N14 | Community insight: "CS majors usually take X in sophomore fall" (anonymized, from Planumn plans) | 4 | 5 | 2 | 1 | L | **14** | — (cold start) | | Later |
-| 24 | E19 | Mobile: view the plan + tap-to-add | 4 | 2 | 4 | 0 | M | **13** | — | | Next |
-| 25 | N12 | AP / IB / CLEP / transfer credit entry for students APAS doesn't cover yet | 3 | 3 | 4 | 1 | M | **13** | Med | | Next |
-| 26 | E23 | Autofill: generate the remaining semesters toward requirements | 4 | 5 | 1 | 2 | XL | **13** | High | | Later |
-| 27 | N20 | Catalog-change alerts: a course in your plan was renumbered or retired, or requirements changed; nudge to re-sync APAS each term | 3 | 4 | 3 | 1 | M | **12** | Med | ✓ | Later |
-| 28 | N8 | Prerequisite "unlocks" graph and critical path to graduation | 3 | 4 | 3 | 1 | M | **12** | Med | | Later |
-| 29 | N24 | Special semesters: study abroad, co-op, leave of absence (placeholder credits) | 2 | 3 | 5 | 0 | S | **12** | — | | Next (cheap) |
-| 30 | E6 | Right-click / keyboard course actions (move season/year, copy code, open in catalog) | 3 | 1 | 5 | 0 | S | **12** | — | | Next (cheap) |
-| 31 | E3 | Multi-panel course compare (2025 floating panels) | 3 | 3 | 4 | 0 | M | **12** | — | | Rework: simple side-by-side compare |
-| 32 | E22 | Dark mode | 3 | 1 | 5 | 0 | S | **12** | — | | Next (only cheap if design tokens exist from day 1) |
-| 33 | N22 | Friends: see which friends planned the same course in the same term | 3 | 4 | 3 | 0 | M | **11** | — (privacy) | | Later |
-| 34 | N17 | Admission-to-major checklists (CSE upper-division, Carlson, Nursing, pre-health tracks) | 3 | 4 | 2 | 1 | L | **11** | High | | Later |
-| 35 | N21 | Natural-language search: "easy Global Perspectives course in fall, no prereqs" | 3 | 3 | 3 | 0 | M | **10** | — | | Later |
-| 36 | E5 | Layout toggles (transpose, year accordions, semester selection) | 2 | 1 | 5 | 0 | S | 10 | — | | **Rework**: keep only "hide summers" |
-| 37 | E7 | Color cards by department/level | 2 | 1 | 5 | 0 | S | 10 | — | | **Rework**: color by which requirement a course satisfies |
-| 38 | E24 | Cmd/Ctrl+K search | 2 | 1 | 5 | 0 | S | 10 | — | | Later (cheap polish) |
-| 39 | N23 | Standalone browser extension that shows Planumn data inside MyU | 2 | 2 | 3 | 0 | M | 8 | — | | **Cut** (GopherGrades already does this). Keep only as an APAS-import route (see N1) |
-| 40 | E17 | AI Advisor chatbot | 2 | 1 | 2 | 0 | M | **6** | — | | **Cut** |
-
-\* Grade and term data in the 2025 database covers **Spring 2017 – Fall 2024** (23 terms, 9,731 courses, 10,495 professors with RMP fields). v2 needs a refresh pipeline, or these features go stale.
+| Order | ID | Feature | 2025 | Depends on | Score | v2 note |
+|---|---|---|---|---|---|---|
+| **A1** | | **Catalog & data** | | | | |
+| 1 | E-data | Course database: catalog, grade distributions (course/term/professor/dept), Lib Ed tags, SRT, OneStop, CourseDog `courseGroupId` | Live | — | — | Data stops at Fall 2024. Needs a refresh. |
+| 2 | E1 | Course search by dept, number, title (honors "H") | Live | 1 | — | |
+| 3 | E8.5 | Design language (cream/maroon, one set of design tokens) | Partial | — | — | Do it before any UI, so nothing gets styled twice (2026 PRD lesson) |
+| **A2** | | **Plan canvas** | | | | |
+| 4 | E4 | Semester grid (default 4 years from this Fall); drag courses in, between, reorder; remove | Live | 1, 3 | — | |
+| 5 | E3.4 | Per-semester credit totals | Live | 4 | — | Drop the 2025 "credit ruler" (2026 PRD) |
+| 6 | E3.7/3.13 | Add/remove semesters and years, `+` next semester, auto-add Summer after Spring | Branch / Partial | 4 | — | |
+| 7 | E3.6 | Editable plan title | Live | 4 | — | |
+| 8 | E3.14 | Lock state per course (`locked` / `unlocked` / `autofilled`) | Live (type) | 4 | — | Needed before transcript import (#20) |
+| 9 | E3.16 / E7 | Course card: credit-height, colored stripe, color by dept/level | Partial / Live | 4 | 10 | Rework idea: color by requirement satisfied (after #26) |
+| 10 | E5 | Hide seasons (e.g. hide all Summers) | Branch | 4 | 10 | **Rework:** keep this; decide on #30 |
+| 11 | E2 | Course preview: click = persistent panel, hover = temporary; code, title, credits, description, grade charts | Live | 1, 4 | **20** | |
+| 12 | E3 | Multiple preview panels for comparing | Live | 11 | 12 | Rework idea: simple side-by-side compare |
+| 13 | E1.8/1.9 | Search results as course cards; top-bar search dropdown, drag from results | Branch / Partial | 2, 4 | — | |
+| **A3** | | **Accounts & persistence** | | | | |
+| 14 | E4.1 | Sign up / log in | Live | — | — | 2025 = email/password. **Open:** switch to UMN Google sign-in? |
+| 15 | E4.2 | Profile dropdown + Settings modal | Live | 14 | — | |
+| 16 | E10 | Cloud autosave on every change + "Saved 2 min ago" | Live / Partial | 4, 14 | — | |
+| 17 | E11 | Signed-out mode: local autosave, resume, "overwrite autosave?" prompt | Live | 4 | 14 | |
+| 18 | E12 | My Plans: list (course/credit counts), rename, soft delete (30 days) + recover, permanent delete, clear deleted | Live / Branch | 16 | — | |
+| 19 | E4.10 | Plan loading states: skeleton, unauthorized, no access, unknown error | Live / Branch | 16 | — | |
+| 20 | E13 | Transcript PDF import → new plan (past courses locked) | Live | 8, 16 | 16 | APAS import (#B1) may replace it later |
+| 21 | E4.13 | Delete account ("Danger zone") | Partial? | 14 | — | Not confirmed working in 2025 |
+| **A4** | | **Programs & requirements** | | | | |
+| 22 | E5.1 | Pick programs (majors/minors, several per plan) + program switcher | Branch | 16 | — | |
+| 23 | E5.2 | Fetch program requirements from UMN's CourseDog catalog | Branch | 22 | — | Unofficial API: high data risk |
+| 24 | E5.3/5.4 | Requirements display: accordions, nested rules ("all of", "any N of", "N credits of"), clean vs structured modes | Branch / Partial | 23 | — | |
+| 25 | E15 | Requirement evaluator: x/y per requirement, badges, pattern matches ("any 3000+ CSCI"), one course counting for several | Branch | 24 | **20** | 2026 `AI_Advisor` version has tests |
+| 26 | E5.8 | Overall progress widget ("13/25 met", each course counted once) | Branch | 25 | (in 25) | |
+| 27 | E5.10 / E16 | Requirements rail as the left-hand main surface; drag from a requirement into a semester | Partial / Branch | 24, 4 | 17 | |
+| 28 | E5.11 | Filter/search requirements; highlight alternative courses | Branch | 24 | — | |
+| 29 | E18 | Prerequisite checking | Branch | 1, 4 | 19 | 2025 = only the chatbot used it. v2: warnings on cards |
+| **A5** | | **Editing polish & mobile** | | | | |
+| 30 | E5 | Transpose layout, year expand/collapse, semester selection | Branch | 4 | 10 | **Decide:** keep, or drop in favor of #10 only |
+| 31 | E6 | Right-click course menu: move season/year, delete, copy code, open in catalog | Partial | 4 | 12 | Add keyboard equivalents |
+| 32 | E19 | Mobile layout, collapsible requirements, tap-to-add picker | Live / Partial | 4, 27 | 13 | |
+| **A6** | | **Site** | | | | |
+| 33 | E20 | Landing page (hero, demo video, signed-in vs out), contact, privacy, OG image/logo, analytics | Live | 3 | — | |
+| **A7** | | **Built in 2025, pending a keep/cut call** | | | | |
+| 34 | E17 | AI Advisor chatbot (OpenRouter, tools: search, details, plan info, prereqs) | Branch | 1, 16, 29 | **6** | Hadi: "probably pointless." Recommend **cut**. It's listed here only because it was built in 2025. |
 
 ---
 
-## Deep dive: APAS import (#1)
+## Phase B — new features (2026-10-26) and 2025 ideas that were never built
 
-**Why it's #1:** it turns onboarding from "drag in 3 years of history" into a 10-second import. It makes requirement status *correct*, because it comes from UMN's own engine and already includes exceptions, substitutions, transfer/AP credit and the right catalog year. It also gives students a reason to come back every term (re-import after grades post). Seven other features on this list get better or easier once it exists.
+Ordered by dependency first, then score. Starts once Phase A is done.
 
-**What we'd extract:** completed courses (term, grade, credits) · in-progress courses · transfer/AP/test credit · catalog year · declared programs · each requirement's status (complete / in progress / not met) and what's still needed.
+| Order | ID | Feature | Origin | Depends on | Score | Note |
+|---|---|---|---|---|---|---|
+| 1 | N1 | **APAS import**: completed, in-progress and transfer/AP courses; catalog year; declared programs; per-requirement status | New | A8, A16, A25 | **22** | Hadi: "VERY USEFUL." See deep dive. Can supersede A20. |
+| 2 | N25 | Placeholder courses ("any 3xxx CSCI elective", "Lib Ed: Global Perspectives") | New | A4, A25 | 19 | |
+| 3 | N6 | Lib Ed + Writing Intensive tracker (follows the student's catalog year) | New | A1, A25, B1 | 19 | Tag data already exists |
+| 4 | N2 | Offering-term warnings ("historically Fall only") | New | A1, A4 | 19 | Inferred from 23 terms of grade data |
+| 5 | N9 | Graduation pacing: credits toward 120, projected grad term, banded-tuition hint | New | A5 | 17 | Verify the current tuition policy |
+| 6 | N19 | **Plan health check**: one panel for prereq order, offering term, credit cap, Lib Ed/WI gaps, under 120 credits | New | A29, B3, B4, B5 | 20 | Pulls together the rows above it |
+| 7 | N3 | Semester workload meter (credits + historical GPA + SRT + RMP difficulty) | New | A1, A5 | 18 | |
+| 8 | N7 | Smart search filters: Lib Ed theme, "satisfies requirement X", offering term, credits, level, avg GPA, no prereqs | New | A2, A25, B4 | 19 | |
+| 9 | N16 | Professor insight in the preview: usual instructors, their grades, RMP | New | A11 | 18 | RMP has ToS risk: grades first, RMP later |
+| 10 | N10 | Advisor-ready one-page PDF export | New | A26, B6 | 17 | |
+| 11 | E3.5 / E3.17 | Lock toggle in the preview; "elective" badge on cards | 2025 idea | A8, A11, A25 | — | Lock may become "completed / in progress / planned" from APAS |
+| 12 | N5 | Double-dip finder (major + Lib Ed + minor at once) | New | A25, B3 | 18 | |
+| 13 | N15 | What-if plans: duplicate, switch programs, compare two plans | New | A18, A22 | 16 | What-If APAS import fits here |
+| 14 | N4 | Minor / certificate finder ("2 courses from a Math minor") | New | A25, B1 | 17 | Needs requirements for every minor |
+| 15 | E21 | Sharing: read-only link + "copy to my plans" | 2025 idea | A18 | 16 | |
+| 16 | N11 | Registration handoff: next semester → list with Schedule Builder / Class Search links | New | A4 | 15 | |
+| 17 | N13 | Start from a department's 4-year sample plan | New | A4, A22 | 14 | |
+| 18 | N12 | AP / IB / CLEP / transfer credit entry | New | A4 | 13 | For students APAS doesn't cover yet |
+| 19 | N24 | Special semesters (study abroad, co-op, leave) | New | A6 | 12 | Cheap |
+| 20 | E22 / E24 | Dark mode; Cmd/Ctrl+K search | 2025 idea | A3 / A13 | 12 / 10 | Cheap if design tokens exist |
+| 21 | N20 | Catalog-change alerts + "re-sync your APAS" each term | New | B1 | 12 | Brings students back each term |
+| 22 | N8 | Prerequisite "unlocks" graph / critical path | New | A29 | 12 | |
+| 23 | N14 | Community insight ("CS majors usually take X sophomore fall") | New | A18 (needs users) | 14 | Needs enough users first |
+| 24 | E23 | Autofill the remaining semesters | 2025 idea | A25, A29, B4 | 13 | Hardest item on the list |
+| 25 | N22 | Friends: who's taking the same course in the same term | New | A14, E21 | 11 | Privacy design needed |
+| 26 | N17 | Admission-to-major checklists (CSE, Carlson, Nursing, pre-health) | New | A25 | 11 | |
+| 27 | N21 | Natural-language course search | New | B8 | 10 | The useful form of AI |
+| — | N23 | Standalone browser extension | New | — | 8 | **Cut.** GopherGrades already has one. Kept only as an APAS-import route |
+
+---
+
+## Deep dive: APAS import (B1)
+
+**Why it matters:** it turns onboarding from "drag in 3 years of history" into a 10-second import. It makes requirement status *correct*, because it comes from UMN's own engine and already includes exceptions, substitutions, transfer/AP credit and the right catalog year. It also gives students a reason to come back every term.
+
+**What we'd extract:** completed courses (term, grade, credits) · in-progress courses · transfer/AP/test credit · catalog year · declared programs · each requirement's status and what's still needed.
 
 **Ways in (ranked by effort):**
 1. **Upload the APAS PDF** from MyU. *Verify the PDF has real text and isn't a scanned image.*
-2. **Paste the report's text** (select all on the APAS page, copy, paste into Planumn). Most robust against layout changes.
-3. **Browser-extension button** on the APAS page that sends the report to Planumn in one click. Best UX, most effort, needs Chrome Web Store review.
+2. **Paste the report's text** from the APAS page. Most robust against layout changes.
+3. **Browser-extension button** on the APAS page. Best UX, most effort.
 
-**Then also:** import a **What-If APAS** report to explore another major using UMN's own engine instead of our own rule parser.
+**Also:** import a **What-If APAS** report to explore another major using UMN's own engine.
 
-**Privacy (decide early):** parse in the browser and store only courses and requirement status. Drop name, student ID and GPA unless the student opts in. Say so on the import screen, because trust is the adoption risk.
+**Privacy:** parse in the browser and store only courses and requirement status. Drop name, student ID and GPA unless the student opts in.
 
-**Main technical risk:** APAS tells you the status of *completed* work. To show "after your planned semesters, what's left," we still have to evaluate *future* planned courses against the rules. Approach: APAS status for the past, the rule evaluator (2025 `AI_Advisor` evaluator, or CourseDog rules) for the future, and clearly mark which is which.
+**Main technical risk:** APAS only judges *completed* work. Future planned courses still need the rule evaluator (A25). Mark clearly which status came from APAS and which from Planumn.
 
-**Blocker:** we need **3–5 real APAS reports from different colleges** (CSE, CLA, Carlson, CBS) to build and test the parser. Hadi's and Michael's own reports are the obvious start.
+**Blocker:** 3–5 real APAS reports from different colleges (CSE, CLA, Carlson, CBS). Collect them during Phase A so B1 can start right away.
 
----
+## On the AI chatbot (A34)
 
-## On the AI chatbot (#40)
-
-Hadi's Claude agrees with cutting it as a headline feature:
-- Students already have ChatGPT/Claude. A built-in chat adds little.
-- A wrong answer about graduation requirements does real harm, and the 2025 advisor couldn't see requirements at all.
-- It costs money per message, and it was read-only anyway.
-
-**Where AI still earns its place, out of sight:** turning messy CourseDog/APAS requirement text into structured rules (run offline, reviewed by a human) and natural-language search (#35). Neither one is a chatbot.
+Hadi's Claude recommends cutting it, even though it was built in 2025: students already have ChatGPT, wrong requirement answers do real harm, and it costs money per message. AI is still useful out of sight, for parsing requirement text into rules and for natural-language search (B27).
 
 ---
 
-## Proposed v2 MVP story (for discussion)
+## Validate (cheap, can run during Phase A)
 
-> **Import your APAS → see what you've done and what's left → plan the remaining semesters with live warnings → bring a one-page export to your advisor.**
+1. Check the 2025 Vercel Analytics for planu.mn: which pages were used, and whether there was a registration-season spike.
+2. Run a 3-question poll in r/uofm and the UMN Discords, using the top Phase B rows.
+3. Ask 2–3 academic advisors what they want students to bring (validates B1, B10).
+4. Collect APAS reports.
 
-MVP set (Hadi's Claude's proposal): Foundations + #1–9, #11 (grades part), #12–15.
-Biggest risk: requirement correctness (#1, #3, #9). Cheapest standouts: offering-term warnings (#7), workload meter (#12), pacing (#14), advisor export (#15). These use data the 2025 database already has.
+## Open questions for Hadi & Michael
 
----
-
-## Validate before committing (cheap)
-
-1. **Check the 2025 Vercel Analytics for planu.mn.** Which pages got used, and was there a spike around registration? That's real demand data we already own.
-2. **Run a 3-question poll** in r/uofm and the UMN student Discords: "Which of these would you use?" with the top 10 rows above.
-3. **Ask 2–3 academic advisors** what they wish students brought to appointments. This validates #15 and #1.
-4. **Collect APAS reports** (see the blocker above).
-
-## Questions for Hadi & Michael
-
-1. Do you agree with the APAS-first MVP story, or should requirements still come from CourseDog first?
-2. Can the RMP data be used? There's legal/ToS risk. Ship professor insight with GopherGrades data only?
-3. Should "Try without an account" stay? It conflicts with APAS import, which works best tied to an account.
-4. Which of the 40 rows is missing something you've personally wanted as a UMN student?
+1. A14: keep email/password, or switch to UMN Google sign-in?
+2. A30: keep transpose / year collapse / semester selection, or only "hide summers"?
+3. A34: cut the AI chatbot from Phase A?
+4. Can RMP data be used (B9)?
+5. A17 (signed-out mode) vs. B1 (APAS works best with an account): keep both?
