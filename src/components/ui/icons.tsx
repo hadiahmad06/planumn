@@ -24,6 +24,7 @@ function Icon({ children, size = 16, ...props }: IconProps) {
 
 export const PlusIcon = (p: IconProps) => <Icon {...p}><path d="M8 3.5v9M3.5 8h9" /></Icon>;
 export const CloseIcon = (p: IconProps) => <Icon {...p}><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" /></Icon>;
+export const CheckIcon = (p: IconProps) => <Icon {...p}><path d="M3.5 8.5l3 3 6-7" /></Icon>;
 export const DotsIcon = (p: IconProps) => (
   <Icon {...p}>
     <circle cx="3.5" cy="8" r="0.6" fill="currentColor" />

@@ -12,6 +12,7 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import { addCourseActions } from "@/features/plan-editor/courseActions";
 import { useDisplaySettings } from "@/features/plan-editor/displaySettings";
 import { hoverCourse, usePlanStore } from "@/features/plan-editor/store";
+import { AddToSemesterButton } from "@/features/plan-editor/AddToSemesterButton";
 
 const MAX_CHOICES = 8;
 
@@ -67,7 +68,7 @@ export function OptionChip({ option, primary, planned }: { option: CourseOption;
       />
     );
   }
-  return (
+  const chip = (
     <button
       ref={setNodeRef}
       type="button"
@@ -80,6 +81,14 @@ export function OptionChip({ option, primary, planned }: { option: CourseOption;
     >
       {content}
     </button>
+  );
+  // Primary rows get a "+" (add to the selected semester); inline "or …" alternatives stay text-only.
+  if (!primary) return chip;
+  return (
+    <span className="flex min-w-0 items-center gap-1.5">
+      {chip}
+      {!planned && <AddToSemesterButton courseId={id} code={option.code} className="ml-auto size-5" />}
+    </span>
   );
 }
 
