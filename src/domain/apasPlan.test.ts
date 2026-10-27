@@ -144,4 +144,15 @@ describe("apasPlan", () => {
     expect(honors.plan.programs).toEqual([]);
     expect(honors.program.programId).toBeNull();
   });
+
+  it("reports placeholders only once inserted; cap overflow and duplicates are listed (review fix, #71)", () => {
+    const many = Array.from({ length: 21 }, (_, i) => course(`NEW ${1000 + i}`, "F 26", "1269", "in-progress", { credits: 1 }));
+    const twice = course("MATH 1271", "F 24", "1249", "completed");
+    const capped = apasPlan({ ...audit, courses: [...audit.courses, ...many, twice] }, ids, programs, now);
+    expect(capped.plan.semesters.find((s) => s.index === "1269" && s.kind !== "prior")!.placeholders).toHaveLength(20);
+    expect(capped.placeholders.filter((p) => p.term === "1269")).toHaveLength(20);
+    expect(capped.skipped.filter((s) => s.reason === "slot-limit").map((s) => s.code)).toEqual(["NEW 1019", "NEW 1020"]);
+    expect(capped.skipped.filter((s) => s.reason === "duplicate").map((s) => s.code)).toEqual(["MATH 1271"]);
+    expect(capped.matched).toBe(5);
+  });
 });

@@ -17,7 +17,15 @@ import { compareTerms, nextTerm, termRange, type TermCode } from "./terms";
  */
 
 /** Why a course row wasn't put in the plan. */
-export type ApasSkipReason = "withdrawn" | "no-credit" | "failed" | "no-term";
+export type ApasSkipReason =
+  | "withdrawn"
+  | "no-credit"
+  | "failed"
+  | "no-term"
+  /** Same course twice in one term. */
+  | "duplicate"
+  /** The term already has the maximum number of placeholder slots. */
+  | "slot-limit";
 
 export interface ApasPlanResult {
   plan: Plan;
@@ -136,24 +144,32 @@ export function apasPlan(
     }
     const id = ids.get(c.code.toUpperCase());
     if (id != null) {
+      if (semester.courses.some((x) => x.id === id)) {
+        result.skipped.push({ code: c.code, termRaw: c.termRaw, reason: "duplicate" });
+        continue;
+      }
       const course: PlannedCourse = { id, lock: "locked" };
-      if (!semester.courses.some((x) => x.id === id))
-        semester.courses.push(course);
+      semester.courses.push(course);
       result.matched++;
     } else {
       const slots = (semester.placeholders ??= []);
       const key = `apas-${c.code.replace(/\s+/g, "-").toLowerCase()}`;
-      if (
-        slots.length < MAX_PLACEHOLDERS_PER_SEMESTER &&
-        !slots.some((p) => p.key === key)
-      ) {
-        const slot: PlaceholderCourse = {
-          key,
-          label: `${c.code}${c.title ? ` · ${c.title}` : ""}`.slice(0, 80),
-          credits: Math.min(Math.max(c.credits, 0), 20),
-        };
-        slots.push(slot);
+      // Counted only once actually inserted (review fix from Michael's Codex on #71).
+      const reason: ApasSkipReason | null = slots.some((p) => p.key === key)
+        ? "duplicate"
+        : slots.length >= MAX_PLACEHOLDERS_PER_SEMESTER
+          ? "slot-limit"
+          : null;
+      if (reason) {
+        result.skipped.push({ code: c.code, termRaw: c.termRaw, reason });
+        continue;
       }
+      const slot: PlaceholderCourse = {
+        key,
+        label: `${c.code}${c.title ? ` · ${c.title}` : ""}`.slice(0, 80),
+        credits: Math.min(Math.max(c.credits, 0), 20),
+      };
+      slots.push(slot);
       result.placeholders.push({
         code: c.code,
         term: toPrior ? "prior" : semester.index,

@@ -20,6 +20,8 @@ const SKIP: Record<ApasSkipReason, string> = {
   "no-credit": "no credit",
   failed: "no credit earned (failing grade)",
   "no-term": "term not recognized",
+  duplicate: "listed twice in the same term",
+  "slot-limit": "that term already has the maximum 20 placeholder slots",
 };
 
 /** Catalog ids for course codes, looked up on the server. Only the codes are sent. */

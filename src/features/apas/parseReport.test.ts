@@ -42,6 +42,17 @@ describe("parseApasReport (B1 step 2)", () => {
     expect(course("NOTR 0T001")).toMatchObject({ grade: "T3", kind: "no-credit", earnedCredit: false });
   });
 
+  it("matches the no-credit list per attempt: a failed try doesn't cancel a later pass (review fix, #71)", () => {
+    const failed = `<tr class="takenCourse "><td scope="row" class="term">F 20</td><td scope="row" class="course">1MATH1271</td><td scope="row" class="credit"> 4.0 </td><td scope="row" class="grade">F </td><td scope="row" class="ccode"></td><td class="description"><table role="presentation"><tbody><tr><td scope="row" class="descLine">Calculus I</td></tr></tbody></table></td></tr>`;
+    const withFail = html.replaceAll('<tr class="takenCourse ">\n <td scope="row" class="term" aria-label="term">F 25</td>', `${failed}<tr class="takenCourse ">\n <td scope="row" class="term" aria-label="term">F 25</td>`);
+    expect(withFail).not.toBe(html);
+    const courses = parseApasHtml(withFail)!.courses.filter((c) => c.code === "MATH 1271");
+    expect(courses.map((c) => [c.termRaw, c.kind, c.earnedCredit])).toEqual([
+      ["F 23", "completed", true],
+      ["F 20", "no-credit", false],
+    ]);
+  });
+
   it("reads requirement status, totals and needs", () => {
     expect(req("124 CRS")).toMatchObject({ title: "Minimum Degree Credits", status: "in-progress", earned: { credits: 16 }, inProgress: { credits: 4 } });
     expect(req("CSCITELEC").needs).toEqual({ credits: 10, courses: null, groups: null, subrequirements: 2 });

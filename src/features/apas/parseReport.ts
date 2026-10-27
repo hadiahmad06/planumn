@@ -40,7 +40,7 @@ export function parseApasReport(doc: Document): ApasAudit | null {
     preparedOn: header.get("prepared on") ?? null,
     expectedGradTerm: grad ? parseApasTermLabel(grad) : null,
     complete: !audit.querySelector(".completionTextNO") && Boolean(audit.querySelector("[class^='completionText']")),
-    courses: markNoCredit(dedupe([...audit.querySelectorAll("tr.takenCourse")].flatMap((tr) => course(tr) ?? [])), requirements),
+    courses: markNoCredit(dedupe([...audit.querySelectorAll("tr.takenCourse")].flatMap((tr) => course(tr) ?? [])), noCreditAttempts(audit)),
     requirements,
   };
 }
@@ -50,15 +50,27 @@ export function parseApasReport(doc: Document): ApasAudit | null {
  * for an AP score with no UMN equivalent) under "Courses That Do Not Earn Credit…". Trust that list
  * over our own grade rules: those rows earn no credit.
  */
-function markNoCredit(courses: ApasCourse[], requirements: ApasRequirement[]): ApasCourse[] {
-  const none = new Set(
-    requirements.filter((r) => /do not earn credit/i.test(r.title)).flatMap((r) => r.subrequirements.flatMap((s) => s.courses)),
-  );
+function markNoCredit(courses: ApasCourse[], none: ReadonlySet<string>): ApasCourse[] {
   return courses.map((c) =>
-    none.has(c.code) && c.kind !== "in-progress" && c.kind !== "planned"
+    none.has(attemptKey(c)) && c.kind !== "in-progress" && c.kind !== "planned"
       ? { ...c, earnedCredit: false, kind: c.kind === "withdrawn" ? "withdrawn" : "no-credit" }
       : c,
   );
+}
+
+/**
+ * The attempts (term + course + grade + condition) listed under "Courses That Do Not Earn Credit…".
+ * Matched per attempt, not per course, so a failed earlier attempt doesn't cancel a later pass
+ * (review fix from Michael's Codex on #71).
+ */
+function noCreditAttempts(audit: Element): Set<string> {
+  const rows = [...audit.querySelectorAll(".requirement")]
+    .filter((r) => /do not earn credit/i.test(text(r.querySelector(".reqTitle h4, .reqHeader h3"))))
+    .flatMap((r) => [...r.querySelectorAll("tr.takenCourse")]);
+  return new Set(rows.flatMap((tr) => {
+    const c = course(tr);
+    return c ? [attemptKey(c)] : [];
+  }));
 }
 
 /** Parse captured HTML in the browser. */
@@ -151,10 +163,15 @@ function course(tr: Element): ApasCourse | null {
   };
 }
 
+/** One course attempt: the same course in another term, or with another grade, is another attempt. */
+function attemptKey(c: Pick<ApasCourse, "termRaw" | "code" | "grade" | "condition">): string {
+  return `${c.termRaw}|${c.code}|${c.grade}|${c.condition}`;
+}
+
 function dedupe(courses: ApasCourse[]): ApasCourse[] {
   const seen = new Map<string, ApasCourse>();
   for (const c of courses) {
-    const key = `${c.termRaw}|${c.code}|${c.grade}|${c.condition}`;
+    const key = attemptKey(c);
     if (!seen.has(key)) seen.set(key, c);
   }
   return [...seen.values()];
