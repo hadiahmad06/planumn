@@ -53,3 +53,15 @@ describe("checkPrereqs", () => {
     expect(checkPrereqs(node, has())).toEqual({ met: false, missing: "(CSCI 1913 or CSCI 1933) and CSCI 2011", hasOtherPaths: true });
   });
 });
+
+describe("department before a bracketed list (B24 finding)", () => {
+  it("reads MATH [1271 OR 1371] as MATH courses", () => {
+    expect(parsePrereqs("CSCI [1103 OR 1113 OR 1133] & MATH [1271 OR 1371 OR 1571H]", "CSCI")).toEqual({
+      kind: "and",
+      children: [
+        { kind: "or", children: ["CSCI 1103", "CSCI 1113", "CSCI 1133"].map((code) => ({ kind: "course", code })) },
+        { kind: "or", children: ["MATH 1271", "MATH 1371", "MATH 1571H"].map((code) => ({ kind: "course", code })) },
+      ],
+    });
+  });
+});

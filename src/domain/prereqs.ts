@@ -25,8 +25,13 @@ function tokenize(text: string, defaultDept: string): Token[] {
     .split(/(\(|\)|;|,|\band\b|\bor\b|&)/i)
     .map((s) => s.trim())
     .filter(Boolean);
-  for (const part of parts) {
+  for (const [i, part] of parts.entries()) {
     const lower = part.toLowerCase();
+    // "MATH [1271 OR 1371]": a department written before a bracketed list applies to the numbers in it.
+    if (/^[A-Z]{2,5}$/.test(part) && parts[i + 1] === "(" && lower !== "and" && lower !== "or") {
+      dept = part;
+      continue;
+    }
     if (part === "(" || part === ")" || part === ";" || part === ",") tokens.push({ t: part });
     else if (lower === "and" || part === "&") tokens.push({ t: "and" });
     else if (lower === "or") tokens.push({ t: "or" });

@@ -44,9 +44,12 @@ export function courseCode(c: Pick<CourseSummary, "dept" | "number">): string {
   return `${c.dept} ${c.number}`;
 }
 
-/** Honors versions satisfy the regular course: "CSCI 1933H" counts as "CSCI 1933". */
+/**
+ * Suffixed versions satisfy the base course: honors ("CSCI 1933H", "PHYS 1401V") and writing-intensive
+ * ("PHYS 1301W") count as "CSCI 1933" / "PHYS 1401" / "PHYS 1301", as prerequisites list the base number.
+ */
 export function equivalentCodes(code: string): string[] {
-  return /\dH$/.test(code) ? [code, code.slice(0, -1)] : [code];
+  return /\d[HVW]$/.test(code) ? [code, code.slice(0, -1)] : [code];
 }
 
 export function formatCredits({ min, max }: CreditRange): string {

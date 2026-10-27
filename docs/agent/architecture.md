@@ -69,6 +69,7 @@ src/
 | `usePlanStore`: `plan`, `revision`, `loadPlan`, `patchMeta`, `subscribe` | `src/features/plan-editor/store.ts` | Hadi's Claude | autosave |
 | `planActions` (`addCourse`, `removeCourse`, `moveCourse`, `setLock`, …) | `src/features/plan-editor/store.ts` | Hadi's Claude | preview (lock toggle), transcript import |
 | `useCourseInfo(id)`, `useCreditTotal(ids)` | `src/features/catalog/courseCache.ts` | Hadi's Claude | anywhere a course or credit sum is shown |
+| B24 autofill: `pickCourses(results, planned, credits?)` → `{ picks, skipped }`; `placeCourses({ plan, picks, course, hiddenSeasons, maxCredits, useSummer })` → `{ placements, unplaced }` (future regular terms only, offered seasons, prerequisite order, 3xxx+ not in the plan's first year); `<AutofillButton plan />` (review dialog, applies only ticked suggestions). `equivalentCodes` now also maps `…V`/`…W` to the base course | `src/domain/autofill.ts`, `src/features/plan-editor/AutofillButton.tsx` | Hadi's Claude | plan header |
 | `<PlanEditor initialPlan={plan} />` | `src/features/plan-editor/PlanEditor.tsx` | Hadi's Claude | plan route pages |
 | `<DisplaySettingsForm />` | `src/features/plan-editor/DisplaySettingsForm.tsx` | Hadi's Claude | Settings modal |
 | `usePreviewStore`: `openPreview`, `hoverPreview`, `closePreview` | `src/features/preview/store.ts` | Michael's Codex | cards, search, requirements |
