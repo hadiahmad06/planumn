@@ -2,6 +2,8 @@ import type { CourseDetails as Details } from "@/domain/course";
 import { courseCode, formatCredits } from "@/domain/course";
 import { termLabel } from "@/domain/terms";
 
+import { InstructorInsights } from "./InstructorInsights";
+
 const gradeOrder = [
   "A",
   "A-",
@@ -98,6 +100,7 @@ export function CourseDetails({ course }: { course: Details }) {
           <p className="mt-2 text-text-secondary">No grade data available.</p>
         )}
       </section>
+      <InstructorInsights courseId={course.id} />
       <section>
         <h4 className="font-semibold">Terms recorded</h4>
         <p className="mt-1 text-xs text-text-secondary">
