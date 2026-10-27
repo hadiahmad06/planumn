@@ -98,34 +98,36 @@ export interface RequirementResult {
 }
 
 /**
- * Assign planned courses to choices so as many choices as possible are filled (bipartite matching,
- * Kuhn's algorithm), each course used at most once. Candidates are tried highest-credit first, so
- * when several assignments fill the same number of choices the credit total tends to be higher.
+ * Assign planned courses to choices (each course fills at most one choice) maximizing first the number
+ * of filled choices, then their credits. The sets of courses that can be matched to distinct choices
+ * form a transversal matroid, so adding courses greedily by descending credits, each via an augmenting
+ * path (Kuhn), yields a maximum matching whose credit total is also maximal.
  */
 function matchChoices(choices: CourseChoice[], planned: PlannedForAudit[]): (CourseId | null)[] {
-  const byId = new Map(planned.map((p) => [p.courseId, p]));
-  const candidates = choices.map((choice) =>
-    [...new Set(choice.options.map((o) => o.courseId).filter((id): id is CourseId => id != null && byId.has(id)))].sort(
-      (a, b) => byId.get(b)!.credits - byId.get(a)!.credits,
-    ),
-  );
-  const owner = new Map<CourseId, number>(); // course → choice index
-  const tryAssign = (choice: number, seen: Set<CourseId>): boolean => {
-    for (const id of candidates[choice]) {
-      if (seen.has(id)) continue;
-      seen.add(id);
-      const current = owner.get(id);
-      if (current === undefined || tryAssign(current, seen)) {
-        owner.set(id, choice);
+  const choicesOf = new Map<CourseId, number[]>();
+  choices.forEach((choice, i) => {
+    for (const o of choice.options) {
+      if (o.courseId == null) continue;
+      const list = choicesOf.get(o.courseId) ?? [];
+      if (!list.includes(i)) choicesOf.set(o.courseId, [...list, i]);
+    }
+  });
+  const holder: (CourseId | null)[] = choices.map(() => null); // choice → course
+  const tryPlace = (course: CourseId, seen: Set<number>): boolean => {
+    for (const choice of choicesOf.get(course) ?? []) {
+      if (seen.has(choice)) continue;
+      seen.add(choice);
+      const current = holder[choice];
+      if (current === null || tryPlace(current, seen)) {
+        holder[choice] = course;
         return true;
       }
     }
     return false;
   };
-  choices.forEach((_, i) => tryAssign(i, new Set()));
-  const matches: (CourseId | null)[] = choices.map(() => null);
-  for (const [id, choice] of owner) matches[choice] = id;
-  return matches;
+  const unique = [...new Map(planned.map((p) => [p.courseId, p])).values()];
+  for (const p of unique.sort((a, b) => b.credits - a.credits)) tryPlace(p.courseId, new Set());
+  return holder;
 }
 
 function evaluateCourses(rule: CoursesRule, planned: PlannedForAudit[]): RuleResult {
