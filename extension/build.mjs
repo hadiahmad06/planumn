@@ -1,6 +1,7 @@
 // Builds the APAS import extension for Chrome and Firefox. Written by Ishaan's Claude.
 //   node extension/build.mjs          store builds   → extension/dist/{chrome,firefox}
 //   node extension/build.mjs --dev    also allow http://localhost:3000 (never ship this)
+//   node extension/build.mjs --dev --port 3220    … or another local dev port (Hadi's Claude)
 // One manifest per browser (Chrome: service_worker; Firefox: background scripts + gecko settings),
 // so neither browser has to tolerate the other's keys. No dependencies, no bundling (AMO reviews the
 // files as written).
@@ -10,10 +11,13 @@ import { fileURLToPath } from "node:url";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const dev = process.argv.includes("--dev");
+const portArg = process.argv[process.argv.indexOf("--port") + 1];
+const port = process.argv.includes("--port") ? Number(portArg) : 3000;
+if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error(`--port must be a port number, got ${portArg}`);
 const version = JSON.parse(readFileSync(path.join(here, "version.json"), "utf8")).version;
 
 const APAS = "https://umn.uachieve.com";
-const planumnOrigins = ["https://planu.mn", ...(dev ? ["http://localhost:3000"] : [])];
+const planumnOrigins = ["https://planu.mn", ...(dev ? [`http://localhost:${port}`] : [])];
 // Match patterns can't carry a port in Firefox (a ":3000" pattern never matches there), and a
 // port-less pattern matches every port in both browsers. The background still checks the exact
 // origin (planumnOrigins) before it accepts a start request.
@@ -59,5 +63,5 @@ for (const [browser, manifest] of Object.entries(manifests)) {
   const bg = path.join(out, "background.js");
   writeFileSync(bg, readFileSync(bg, "utf8").replace("__PLANUMN_ORIGINS__", JSON.stringify(planumnOrigins)));
   writeFileSync(path.join(out, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`);
-  console.log(`built ${path.relative(process.cwd(), out)}${dev ? " (dev)" : ""}`);
+  console.log(`built ${path.relative(process.cwd(), out)}${dev ? ` (dev, localhost:${port})` : ""}`);
 }

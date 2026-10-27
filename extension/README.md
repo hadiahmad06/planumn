@@ -26,6 +26,7 @@ bridge.js ──postMessage {report, nonce}──▶ planu.mn page (keeps it in 
 
 ```bash
 node extension/build.mjs --dev    # dev: also allows http://localhost:3000/plan/*
+node extension/build.mjs --dev --port 3220   # dev on another port (added by Hadi's Claude)
 node extension/build.mjs          # store builds (planu.mn only)
 ```
 
