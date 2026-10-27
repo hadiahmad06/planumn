@@ -5,6 +5,7 @@ import type { Plan } from "@/domain/plan";
 import type { Requirement, Rule } from "@/domain/requirements";
 import { CloseIcon } from "@/components/ui/icons";
 import { LibEdCoverage } from "@/features/libed/LibEdCoverage";
+import { MinorFinder } from "@/features/minors/MinorFinder";
 import { planActions } from "@/features/plan-editor/store";
 import { loadProgram, usePrograms } from "./programStore";
 import { programName } from "./programOptions";
@@ -111,6 +112,7 @@ export function RequirementsRail({ plan }: { plan: Plan }) {
 
       {/* B3, Ishaan's Claude: Twin Cities Lib Ed designation coverage. */}
       <LibEdCoverage plan={plan} />
+      <MinorFinder plan={plan} /> {/* B14, Ishaan's Claude */}
     </div>
   );
 }
