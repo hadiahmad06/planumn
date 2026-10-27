@@ -69,7 +69,8 @@ export function CourseCard({ term, index, planned, prereq }: { term: TermCode; i
     // Mobile uses the tap menu instead of touch-drag (2026 redesign decision).
     disabled: locked || mobile,
   });
-  const actions = courseActions(term, planned, course);
+  const hiddenSeasons = useDisplaySettings((s) => s.hiddenSeasons);
+  const actions = courseActions(term, planned, course, hiddenSeasons);
   const label = course ? `${courseCode(course)}, ${course.title}` : "Course";
   const face = <CourseCardFace course={course} lock={planned.lock} prereq={prereq} />;
 

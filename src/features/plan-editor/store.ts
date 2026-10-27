@@ -5,7 +5,8 @@ import type { CourseId } from "@/domain/course";
 import { normalizeSemesters, type LockState, type Plan } from "@/domain/plan";
 import * as ops from "@/domain/planOps";
 import { usePreviewStore } from "@/features/preview/store";
-import type { Season, TermCode } from "@/domain/terms";
+import { useDisplaySettings } from "./displaySettings";
+import { seasonOf, type Season, type TermCode } from "@/domain/terms";
 
 /**
  * The plan being edited. Owned by Hadi's Claude (plan editor).
@@ -90,6 +91,13 @@ export function hoverCourse(id: CourseId | null) {
 usePlanStore.subscribe((state, previous) => {
   const selected = useEditorUi.getState().selectedTerm;
   if (!selected || state.plan === previous.plan) return;
-  const loaded = state.revision === 0 && state.plan !== previous.plan;
+  // patchMeta (e.g. autosave assigning an id) keeps the semesters array; a newly loaded plan doesn't.
+  const loaded = state.revision === 0 && state.plan?.semesters !== previous.plan?.semesters;
   if (loaded || !state.plan?.semesters.some((s) => s.index === selected)) useEditorUi.getState().selectTerm(null);
+});
+
+// A selected semester whose season gets hidden can't be seen, so stop targeting it (review of #22).
+useDisplaySettings.subscribe((state) => {
+  const selected = useEditorUi.getState().selectedTerm;
+  if (selected && state.hiddenSeasons.includes(seasonOf(selected))) useEditorUi.getState().selectTerm(null);
 });

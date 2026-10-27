@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { createEmptyPlan } from "@/domain/plan";
+import { useDisplaySettings } from "./displaySettings";
 import { planActions, useEditorUi, usePlanStore } from "./store";
 
 describe("selected semester (review of #22)", () => {
@@ -21,6 +22,17 @@ describe("selected semester (review of #22)", () => {
   it("clears when another plan loads", () => {
     usePlanStore.getState().loadPlan(createEmptyPlan(new Date(2026, 3, 1)));
     expect(useEditorUi.getState().selectedTerm).toBeNull();
+  });
+
+  it("clears when its season is hidden", () => {
+    useDisplaySettings.getState().setHiddenSeasons(["fall"]);
+    expect(useEditorUi.getState().selectedTerm).toBeNull();
+    useDisplaySettings.getState().setHiddenSeasons([]);
+  });
+
+  it("survives autosave metadata patches (re-review of #22)", () => {
+    usePlanStore.getState().patchMeta({ id: "saved", user_id: "owner" });
+    expect(useEditorUi.getState().selectedTerm).toBe("1269");
   });
 
   it("survives unrelated edits", () => {
