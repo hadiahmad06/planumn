@@ -35,3 +35,13 @@ describe("prior credit bucket (B18)", () => {
     expect(keepPriorFirst(p)).toBe(p);
   });
 });
+
+describe("move arrows and the prior-credit bucket (B18 + #59)", () => {
+  it("never snaps into the bucket, and courses in the bucket get no arrow target", async () => {
+    const { snapMove } = await import("./moveSnap");
+    let p = addCourse(addPriorCredit(plan()), "1269", 7); // bucket = Summer 2026, course in Fall 2026
+    p = addCourse(p, "1265", 8); // AP credit in the bucket
+    expect(snapMove(p, "1269", 7, "earlier", undefined)).toBeNull(); // Summer 2026 is the bucket
+    expect(snapMove(p, "1265", 8, "later", undefined)).toBeNull();
+  });
+});
