@@ -4,6 +4,7 @@ import { courseCode, type CourseDetails, type CourseId, type CourseSummary } fro
 import type { Plan, PlannedCourse } from "@/domain/plan";
 import { academicYear, seasonOf, termLabel, toTermCode, type Season, type TermCode } from "@/domain/terms";
 import { usePreviewStore } from "@/features/preview/store";
+import { moveLabel, moveTargets, moveTo } from "./moveCourse";
 import { planActions } from "./store";
 
 export interface CourseAction {
@@ -31,15 +32,19 @@ export function courseActions(
   const actions: CourseAction[] = [{ label: "Details", run: () => usePreviewStore.getState().openPreview(id) }];
 
   if (!locked) {
-    // Hidden seasons are skipped: moving there would make the course vanish from view (review of #22).
-    SEASONS.filter((s) => s !== season && !hiddenSeasons.includes(s)).forEach((s, i) => {
-      const t = termFor(s);
-      actions.push({ label: `Move to ${termLabel(t)}`, run: () => planActions.moveCourseToTerm(term, id, t), separated: i === 0 });
+    // The ‹ › arrows' moves first: snap to the nearest term the course is offered in.
+    const targets = moveTargets(term, id, hiddenSeasons);
+    const code = course ? courseCode(course) : "Course";
+    const snaps = (["earlier", "later"] as const).flatMap((dir) => {
+      const target = targets[dir];
+      return target ? [{ term: target.term, label: moveLabel(dir, target), run: () => moveTo(term, id, target, code) }] : [];
     });
-    actions.push(
-      { label: `Move to ${termLabel(termFor(season, year - 1))}`, run: () => planActions.moveCourseToTerm(term, id, termFor(season, year - 1)) },
-      { label: `Move to ${termLabel(termFor(season, year + 1))}`, run: () => planActions.moveCourseToTerm(term, id, termFor(season, year + 1)) },
-    );
+    // Then the fixed moves (other seasons this year, same season a year earlier / later), minus repeats.
+    // Hidden seasons are skipped: moving there would make the course vanish from view (review of #22).
+    const fixed = [...SEASONS.filter((s) => s !== season && !hiddenSeasons.includes(s)).map((s) => termFor(s)), termFor(season, year - 1), termFor(season, year + 1)]
+      .filter((t) => !snaps.some((m) => m.term === t))
+      .map((t) => ({ label: `Move to ${termLabel(t)}`, run: () => planActions.moveCourseToTerm(term, id, t) }));
+    [...snaps.map(({ label, run }) => ({ label, run })), ...fixed].forEach((a, i) => actions.push({ ...a, separated: i === 0 }));
   }
   actions.push({
     label: locked ? "Unlock" : "Lock (already taken)",
