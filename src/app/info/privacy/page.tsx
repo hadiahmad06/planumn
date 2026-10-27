@@ -101,6 +101,12 @@ export default function Page() {
           </section>
           <section>
             <h2 className="mb-2 text-xl font-semibold">Course data</h2>
+            <p className="mb-2">
+              When you select a major or minor, the server requests that
+              program’s requirements from UMN’s public CourseDog catalog. That
+              request includes the program ID, without your account information
+              or plan contents.
+            </p>
             <p>
               Historical catalog and grade data come from the 2025 dataset
               derived from{" "}
