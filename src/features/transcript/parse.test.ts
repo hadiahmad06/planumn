@@ -57,3 +57,27 @@ describe("UMN transcript import", () => {
     expect(JSON.stringify(result)).not.toContain("Synthetic Student");
   });
 });
+
+// Written by Michael's Codex. Synthetic layout only; no real student data.
+it("reads two columns top-to-bottom and preserves column/page continuations", async () => {
+  const text = await extractTranscriptText(
+    await readFile("src/features/transcript/fixtures/synthetic-two-column.pdf"),
+  );
+  expect([...transcriptCourses(text)]).toEqual([
+    [
+      "1239",
+      [
+        { dept: "CSCI", number: "1133" },
+        { dept: "MATH", number: "1271" },
+      ],
+    ],
+    [
+      "1243",
+      [
+        { dept: "WRIT", number: "1301" },
+        { dept: "MATH", number: "1272" },
+      ],
+    ],
+    ["1249", [{ dept: "CSCI", number: "2011" }]],
+  ]);
+});
