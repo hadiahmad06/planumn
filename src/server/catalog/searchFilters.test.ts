@@ -29,6 +29,14 @@ describe("filtered catalog search (B8)", () => {
     expect(searchCourses("csci 2021", 10, { noPrereqs: true }).some((c) => c.id === 1004)).toBe(false);
   });
 
+  it("restricts to the given course ids (satisfies requirement X)", () => {
+    expect(searchCourses("", 50, { courseIds: [77, 1473, 1004] }).map((c) => c.id).sort((a, b) => a - b)).toEqual([77, 1004, 1473]);
+    expect(searchCourses("discrete", 50, { courseIds: [77, 1473] }).map((c) => c.id)).toEqual([77]);
+    // Combines with other filters: CSCI 2021 (1004) has prerequisites.
+    expect(searchCourses("", 50, { courseIds: [77, 1004], noPrereqs: true }).map((c) => c.id)).not.toContain(1004);
+    expect(searchCourses("csci", 50, { courseIds: [] })).toEqual([]);
+  });
+
   it("restricts to the given Lib Ed course groups", () => {
     const [discrete] = getCourses([77]);
     const only = searchCourses("csci", 100, { libEd: "GP" }, new Set([discrete.courseGroupId!]));

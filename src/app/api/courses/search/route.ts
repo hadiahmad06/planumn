@@ -7,7 +7,8 @@ import { parseLimit } from "./limit";
 /**
  * GET /api/courses/search?q=csci%202041&limit=50 → CourseSummary[]. 400 if limit isn't a whole number.
  * B8 filters (all optional, `q` may be empty when one is set): libed=GP, season=fall, level=3000,
- * credits=4, minGpa=3.5, noPrereqs=1. 400 on an invalid filter; 502 if the UMN catalog (Lib Ed) is down.
+ * credits=4, minGpa=3.5, noPrereqs=1, ids=77,1473 (only these courses; "satisfies requirement X").
+ * 400 on an invalid filter; 502 if the UMN catalog (Lib Ed) is down.
  */
 export async function GET(request: NextRequest) {
   const params = request.nextUrl.searchParams;

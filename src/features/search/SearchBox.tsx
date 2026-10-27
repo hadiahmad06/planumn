@@ -11,6 +11,7 @@ import { CANCEL_DROP_ID, externalId, type DragData, type DropData } from "@/feat
 import { useCourseSearch } from "./useCourseSearch";
 import { SearchFilterBar } from "./SearchFilterBar";
 import { hasFilters, type SearchFilters } from "@/domain/searchFilters";
+import { useRequirementOptions } from "@/features/requirements/requirementOptions";
 import { termLabel } from "@/domain/terms";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { addCourseActions } from "@/features/plan-editor/courseActions";
@@ -87,7 +88,8 @@ function ResultRow({ course, active, id }: { course: CourseSummary; active: bool
 /**
  * Top-bar course search (A13). Results drop down under the input; drag a row into a semester,
  * or click it to open its preview. The dropdown stays open while a result is being dragged.
- * The filter button opens B8's smart filters; with a filter set, the query may be empty.
+ * The filter button opens B8's smart filters (including "satisfies requirement X"); with a filter set,
+ * the query may be empty.
  */
 export function SearchBox() {
   const [query, setQuery] = useState("");
@@ -97,12 +99,17 @@ export function SearchBox() {
   const [expanded, setExpanded] = useState<number | null>(null);
   const [filters, setFilters] = useState<SearchFilters>({});
   const [showFilters, setShowFilters] = useState(false);
+  const [requirementKey, setRequirementKey] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   useSearchShortcut(inputRef);
   const listId = useId();
-  const filtered = hasFilters(filters);
-  const { results, settled, error } = useCourseSearch(query, filters);
+  const requirements = useRequirementOptions(usePlanStore((s) => s.plan));
+  // A requirement whose program was removed from the plan simply stops filtering.
+  const requirement = requirements.find((r) => r.key === requirementKey) ?? null;
+  const effective: SearchFilters = requirement ? { ...filters, courseIds: requirement.courseIds } : filters;
+  const filtered = hasFilters(effective);
+  const { results, settled, error } = useCourseSearch(query, effective);
   const openPreview = usePreviewStore((s) => s.openPreview);
   const selectedTerm = useEditorUi((s) => s.selectedTerm);
   const mobile = useIsMobile();
@@ -196,7 +203,13 @@ export function SearchBox() {
             mobile ? "fixed inset-x-3 top-14" : "absolute top-full right-0 left-0 mt-1",
           )}
         >
-          {(showFilters || filtered) && <SearchFilterBar filters={filters} onChange={setFilters} />}
+          {(showFilters || filtered) && <SearchFilterBar
+              filters={filters}
+              onChange={setFilters}
+              requirements={requirements}
+              requirement={requirement?.key ?? null}
+              onRequirement={setRequirementKey}
+            />}
           {!searching ? (
             <p className="px-3 py-2 text-text-tertiary">Pick a filter or type to search</p>
           ) : results.length > 0 ? (
