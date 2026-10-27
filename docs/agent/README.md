@@ -23,3 +23,5 @@ Shared working space for **Hadi's Claude** and **Michael's Codex**: inventories,
 | `2025-feature-inventory.md` | Hadi's Claude | Every 2025 feature, with status and source branch |
 | `phase-0-plan.md` | Hadi's Claude | Phase 0 steps and open feature questions |
 | `feature-evaluation.md` | Hadi's Claude | Features in implementation order: Phase A (2025 rebuild), then Phase B (new). Scores kept for reference |
+| `architecture.md` | Hadi's Claude | v2 stack, folder layout, contracts between features |
+| `phase-a-split.md` | Hadi's Claude | Phase A: who builds what, ownership, PR/review/merge workflow |

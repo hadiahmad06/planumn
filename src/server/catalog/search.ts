@@ -1,0 +1,68 @@
+import "server-only";
+import type { CourseSummary } from "@/domain/course";
+import { CAMPUS, catalog } from "./db";
+import { toSummary, type CourseRow } from "./rows";
+
+export interface ParsedQuery {
+  dept: string | null;
+  number: string | null;
+  words: string[];
+}
+
+/**
+ * "csci 2041" → dept CSCI, number 2041 · "csci2041h" → CSCI, 2041H · "2041" → number only
+ * · "discrete math" → title words.
+ */
+export function parseQuery(raw: string): ParsedQuery {
+  const q = raw.trim().toUpperCase().replace(/\s+/g, " ");
+  const code = q.match(/^([A-Z]{2,4})\s?(\d{1,4}[A-Z]?)$/);
+  if (code) return { dept: code[1], number: code[2], words: [] };
+  if (/^\d{1,4}[A-Z]?$/.test(q)) return { dept: null, number: q, words: [] };
+  if (/^[A-Z]{2,4}$/.test(q)) return { dept: q, number: null, words: [q] };
+  return { dept: null, number: null, words: q.split(" ").filter(Boolean) };
+}
+
+export function searchCourses(raw: string, limit = 50): CourseSummary[] {
+  const { dept, number, words } = parseQuery(raw);
+  if (!dept && !number && words.length === 0) return [];
+
+  const where: string[] = ["campus = ?"];
+  const params: (string | number)[] = [CAMPUS];
+  // Lower priority number = better match.
+  let priority = "";
+  const priorityParams: string[] = [];
+
+  if (dept && number) {
+    where.push("dept_abbr = ?", "course_num LIKE ?");
+    params.push(dept, `${number}%`);
+    priority = "CASE WHEN course_num = ? THEN 0 ELSE 1 END";
+    priorityParams.push(number);
+  } else if (number) {
+    where.push("course_num LIKE ?");
+    params.push(`${number}%`);
+  } else {
+    // A lone 2–4 letter word may be a department or a title word ("art", "math").
+    const clauses = words.map(() => "UPPER(class_desc) LIKE ?");
+    const titleMatch = clauses.join(" AND ");
+    if (dept) {
+      where.push(`(dept_abbr = ? OR (${titleMatch}))`);
+      params.push(dept, ...words.map((w) => `%${w}%`));
+      priority = "CASE WHEN dept_abbr = ? THEN 0 ELSE 1 END";
+      priorityParams.push(dept);
+    } else {
+      where.push(titleMatch);
+      params.push(...words.map((w) => `%${w}%`));
+    }
+  }
+
+  const rows = catalog()
+    .prepare(
+      `SELECT id, dept_abbr, course_num, class_desc, cred_min, cred_max
+       FROM classdistribution
+       WHERE ${where.join(" AND ")}
+       ORDER BY ${priority ? `${priority}, ` : ""}dept_abbr, CAST(course_num AS INTEGER), course_num
+       LIMIT ?`,
+    )
+    .all(...params, ...priorityParams, limit) as unknown as CourseRow[];
+  return rows.map(toSummary);
+}
