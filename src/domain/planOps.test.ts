@@ -58,6 +58,12 @@ describe("semester and year edits", () => {
     expect(p.semesters.at(-1)!.index).toBe("1309"); // last was Summer 2030 → Fall 2030
   });
 
+  it("skips hidden seasons when adding the next semester (review of #19)", () => {
+    const p = removeSemester(base(), "1305"); // plan now ends Spring 2030
+    expect(addNextSemester(p, ["summer"]).semesters.at(-1)!.index).toBe("1309");
+    expect(addNextSemester(p).semesters.at(-1)!.index).toBe("1305");
+  });
+
   it("adds whole years at either end", () => {
     expect(addYearAtEnd(base()).semesters.slice(-3).map((s) => s.index)).toEqual(["1309", "1313", "1315"]);
     expect(addYearAtStart(base()).semesters.slice(0, 3).map((s) => s.index)).toEqual(["1259", "1263", "1265"]);

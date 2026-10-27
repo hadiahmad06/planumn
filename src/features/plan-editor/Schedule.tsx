@@ -89,7 +89,7 @@ export function Schedule({ plan }: { plan: Plan }) {
         <button type="button" onClick={planActions.addYearAtEnd} className="flex items-center gap-1 text-body text-text-secondary hover:text-accent">
           <PlusIcon /> Add year
         </button>
-        <button type="button" onClick={planActions.addNextSemester} className="flex items-center gap-1 text-body text-text-secondary hover:text-accent">
+        <button type="button" onClick={() => planActions.addNextSemester(hidden)} className="flex items-center gap-1 text-body text-text-secondary hover:text-accent">
           <PlusIcon /> Add next semester
         </button>
       </div>

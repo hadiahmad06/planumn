@@ -23,15 +23,18 @@ import { useCourseInfo, useCourses } from "@/features/catalog/courseCache";
 import { PreviewLayer } from "@/features/preview/PreviewLayer";
 import { RequirementsRail } from "@/features/requirements/RequirementsRail";
 import { CourseCardFace } from "./CourseCard";
-import { resolveDrop, type DragData, type DropData } from "./dnd";
+import { CANCEL_DROP_ID, resolveDrop, type DragData, type DropData } from "./dnd";
 import { PlanHeader } from "./PlanHeader";
 import { Schedule } from "./Schedule";
 import { planActions, usePlanStore } from "./store";
 import { TopBar } from "./TopBar";
 
 // Prefer the droppable under the pointer; fall back to overlap (keyboard drags have no pointer).
+// An overlay that cancels drops (the search dropdown) wins over the semesters underneath it.
 const collision: CollisionDetection = (args) => {
   const hits = pointerWithin(args);
+  const cancel = hits.find((h) => h.id === CANCEL_DROP_ID);
+  if (cancel) return [cancel];
   return hits.length ? hits : rectIntersection(args);
 };
 
