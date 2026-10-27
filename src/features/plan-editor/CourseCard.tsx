@@ -17,7 +17,7 @@ import { usePreviewStore } from "@/features/preview/store";
 import { stripeColor } from "./courseColor";
 import { plannedId, type DragData } from "./dnd";
 import { useDisplaySettings } from "./displaySettings";
-import { planActions } from "./store";
+import { hoverCourse, planActions } from "./store";
 
 /** Card height grows with credits so a semester's load is visible at a glance (2026 redesign). */
 export function cardHeight(course: CourseSummary | undefined) {
@@ -60,7 +60,6 @@ export function CourseCardFace({ course, lock, dragging, prereq }: { course: Cou
 export function CourseCard({ term, index, planned, prereq }: { term: TermCode; index: number; planned: PlannedCourse; prereq?: PrereqCheck }) {
   const course = useCourseInfo(planned.id);
   const openPreview = usePreviewStore((s) => s.openPreview);
-  const hoverPreview = usePreviewStore((s) => s.hoverPreview);
   const mobile = useIsMobile();
   const locked = planned.lock === "locked";
   const data: DragData = { type: "planned", term, index, courseId: planned.id };
@@ -95,8 +94,8 @@ export function CourseCard({ term, index, planned, prereq }: { term: TermCode; i
         ref={setNodeRef}
         style={{ transform: CSS.Translate.toString(transform), transition }}
         className={cn("group relative list-none", isDragging && "opacity-40")}
-        onMouseEnter={() => hoverPreview(planned.id)}
-        onMouseLeave={() => hoverPreview(null)}
+        onMouseEnter={() => hoverCourse(planned.id)}
+        onMouseLeave={() => hoverCourse(null)}
       >
         <button
           type="button"

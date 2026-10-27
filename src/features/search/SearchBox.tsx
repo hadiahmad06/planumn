@@ -12,7 +12,7 @@ import { termLabel } from "@/domain/terms";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { addCourseActions } from "@/features/plan-editor/courseActions";
 import { useDisplaySettings } from "@/features/plan-editor/displaySettings";
-import { planActions, useEditorUi, usePlanStore } from "@/features/plan-editor/store";
+import { hoverCourse, planActions, useEditorUi, usePlanStore } from "@/features/plan-editor/store";
 
 /**
  * Mobile tap-to-add (A32): tapping a result expands an inline "Add to which semester?" picker.
@@ -53,7 +53,6 @@ function MobileResultRow({ course, id, expanded, onToggle }: { course: CourseSum
 
 function ResultRow({ course, active, id }: { course: CourseSummary; active: boolean; id: string }) {
   const openPreview = usePreviewStore((s) => s.openPreview);
-  const hoverPreview = usePreviewStore((s) => s.hoverPreview);
   const data: DragData = { type: "external", source: "search", courseId: course.id };
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({ id: externalId("search", course.id), data });
 
@@ -67,8 +66,8 @@ function ResultRow({ course, active, id }: { course: CourseSummary; active: bool
       aria-selected={active}
       tabIndex={-1}
       onClick={() => openPreview(course.id)}
-      onMouseEnter={() => hoverPreview(course.id)}
-      onMouseLeave={() => hoverPreview(null)}
+      onMouseEnter={() => hoverCourse(course.id)}
+      onMouseLeave={() => hoverCourse(null)}
       className={cn(
         "flex cursor-grab items-baseline gap-3 rounded-row px-3 py-2 select-none",
         active ? "bg-sunken" : "hover:bg-sunken",
