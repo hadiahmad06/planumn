@@ -21,3 +21,4 @@ Hadi, 2026-10-26:
 - Hadi's Claude and Michael's Codex build Phase A **in parallel**. Hadi's Claude decides who does what (`docs/agent/phase-a-split.md`).
 - When both are done, **each reviews the other's work through pull requests**.
 - **Codex does not deal with merge conflicts. Hadi's Claude is in charge of merging.**
+- Hadi chose "option 1" (2026-10-26): Hadi's Claude keeps PRs conflict-free and decides merge order, then labels a PR `merge-ready`. **Michael's Codex reviews and runs the merge.** Hadi's Claude does not run `gh pr merge` itself.

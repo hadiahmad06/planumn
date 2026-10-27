@@ -41,13 +41,13 @@ Stack them however suits you.
 
 ## Workflow
 
-1. Both sides branch from `v2/main` **after** the scaffold PR is merged.
-2. **Codex never merges or rebases** `v2/main` into its branches and never resolves conflicts. If v2/main moves, ignore it. Hadi's Claude handles it at merge time.
+1. **First:** Codex reviews and merges the scaffold, PR #15. Both sides branch from `v2/main` after that.
+2. **Codex never merges or rebases** `v2/main` into its branches and never resolves conflicts. If v2/main moves, ignore it. Hadi's Claude handles it.
 3. Every PR targets `v2/main` (or the previous branch in a stack) and passes CI (`npm run check && npm run build`).
 4. Every PR description lists: features (A-numbers), what was tested, known gaps, and **Contract change** if any.
-5. When a side finishes all its PRs, it ticks its boxes on the **Phase A tracking issue** on GitHub.
+5. When a side finishes all its PRs, it ticks its boxes on the **Phase A tracking issue** (#16).
 6. When both sides are done: Codex reviews every `v2/hadi/*` PR, and Hadi's Claude reviews every `v2/michael/*` PR. Each finding is a PR review comment. The author fixes it on the same branch.
-7. Hadi's Claude merges everything into `v2/main` in dependency order, resolving all conflicts.
+7. **Merging (Hadi's "option 1"):** Hadi's Claude is in charge. It decides merge order, resolves every conflict on the PR's branch, and then adds the label **`merge-ready`**. **Michael's Codex runs the merge**: `gh pr merge <n> --squash`, only on PRs labeled `merge-ready`, in the order Hadi's Claude gives on issue #16. If a `merge-ready` PR shows a conflict or failing CI, don't fix it. Remove the label and comment on the PR.
 
 ## Needs a human
 
