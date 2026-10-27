@@ -26,7 +26,7 @@ export function HealthPanel({ plan }: { plan: Plan }) {
         {issues.length > 0 && <AlertIcon size={14} />}
         <span>
           <strong className="text-text-primary">{pace.credits}</strong>/{GRADUATION_CREDITS} cr
-          {pace.finalTerm ? ` · done ${termLabel(pace.finalTerm)}` : ""}
+          {pace.finalTerm ? ` · last planned term ${termLabel(pace.finalTerm)}` : ""}
           {issues.length > 0 ? ` · ${issues.length} to check` : ""}
         </span>
       </Popover.Trigger>
@@ -35,7 +35,7 @@ export function HealthPanel({ plan }: { plan: Plan }) {
           <h3 className="font-semibold">Plan check</h3>
           <p className="mt-1 text-text-secondary">
             {pace.credits} of {GRADUATION_CREDITS} credits planned
-            {pace.finalTerm ? `, last courses in ${termLabel(pace.finalTerm)}` : ""}. {pace.enough ? "Enough credits to graduate." : `${pace.remaining} to go.`}
+            {pace.finalTerm ? `, last courses in ${termLabel(pace.finalTerm)}` : ""}. {pace.enough ? `Meets the ${GRADUATION_CREDITS}-credit baseline (not a degree audit).` : `${pace.remaining} to go.`}
           </p>
           {issues.length === 0 ? (
             <p className="mt-3 text-success">Nothing to fix right now.</p>

@@ -2,7 +2,7 @@ import type { CourseDetails, CourseId } from "./course";
 import { courseCode } from "./course";
 import type { Plan } from "./plan";
 import type { PrereqCheck } from "./prereqs";
-import { compareTerms, parseTerm, seasonOf, termLabel, type Season, type TermCode } from "./terms";
+import { compareTerms, seasonOf, termLabel, toTermCode, type Season, type TermCode } from "./terms";
 
 /**
  * Plan health (Phase B: B4 offering terms, B5 pacing, B6 health check). Pure functions over the plan
@@ -92,6 +92,16 @@ export interface HealthIssue {
   message: string;
 }
 
+/**
+ * The UMN term in progress (or between terms, the one just finished) on `now`: Jan–May Spring,
+ * Jun–Aug Summer, Sep–Dec Fall. Review fix by Ishaan's Claude (#33): compare whole terms, not years.
+ */
+export function currentTerm(now: Date): TermCode {
+  const month = now.getMonth();
+  const season: Season = month <= 4 ? "spring" : month <= 7 ? "summer" : "fall";
+  return toTermCode({ year: now.getFullYear(), season });
+}
+
 export interface HealthInput {
   plan: Plan;
   courses: Record<CourseId, CourseDetails>;
@@ -104,7 +114,7 @@ export interface HealthInput {
 export function healthCheck({ plan, courses, prereqs, now = new Date() }: HealthInput): HealthIssue[] {
   const issues: HealthIssue[] = [];
   const credit = (id: CourseId) => courses[id]?.credits.min ?? 0;
-  const currentYear = now.getFullYear();
+  const current = currentTerm(now);
 
   for (const s of plan.semesters) {
     for (const c of s.courses) {
@@ -134,7 +144,8 @@ export function healthCheck({ plan, courses, prereqs, now = new Date() }: Health
 
   const pace = pacing(plan, credit);
   for (const load of pace.loads) {
-    if (load.courses === 0 || parseTerm(load.term).year < currentYear) continue;
+    // Completed and in-progress terms can't be changed anymore, so only upcoming terms get load notes.
+    if (load.courses === 0 || compareTerms(load.term, current) <= 0) continue;
     if (load.credits > HEAVY_LOAD)
       issues.push({
         kind: "heavy",
@@ -158,7 +169,7 @@ export function healthCheck({ plan, courses, prereqs, now = new Date() }: Health
       severity: "warning",
       term: null,
       courseId: null,
-      message: `${pace.credits} of ${GRADUATION_CREDITS} credits planned. ${pace.remaining} more needed to graduate.`,
+      message: `${pace.credits} of ${GRADUATION_CREDITS} credits planned. ${pace.remaining} more to reach the ${GRADUATION_CREDITS}-credit baseline.`,
     });
   return issues;
 }
