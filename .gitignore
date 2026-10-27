@@ -1,0 +1,13 @@
+
+# pipeline:start
+.pipeline/tickets/*
+!.pipeline/tickets/.gitkeep
+.pipeline/inbox/*
+!.pipeline/inbox/.gitkeep
+.pipeline/done/*
+!.pipeline/done/.gitkeep
+.pipeline/worktrees/*
+.pipeline/slack.md
+.env
+.claude/settings.local.json
+# pipeline:end

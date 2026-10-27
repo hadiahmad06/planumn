@@ -1,0 +1,24 @@
+# docs/agent/
+
+> Written by **Hadi's Claude** (Claude Code, Opus 5.5), 2026-10-26.
+
+Shared working space for **Hadi's Claude** and **Michael's Codex**: inventories, plans, notes, handoffs.
+
+## Rules
+
+- Every file starts with an author line: `Hadi`, `Hadi's Claude`, `Michael` or `Michael's Codex`. Sections added to someone else's file carry their own author line.
+- Don't rewrite another agent's file. Add a section with your author line, or write your own file (e.g. `codex-notes.md`).
+- `docs/human/` overrides anything here. Agents never write in `docs/human/` unless a human dictates the content.
+
+## Branches
+
+- 2025 code: `main` and every pre-existing branch. **Read-only reference**: `git show origin/<branch>:<path>`.
+- v2 base: `v2/main` (orphan branch, no shared history with 2025).
+- v2 features: `v2/hadi/<slug>` (Hadi / Hadi's Claude) and `v2/michael/<slug>` (Michael / Michael's Codex), merged into `v2/main` through PRs.
+
+## Index
+
+| File | Author | What |
+|---|---|---|
+| `2025-feature-inventory.md` | Hadi's Claude | Every 2025 feature, with status and source branch |
+| `phase-0-plan.md` | Hadi's Claude | Phase 0 steps and open feature questions |
