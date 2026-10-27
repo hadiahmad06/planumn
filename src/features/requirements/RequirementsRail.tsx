@@ -9,6 +9,7 @@ import { MinorFinder } from "@/features/minors/MinorFinder";
 import { planActions } from "@/features/plan-editor/store";
 import { loadProgram, usePrograms } from "./programStore";
 import { programName } from "./programOptions";
+import { AdmissionChecklist } from "./AdmissionChecklist";
 import { DoubleDipFinder } from "./DoubleDipFinder";
 import { ProgramPicker } from "./ProgramPicker";
 import { RequirementItem } from "./RequirementItem";
@@ -96,6 +97,7 @@ export function RequirementsRail({ plan }: { plan: Plan }) {
                 </button>
               </p>
             )}
+            {result && <AdmissionChecklist plan={plan} result={result} />}
             {result && (
               <ul className="flex flex-col gap-1.5">
                 {shown.map((r) => (
