@@ -17,7 +17,12 @@ export interface CourseAction {
 const SEASONS: Season[] = ["fall", "spring", "summer"];
 
 /** Everything you can do to a planned course (A31). Shared by the right-click and mobile menus. */
-export function courseActions(term: TermCode, planned: PlannedCourse, course: CourseSummary | CourseDetails | undefined): CourseAction[] {
+export function courseActions(
+  term: TermCode,
+  planned: PlannedCourse,
+  course: CourseSummary | CourseDetails | undefined,
+  hiddenSeasons: Season[] = [],
+): CourseAction[] {
   const id: CourseId = planned.id;
   const locked = planned.lock === "locked";
   const year = academicYear(term);
@@ -26,7 +31,8 @@ export function courseActions(term: TermCode, planned: PlannedCourse, course: Co
   const actions: CourseAction[] = [{ label: "Details", run: () => usePreviewStore.getState().openPreview(id) }];
 
   if (!locked) {
-    SEASONS.filter((s) => s !== season).forEach((s, i) => {
+    // Hidden seasons are skipped: moving there would make the course vanish from view (review of #22).
+    SEASONS.filter((s) => s !== season && !hiddenSeasons.includes(s)).forEach((s, i) => {
       const t = termFor(s);
       actions.push({ label: `Move to ${termLabel(t)}`, run: () => planActions.moveCourseToTerm(term, id, t), separated: i === 0 });
     });
@@ -40,7 +46,16 @@ export function courseActions(term: TermCode, planned: PlannedCourse, course: Co
     run: () => planActions.setLock(term, id, locked ? "unlocked" : "locked"),
     separated: true,
   });
-  if (course) actions.push({ label: "Copy course code", run: () => void navigator.clipboard?.writeText(courseCode(course)) });
+  if (course)
+    actions.push({
+      label: "Copy course code",
+      run: () => {
+        const code = courseCode(course);
+        // Clipboard can fail (insecure context, permission); fall back to a prompt the user can copy from.
+        navigator.clipboard?.writeText(code).catch(() => window.prompt("Copy the course code:", code));
+        if (!navigator.clipboard) window.prompt("Copy the course code:", code);
+      },
+    });
   const url = course && "catalogUrl" in course ? course.catalogUrl : null;
   if (url) actions.push({ label: "Open in UMN catalog", run: () => window.open(url, "_blank", "noopener") });
   if (!locked) actions.push({ label: "Remove from plan", run: () => planActions.removeCourse(term, id), danger: true, separated: true });
