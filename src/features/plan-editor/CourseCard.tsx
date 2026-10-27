@@ -6,7 +6,8 @@ import { courseCode, formatCredits, type CourseSummary } from "@/domain/course";
 import type { PlannedCourse } from "@/domain/plan";
 import type { TermCode } from "@/domain/terms";
 import { cn } from "@/components/ui/cn";
-import { CloseIcon, LockIcon } from "@/components/ui/icons";
+import { AlertIcon, CloseIcon, LockIcon } from "@/components/ui/icons";
+import type { PrereqCheck } from "@/domain/prereqs";
 import { useCourseInfo } from "@/features/catalog/courseCache";
 import { usePreviewStore } from "@/features/preview/store";
 import { stripeColor } from "./courseColor";
@@ -19,7 +20,11 @@ export function cardHeight(course: CourseSummary | undefined) {
   return Math.max(44, (course?.credits.max ?? 3) * 12 + 8);
 }
 
-export function CourseCardFace({ course, lock, dragging }: { course: CourseSummary | undefined; lock?: PlannedCourse["lock"]; dragging?: boolean }) {
+function prereqMessage(p: PrereqCheck) {
+  return `Prerequisites not planned in an earlier semester: ${p.missing}${p.hasOtherPaths ? " (or instructor consent / other ways to qualify)" : ""}`;
+}
+
+export function CourseCardFace({ course, lock, dragging, prereq }: { course: CourseSummary | undefined; lock?: PlannedCourse["lock"]; dragging?: boolean; prereq?: PrereqCheck }) {
   const colorKey = useDisplaySettings((s) => s.colorKey);
   return (
     <div
@@ -32,9 +37,15 @@ export function CourseCardFace({ course, lock, dragging }: { course: CourseSumma
       <span className="w-1 shrink-0" style={{ background: stripeColor(course, colorKey) }} />
       <div className="flex min-w-0 flex-1 flex-col justify-center px-2.5 py-1">
         <div className="flex items-center gap-1.5">
-          <span className="truncate font-semibold">{course ? courseCode(course) : "…"}</span>
+          <span className="shrink-0 font-semibold whitespace-nowrap">{course ? courseCode(course) : "…"}</span>
           {lock === "locked" && <LockIcon className="shrink-0 text-text-tertiary" size={12} aria-label="Locked" />}
-          <span className="ml-auto shrink-0 text-micro text-text-secondary">{course ? `${formatCredits(course.credits)} cr` : ""}</span>
+          {prereq && !prereq.met && (
+            <span title={prereqMessage(prereq)} className={cn("shrink-0", prereq.hasOtherPaths ? "text-text-tertiary" : "text-warning")}>
+              <AlertIcon size={12} aria-hidden />
+              <span className="sr-only">{prereqMessage(prereq)}</span>
+            </span>
+          )}
+          <span className="ml-auto min-w-0 truncate text-micro text-text-secondary">{course ? `${formatCredits(course.credits)} cr` : ""}</span>
         </div>
         {course && cardHeight(course) >= 52 && <span className="truncate text-micro text-text-secondary">{course.title}</span>}
       </div>
@@ -42,7 +53,7 @@ export function CourseCardFace({ course, lock, dragging }: { course: CourseSumma
   );
 }
 
-export function CourseCard({ term, index, planned }: { term: TermCode; index: number; planned: PlannedCourse }) {
+export function CourseCard({ term, index, planned, prereq }: { term: TermCode; index: number; planned: PlannedCourse; prereq?: PrereqCheck }) {
   const course = useCourseInfo(planned.id);
   const openPreview = usePreviewStore((s) => s.openPreview);
   const hoverPreview = usePreviewStore((s) => s.hoverPreview);
@@ -74,7 +85,7 @@ export function CourseCard({ term, index, planned }: { term: TermCode; index: nu
         aria-label={course ? `${courseCode(course)}, ${course.title}` : "Course"}
         className={cn("block w-full rounded-card focus-visible:outline-2 focus-visible:outline-accent", locked ? "cursor-pointer" : "cursor-grab")}
       >
-        <CourseCardFace course={course} lock={planned.lock} />
+        <CourseCardFace course={course} lock={planned.lock} prereq={prereq} />
       </button>
       {!locked && (
         <button

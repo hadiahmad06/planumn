@@ -80,6 +80,11 @@ export function setLock(plan: Plan, term: TermCode, id: CourseId, lock: LockStat
   }));
 }
 
+export function setPrograms(plan: Plan, programs: string[]): Plan {
+  const next = [...new Set(programs)];
+  return next.length === plan.programs.length && next.every((p, i) => p === plan.programs[i]) ? plan : { ...plan, programs: next };
+}
+
 export function setTitle(plan: Plan, title: string): Plan {
   return plan.title === title ? plan : { ...plan, title };
 }
