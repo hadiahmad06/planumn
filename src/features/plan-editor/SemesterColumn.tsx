@@ -14,6 +14,7 @@ import { useCreditTotal } from "@/features/catalog/courseCache";
 import { CourseCard } from "./CourseCard";
 import { PlaceholderCard } from "./PlaceholderCard";
 import { PlaceholderDialog } from "./PlaceholderDialog";
+import { RegistrationDialog } from "./RegistrationDialog";
 import { WorkloadBadge } from "./WorkloadBadge";
 import { plannedId, semesterId, type DropData } from "./dnd";
 import { issueKey } from "./useHealth";
@@ -32,6 +33,7 @@ export function SemesterColumn({ semester, issues }: { semester: Semester; issue
   const credits = { min: courseCredits.min + slotCredits, max: courseCredits.max + slotCredits };
   const [confirming, setConfirming] = useState(false);
   const [addingSlot, setAddingSlot] = useState(false);
+  const [registering, setRegistering] = useState(false);
   const label = termLabel(semester.index);
 
   const selected = useEditorUi((s) => s.selectedTerm === semester.index);
@@ -84,6 +86,7 @@ export function SemesterColumn({ semester, issues }: { semester: Semester; issue
             </button>
           }
         >
+          <MenuItem onSelect={() => setRegistering(true)}>Register for this semester…</MenuItem>
           <MenuItem onSelect={() => setAddingSlot(true)}>Add placeholder…</MenuItem>
           {SEMESTER_KINDS.filter((k) => k.kind !== semester.kind).map((k) => (
             <MenuItem key={k.kind} onSelect={() => planActions.setSemesterKind(semester.index, k.kind)}>
@@ -118,6 +121,8 @@ export function SemesterColumn({ semester, issues }: { semester: Semester; issue
         onConfirm={() => planActions.removeSemester(semester.index)}
       />
       <PlaceholderDialog term={semester.index} open={addingSlot} onOpenChange={setAddingSlot} />
+      {/* B16: registration handoff (checklist + Schedule Builder). */}
+      <RegistrationDialog semester={semester} open={registering} onOpenChange={setRegistering} />
     </section>
     </ContextMenu>
   );
