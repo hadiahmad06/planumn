@@ -12,6 +12,7 @@ import { DotsIcon } from "@/components/ui/icons";
 import { Menu, MenuItem } from "@/components/ui/Menu";
 import { useCreditTotal } from "@/features/catalog/courseCache";
 import { CourseCard } from "./CourseCard";
+import { WorkloadBadge } from "./WorkloadBadge";
 import { plannedId, semesterId, type DropData } from "./dnd";
 import { prereqKey } from "./prereqStatus";
 import type { PrereqCheck } from "@/domain/prereqs";
@@ -58,7 +59,10 @@ export function SemesterColumn({ semester, prereqs }: { semester: Semester; prer
             {label}
           </button>
         </h3>
-        <span className="ml-auto text-micro text-text-secondary">{formatCredits(credits)} cr</span>
+        <span className="ml-auto flex items-center gap-1.5 text-micro text-text-secondary">
+          <WorkloadBadge semester={semester} />
+          {formatCredits(credits)} cr
+        </span>
         <Menu
           trigger={
             <button type="button" aria-label={`${label} options`} className="rounded-row p-0.5 text-text-tertiary hover:bg-surface hover:text-text-primary">
