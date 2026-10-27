@@ -63,6 +63,7 @@ src/
 | `usePreviewStore`: `openPreview`, `hoverPreview`, `closePreview` | `src/features/preview/store.ts` | Michael's Codex | cards, search, requirements |
 | `<PreviewLayer />` | `src/features/preview/PreviewLayer.tsx` | Michael's Codex | plan editor |
 | `<UserMenu />` | `src/features/auth/UserMenu.tsx` | Michael's Codex | top bar |
+| Browser-local `planumn:theme:v1` (`system`/`light`/`dark`), early root bootstrap + cross-tab controller; `useSearchShortcut(inputRef)` respects handled/composing/repeated events and hidden/inert modal backgrounds | `src/features/theme/` (B20 narrow integrations assigned on #16) | Michael's Codex | Settings appearance radios, root token overrides, top-bar Cmd/Ctrl+K search focus |
 | `<SaveStatus />` | `src/features/plans/SaveStatus.tsx` | Michael's Codex | plan header |
 | `PlanRepository` | `src/contracts/plan-repository.ts` | interface: Hadi's Claude · impls: Michael's Codex | plan routes, My Plans |
 | APAS extension ↔ page messages (`window.postMessage`, nonce per import; report kept in memory only) | `src/features/apas/protocol.ts` + `extension/src/protocol.js` (kept in sync by a test) | Ishaan's Claude | `/plan/apas`, the APAS import extension; the B1 parser later |

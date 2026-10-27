@@ -1,5 +1,6 @@
 "use client";
 import { useState, type FormEvent } from "react";
+import { ThemeSettings } from "@/features/theme/ThemeSettings";
 import { DisplaySettingsForm } from "@/features/plan-editor/DisplaySettingsForm";
 import { browserSupabase } from "./client";
 import { useRouter } from "next/navigation";
@@ -36,6 +37,7 @@ export function Settings({ email }: { email: string | undefined }) {
   }
   return (
     <div className="space-y-6">
+      <ThemeSettings />
       <section>
         <h3 className="mb-3 font-semibold">Display preferences</h3>
         <DisplaySettingsForm />
