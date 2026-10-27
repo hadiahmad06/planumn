@@ -134,3 +134,17 @@ describe("course matching vs brute force", () => {
     }
   });
 });
+
+// Review fix by Ishaan's Claude on #50: honors versions count toward a program that lists the base course.
+describe("programListsCourse (B11 honors)", () => {
+  it("matches by id, by code, and an honors course against its listed base course", async () => {
+    const { programListsCourse } = await import("./requirements");
+    const ids = new Set([1933]);
+    const codes = new Set(["CSCI 1933", "MATH 1271"]);
+    expect(programListsCourse(ids, codes, 1933, "CSCI 1933")).toBe(true);
+    expect(programListsCourse(ids, codes, 9999, "CSCI 1933H")).toBe(true);
+    expect(programListsCourse(ids, codes, 9998, "math 1271")).toBe(true);
+    expect(programListsCourse(ids, codes, 9997, "CSCI 2041H")).toBe(false);
+    expect(programListsCourse(ids, codes, 9996, null)).toBe(false);
+  });
+});

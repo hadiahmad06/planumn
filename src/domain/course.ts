@@ -44,6 +44,11 @@ export function courseCode(c: Pick<CourseSummary, "dept" | "number">): string {
   return `${c.dept} ${c.number}`;
 }
 
+/** Honors versions satisfy the regular course: "CSCI 1933H" counts as "CSCI 1933". */
+export function equivalentCodes(code: string): string[] {
+  return /\dH$/.test(code) ? [code, code.slice(0, -1)] : [code];
+}
+
 export function formatCredits({ min, max }: CreditRange): string {
   return min === max ? `${min}` : `${min}–${max}`;
 }

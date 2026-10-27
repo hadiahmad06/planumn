@@ -1,18 +1,15 @@
 "use client";
 
 import { useMemo } from "react";
-import { courseCode, type CourseDetails } from "@/domain/course";
+import { courseCode, equivalentCodes, type CourseDetails } from "@/domain/course";
 import type { Plan } from "@/domain/plan";
 import { checkPrereqs, parsePrereqs, type PrereqCheck } from "@/domain/prereqs";
 import { useCourseCache } from "@/features/catalog/courseCache";
 
 export const prereqKey = (term: string, courseId: number) => `${term}:${courseId}`;
 
-/** Honors versions satisfy the regular course: "CSCI 1933H" counts as "CSCI 1933". */
-function codesOf(c: CourseDetails): string[] {
-  const code = courseCode(c);
-  return /\dH$/.test(code) ? [code, code.slice(0, -1)] : [code];
-}
+/** Honors versions satisfy the regular course (shared with the elective badge, B11). */
+const codesOf = (c: CourseDetails): string[] => equivalentCodes(courseCode(c));
 
 /**
  * For every planned course with catalog prerequisites, whether they're planned in an earlier

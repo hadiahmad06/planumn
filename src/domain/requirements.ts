@@ -1,4 +1,4 @@
-import type { CourseId, CreditRange } from "./course";
+import { equivalentCodes, type CourseId, type CreditRange } from "./course";
 
 /**
  * Program requirements, normalized from UMN's CourseDog catalog (src/server/programs/normalize.ts),
@@ -226,4 +226,24 @@ export function listedCourseIds(rule: Rule): CourseId[] {
  */
 export function programCourseIds(program: Program): Set<CourseId> {
   return new Set(program.requirements.flatMap((r) => r.rules.flatMap(listedCourseIds)));
+}
+
+/** Every course code a program lists, including options not in the catalog (B11 honors fix). */
+export function programCourseCodes(program: Program): Set<string> {
+  const codes = (rule: Rule): string[] =>
+    rule.kind === "courses"
+      ? rule.choices.flatMap((c) => c.options.flatMap((o) => (o.code ? [o.code.toUpperCase()] : [])))
+      : rule.kind === "text"
+        ? []
+        : rule.children.flatMap(codes);
+  return new Set(program.requirements.flatMap((r) => r.rules.flatMap(codes)));
+}
+
+/**
+ * Does the program list this course? By catalog id, or by code with honors equivalence ("CSCI 1933H"
+ * counts when only "CSCI 1933" is listed). Review fix by Ishaan's Claude on #50.
+ */
+export function programListsCourse(ids: ReadonlySet<CourseId>, codes: ReadonlySet<string>, courseId: CourseId, code: string | null): boolean {
+  if (ids.has(courseId)) return true;
+  return code !== null && equivalentCodes(code.toUpperCase()).some((c) => codes.has(c));
 }
