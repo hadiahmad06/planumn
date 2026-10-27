@@ -23,7 +23,9 @@ interface PreviewState {
 export const usePreviewStore = create<PreviewState>()((set) => ({
   pinned: [],
   hovered: null,
-  openPreview: (id) => set((s) => ({ pinned: [...s.pinned.filter((p) => p !== id), id] })),
-  closePreview: (id) => set((s) => ({ pinned: s.pinned.filter((p) => p !== id) })),
+  openPreview: (id) =>
+    set((s) => ({ pinned: [...s.pinned.filter((p) => p !== id), id] })),
+  closePreview: (id) =>
+    set((s) => ({ pinned: s.pinned.filter((p) => p !== id) })),
   hoverPreview: (id) => set({ hovered: id }),
 }));
