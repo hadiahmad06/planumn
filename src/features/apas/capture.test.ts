@@ -14,6 +14,11 @@ describe("APAS capture helpers", () => {
     expect(captureChecks(html)).toMatchObject({ courseCodes: 3, frames: 0 });
   });
 
+  it("counts uAchieve's campus-prefixed, padded course cells (review fix, #70)", () => {
+    expect(captureChecks("<td>1CSCI1001</td><td>1EE  3101</td><td>1MATH1271H</td><td>1POL 1001</td>").courseCodes).toBe(4);
+    expect(captureChecks("<td>21CSCI1001</td>").courseCodes).toBe(0);
+  });
+
   it("flags frames, whose content the capture misses", () => {
     expect(captureChecks('<frameset><frame src="a"></frameset><iframe src="b"></iframe>').frames).toBe(2);
   });

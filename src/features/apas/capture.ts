@@ -22,8 +22,12 @@ export interface CaptureChecks {
   frames: number;
 }
 
-/** Course code shape: 2–4 capital letters, optional space, 4 digits, optional suffix letter. */
-const COURSE_CODE = /\b([A-Z]{2,4}) ?(\d{4})[A-Z]?\b/g;
+/**
+ * Course code shape: 2–4 capital letters, up to 3 spaces, 4 digits, optional suffix letter. Also
+ * uAchieve's own cells, which prefix a campus digit and pad the subject ("1CSCI1001", "1EE  3101";
+ * review fix from Michael's Codex on #70).
+ */
+const COURSE_CODE = /(?<![A-Z0-9])\d?([A-Z]{2,4}) {0,3}(\d{4})[A-Z]?\b/g;
 
 export function captureChecks(html: string): CaptureChecks {
   const text = html
