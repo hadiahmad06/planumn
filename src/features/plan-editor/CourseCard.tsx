@@ -6,6 +6,10 @@ import { courseCode, formatCredits, type CourseSummary } from "@/domain/course";
 import type { PlannedCourse } from "@/domain/plan";
 import type { TermCode } from "@/domain/terms";
 import { cn } from "@/components/ui/cn";
+import { ContextMenu } from "@/components/ui/ContextMenu";
+import { ActionMenu } from "@/components/ui/Menu";
+import { useIsMobile } from "@/hooks/useIsMobile";
+import { courseActions } from "./courseActions";
 import { AlertIcon, CloseIcon, LockIcon } from "@/components/ui/icons";
 import type { PrereqCheck } from "@/domain/prereqs";
 import { useCourseInfo } from "@/features/catalog/courseCache";
@@ -57,46 +61,68 @@ export function CourseCard({ term, index, planned, prereq }: { term: TermCode; i
   const course = useCourseInfo(planned.id);
   const openPreview = usePreviewStore((s) => s.openPreview);
   const hoverPreview = usePreviewStore((s) => s.hoverPreview);
+  const mobile = useIsMobile();
   const locked = planned.lock === "locked";
   const data: DragData = { type: "planned", term, index, courseId: planned.id };
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: plannedId(term, planned.id),
     data,
-    disabled: locked,
+    // Mobile uses the tap menu instead of touch-drag (2026 redesign decision).
+    disabled: locked || mobile,
   });
+  const actions = courseActions(term, planned, course);
+  const label = course ? `${courseCode(course)}, ${course.title}` : "Course";
+  const face = <CourseCardFace course={course} lock={planned.lock} prereq={prereq} />;
+
+  if (mobile) {
+    return (
+      <li className="list-none">
+        <ActionMenu
+          actions={actions}
+          trigger={
+            <button type="button" aria-label={label} className="block w-full rounded-card">
+              {face}
+            </button>
+          }
+        />
+      </li>
+    );
+  }
 
   return (
-    <li
-      ref={setNodeRef}
-      style={{ transform: CSS.Translate.toString(transform), transition }}
-      className={cn("group relative list-none", isDragging && "opacity-40")}
-      onMouseEnter={() => hoverPreview(planned.id)}
-      onMouseLeave={() => hoverPreview(null)}
-    >
-      <button
-        type="button"
-        {...attributes}
-        {...listeners}
-        onClick={() => openPreview(planned.id)}
-        onKeyDown={(e) => {
-          listeners?.onKeyDown?.(e);
-          if ((e.key === "Delete" || e.key === "Backspace") && !locked) planActions.removeCourse(term, planned.id);
-        }}
-        aria-label={course ? `${courseCode(course)}, ${course.title}` : "Course"}
-        className={cn("block w-full rounded-card focus-visible:outline-2 focus-visible:outline-accent", locked ? "cursor-pointer" : "cursor-grab")}
+    <ContextMenu actions={actions}>
+      <li
+        ref={setNodeRef}
+        style={{ transform: CSS.Translate.toString(transform), transition }}
+        className={cn("group relative list-none", isDragging && "opacity-40")}
+        onMouseEnter={() => hoverPreview(planned.id)}
+        onMouseLeave={() => hoverPreview(null)}
       >
-        <CourseCardFace course={course} lock={planned.lock} prereq={prereq} />
-      </button>
-      {!locked && (
         <button
           type="button"
-          onClick={() => planActions.removeCourse(term, planned.id)}
-          aria-label="Remove course"
-          className="absolute -top-1.5 -right-1.5 hidden rounded-full border border-border bg-surface p-0.5 text-text-secondary shadow-card group-hover:block hover:text-danger"
+          {...attributes}
+          {...listeners}
+          onClick={() => openPreview(planned.id)}
+          onKeyDown={(e) => {
+            listeners?.onKeyDown?.(e);
+            if ((e.key === "Delete" || e.key === "Backspace") && !locked) planActions.removeCourse(term, planned.id);
+          }}
+          aria-label={label}
+          className={cn("block w-full rounded-card focus-visible:outline-2 focus-visible:outline-accent", locked ? "cursor-pointer" : "cursor-grab")}
         >
-          <CloseIcon size={12} />
+          {face}
         </button>
-      )}
-    </li>
+        {!locked && (
+          <button
+            type="button"
+            onClick={() => planActions.removeCourse(term, planned.id)}
+            aria-label="Remove course"
+            className="absolute -top-1.5 -right-1.5 hidden rounded-full border border-border bg-surface p-0.5 text-text-secondary shadow-card group-hover:block hover:text-danger"
+          >
+            <CloseIcon size={12} />
+          </button>
+        )}
+      </li>
+    </ContextMenu>
   );
 }

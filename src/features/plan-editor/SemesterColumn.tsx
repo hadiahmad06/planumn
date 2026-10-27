@@ -15,7 +15,9 @@ import { CourseCard } from "./CourseCard";
 import { plannedId, semesterId, type DropData } from "./dnd";
 import { prereqKey } from "./prereqStatus";
 import type { PrereqCheck } from "@/domain/prereqs";
-import { planActions } from "./store";
+import { planActions, useEditorUi } from "./store";
+import { ContextMenu } from "@/components/ui/ContextMenu";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 export function SemesterColumn({ semester, prereqs }: { semester: Semester; prereqs: Map<string, PrereqCheck> }) {
   const data: DropData = { type: "semester", term: semester.index };
@@ -24,23 +26,38 @@ export function SemesterColumn({ semester, prereqs }: { semester: Semester; prer
   const [confirming, setConfirming] = useState(false);
   const label = termLabel(semester.index);
 
+  const selected = useEditorUi((s) => s.selectedTerm === semester.index);
+  const mobile = useIsMobile();
+  const selectTerm = useEditorUi((s) => s.selectTerm);
+
   const remove = () => (semester.courses.length ? setConfirming(true) : planActions.removeSemester(semester.index));
 
   return (
+    // Right-clicking a course opens the course menu instead (Radix skips the outer menu then).
+    <ContextMenu actions={[{ label: `Remove ${label}`, run: remove, danger: true }]}>
     <section
       ref={setNodeRef}
       aria-label={label}
-      onContextMenu={(e) => {
-        e.preventDefault();
-        remove();
-      }}
       className={cn(
         "flex min-h-40 min-w-0 flex-col rounded-card border bg-sunken/60 p-2 transition-colors",
-        isOver ? "border-accent bg-accent-soft/60" : "border-transparent",
+        isOver ? "border-accent bg-accent-soft/60" : selected ? "border-accent" : "border-transparent",
       )}
     >
       <header className="mb-2 flex items-center gap-2 px-1">
-        <h3 className="text-micro font-semibold tracking-wide text-text-secondary uppercase">{label}</h3>
+        <h3>
+          <button
+            type="button"
+            onClick={() => selectTerm(selected ? null : semester.index)}
+            aria-pressed={selected}
+            title={selected ? "Deselect" : "Select: Enter in search adds courses here"}
+            className={cn(
+              "rounded-row text-micro font-semibold tracking-wide uppercase hover:text-accent",
+              selected ? "text-accent" : "text-text-secondary",
+            )}
+          >
+            {label}
+          </button>
+        </h3>
         <span className="ml-auto text-micro text-text-secondary">{formatCredits(credits)} cr</span>
         <Menu
           trigger={
@@ -59,7 +76,7 @@ export function SemesterColumn({ semester, prereqs }: { semester: Semester; prer
           ))}
           {semester.courses.length === 0 && (
             <li className="flex flex-1 list-none items-center justify-center rounded-card border border-dashed border-border-strong/70 py-6 text-micro text-text-tertiary">
-              Drop courses here
+              {mobile ? "Add from search or Requirements" : "Drop courses here"}
             </li>
           )}
         </ul>
@@ -73,5 +90,6 @@ export function SemesterColumn({ semester, prereqs }: { semester: Semester; prer
         onConfirm={() => planActions.removeSemester(semester.index)}
       />
     </section>
+    </ContextMenu>
   );
 }

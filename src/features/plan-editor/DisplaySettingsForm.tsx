@@ -2,12 +2,16 @@
 
 import type { Season } from "@/domain/terms";
 import { cn } from "@/components/ui/cn";
-import { useDisplaySettings, type ColorKey } from "./displaySettings";
+import { useDisplaySettings, type ColorKey, type ScheduleLayout } from "./displaySettings";
 
 const COLOR_OPTIONS: { value: ColorKey; label: string }[] = [
   { value: "department", label: "Department" },
   { value: "level", label: "Level" },
   { value: "none", label: "None" },
+];
+const LAYOUTS: { value: ScheduleLayout; label: string }[] = [
+  { value: "years", label: "Years as rows" },
+  { value: "seasons", label: "Seasons as rows" },
 ];
 const SEASONS: { value: Season; label: string }[] = [
   { value: "fall", label: "Fall" },
@@ -16,11 +20,11 @@ const SEASONS: { value: Season; label: string }[] = [
 ];
 
 /**
- * Display settings (A9 card colors, A10 hidden seasons). Owned by Hadi's Claude.
+ * Display settings (A9 card colors, A10 hidden seasons, A30 layout). Owned by Hadi's Claude.
  * Used in the editor's View popover; Michael's Codex also renders it in the Settings modal.
  */
 export function DisplaySettingsForm() {
-  const { colorKey, setColorKey, hiddenSeasons, setHiddenSeasons } = useDisplaySettings();
+  const { colorKey, setColorKey, hiddenSeasons, setHiddenSeasons, layout, setLayout } = useDisplaySettings();
 
   return (
     <div className="flex flex-col gap-4">
@@ -36,6 +40,23 @@ export function DisplaySettingsForm() {
               )}
             >
               <input type="radio" name="color-key" value={o.value} checked={colorKey === o.value} onChange={() => setColorKey(o.value)} className="sr-only" />
+              {o.label}
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <fieldset className="hidden md:block">
+        <legend className="mb-1.5 text-micro font-semibold tracking-wide text-text-secondary uppercase">Layout</legend>
+        <div className="flex gap-1 rounded-full bg-sunken p-0.5">
+          {LAYOUTS.map((o) => (
+            <label
+              key={o.value}
+              className={cn(
+                "flex-1 cursor-pointer rounded-full px-3 py-1 text-center",
+                layout === o.value ? "bg-surface font-medium shadow-card" : "text-text-secondary",
+              )}
+            >
+              <input type="radio" name="layout" value={o.value} checked={layout === o.value} onChange={() => setLayout(o.value)} className="sr-only" />
               {o.label}
             </label>
           ))}
