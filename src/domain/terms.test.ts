@@ -31,8 +31,8 @@ describe("terms", () => {
     expect(r[11]).toBe("1305");
   });
 
-  it("starts new plans on the next Fall that hasn't begun", () => {
+  it("starts new plans on this calendar year's Fall", () => {
     expect(defaultStartTerm(new Date(2026, 3, 1))).toBe("1269");
-    expect(defaultStartTerm(new Date(2026, 9, 26))).toBe("1279");
+    expect(defaultStartTerm(new Date(2026, 9, 26))).toBe("1269");
   });
 });
