@@ -1,10 +1,13 @@
 "use client";
 
 import { create } from "zustand";
-import type { Plan } from "@/domain/plan";
+import type { CourseId } from "@/domain/course";
+import type { LockState, Plan } from "@/domain/plan";
+import * as ops from "@/domain/planOps";
+import type { TermCode } from "@/domain/terms";
 
 /**
- * The plan being edited. Owned by Hadi's Claude (plan editor); editing actions land in the A2 PR.
+ * The plan being edited. Owned by Hadi's Claude (plan editor).
  *
  * Contract for other features (persistence / autosave, owned by Michael's Codex):
  *   - `usePlanStore.getState().plan`            current plan (null before load)
@@ -25,6 +28,23 @@ export interface PlanStoreState {
   edit: (fn: (plan: Plan) => Plan) => void;
 }
 
+/** Editor actions: thin wrappers over src/domain/planOps.ts. */
+const edit = (fn: (plan: Plan) => Plan) => usePlanStore.getState().edit(fn);
+
+export const planActions = {
+  addCourse: (term: TermCode, id: CourseId, index?: number) => edit((p) => ops.addCourse(p, term, id, index)),
+  removeCourse: (term: TermCode, id: CourseId) => edit((p) => ops.removeCourse(p, term, id)),
+  moveCourse: (from: ops.CourseSlot, to: ops.CourseSlot) => edit((p) => ops.moveCourse(p, from, to)),
+  setLock: (term: TermCode, id: CourseId, lock: LockState) => edit((p) => ops.setLock(p, term, id, lock)),
+  setTitle: (title: string) => edit((p) => ops.setTitle(p, title)),
+  addNextSemester: () => edit(ops.addNextSemester),
+  addSemester: (term: TermCode) => edit((p) => ops.addSemester(p, term)),
+  addYearAtEnd: () => edit(ops.addYearAtEnd),
+  addYearAtStart: () => edit(ops.addYearAtStart),
+  removeSemester: (term: TermCode) => edit((p) => ops.removeSemester(p, term)),
+  removeYear: (startYear: number) => edit((p) => ops.removeYear(p, startYear)),
+};
+
 export const usePlanStore = create<PlanStoreState>()((set) => ({
   plan: null,
   revision: 0,
@@ -33,6 +53,8 @@ export const usePlanStore = create<PlanStoreState>()((set) => ({
   edit: (fn) =>
     set((s) => {
       if (!s.plan) return s;
-      return { plan: { ...fn(s.plan), last_updated: new Date().toISOString() }, revision: s.revision + 1 };
+      const next = fn(s.plan);
+      if (next === s.plan) return s;
+      return { plan: { ...next, last_updated: new Date().toISOString() }, revision: s.revision + 1 };
     }),
 }));
