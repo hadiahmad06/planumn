@@ -74,6 +74,7 @@ src/
 | `<SaveStatus />` | `src/features/plans/SaveStatus.tsx` | Michael's Codex | plan header |
 | `PlanRepository` | `src/contracts/plan-repository.ts` | interface: Hadi's Claude · impls: Michael's Codex | plan routes, My Plans |
 | APAS extension ↔ page messages (`window.postMessage`, nonce per import; report kept in memory only) | `src/features/apas/protocol.ts` + `extension/src/protocol.js` (kept in sync by a test) | Ishaan's Claude | `/plan/apas`, the APAS import extension; the B1 parser later |
+| Twin Cities Lib Ed designations: `GET /api/libed?ids=` → `{ [courseId]: string[] (CLE codes) \| null }`; `libEdCoverage(plan, lookup)`; `<LibEdCoverage plan />` | `src/app/api/libed/route.ts`, `src/server/libed/libEdSource.ts` (CourseDog `attributes`), `src/domain/libed.ts`, `src/features/libed/` | Ishaan's Claude | requirements rail (B3); later B8 filters, B12 double-dip |
 
 To change a contract, say so in the PR description under **Contract change**. The other side signs off in review.
 
