@@ -3,7 +3,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { Plan } from "@/domain/plan";
-import { plannedCourseIds } from "@/domain/plan";
+import {
+  plannedCourseIds,
+  semesterKindLabel,
+  PRIOR_CREDIT_LABEL,
+} from "@/domain/plan";
+import { TWIN_CITIES_LIBED } from "@/domain/libed";
 import { termLabel } from "@/domain/terms";
 import { courseCode, formatCredits } from "@/domain/course";
 import { useAuth } from "@/features/auth/useAuth";
@@ -15,6 +20,7 @@ import {
   comparePlans,
   duplicatePlan,
   type ComparedCourse,
+  type ComparedPlaceholder,
   type CourseDifference,
 } from "./compare";
 const repo = new CloudPlanRepository();
@@ -104,7 +110,11 @@ export function PlanComparison() {
       setBusy(null);
     }
   }
-  function list(entries: ComparedCourse[], present: boolean) {
+  function list(
+    entries: ComparedCourse[],
+    present: boolean,
+    hasSlots: boolean,
+  ) {
     return entries.length ? (
       <ul className="space-y-3">
         {entries.map(({ course: entry, difference }, index) => {
@@ -132,10 +142,45 @@ export function PlanComparison() {
           );
         })}
       </ul>
-    ) : (
+    ) : hasSlots ? null : (
       <p className="text-sm text-text-tertiary">
         {present ? "No entries in this term" : "Term is not in this plan"}
       </p>
+    );
+  }
+  function slots(entries: ComparedPlaceholder[]) {
+    if (!entries.length) return null;
+    return (
+      <div className="mt-3">
+        <h4 className="mb-2 text-xs font-medium">Placeholder slots</h4>
+        <ul className="space-y-3">
+          {entries.map(({ placeholder, difference }, i) => (
+            <li
+              key={`${placeholder.key}-${i}`}
+              className="rounded-row border border-border p-3 text-sm"
+            >
+              <p className="break-words font-medium">{placeholder.label}</p>
+              <p className="mt-1 text-xs text-text-secondary">
+                {placeholder.credits} cr
+                {placeholder.libEd
+                  ? ` · ${TWIN_CITIES_LIBED.find((tag) => tag.code === placeholder.libEd)?.label ?? placeholder.libEd}`
+                  : ""}
+              </p>
+              <p
+                className={`mt-2 text-xs ${difference === "same" ? "text-text-secondary" : "font-medium text-accent"}`}
+              >
+                {difference === "same"
+                  ? "Same slot contents"
+                  : difference === "changed"
+                    ? "Slot contents differ"
+                    : difference === "different-term"
+                      ? "Same slot contents appear in another term of the other plan"
+                      : "Extra slot in this term"}
+              </p>
+            </li>
+          ))}
+        </ul>
+      </div>
     );
   }
   return (
@@ -150,6 +195,11 @@ export function PlanComparison() {
       <p className="mt-3 max-w-2xl text-text-secondary">
         Explore two saved plans side by side. Comparing does not change either
         plan. Duplicate a plan to try a new path in its own copy.
+      </p>
+      <p className="mt-2 max-w-2xl text-xs text-text-secondary">
+        Placeholder slots match by exact label, credits and Lib Ed tag; their
+        generated IDs are ignored when contents match. Prior credit is compared
+        as one bucket, regardless of its stored date.
       </p>
       {loading ? (
         <p role="status" className="mt-6">
@@ -230,6 +280,11 @@ export function PlanComparison() {
                           0,
                         )}{" "}
                         course entries ·{" "}
+                        {plan.semesters.reduce(
+                          (n, s) => n + (s.placeholders?.length ?? 0),
+                          0,
+                        )}{" "}
+                        placeholder slots ·{" "}
                         {plan.programs.length
                           ? plan.programs.map(programName).join("; ")
                           : "No programs selected"}
@@ -276,24 +331,55 @@ export function PlanComparison() {
             <div className="space-y-5">
               {comparePlans(left, right).map((term) => (
                 <section
-                  key={term.index}
+                  key={term.key}
                   className="rounded-card border border-border bg-surface p-4"
                 >
                   <h2 className="mb-4 font-semibold">
-                    {termLabel(term.index)}
+                    {term.key === "prior"
+                      ? PRIOR_CREDIT_LABEL
+                      : termLabel(term.index)}
                   </h2>
+                  {term.leftPresent &&
+                    term.rightPresent &&
+                    term.leftKind !== term.rightKind && (
+                      <p className="mb-3 text-xs font-medium text-accent">
+                        Semester type differs between these plans.
+                      </p>
+                    )}
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <h3 className="mb-2 text-xs font-medium text-text-secondary">
                         Left: {left.title || "Untitled plan"}
                       </h3>
-                      {list(term.left, term.leftPresent)}
+                      {term.leftPresent && (
+                        <p className="mb-3 text-xs text-text-secondary">
+                          {semesterKindLabel(term.leftKind) ??
+                            "Regular semester"}
+                        </p>
+                      )}
+                      {list(
+                        term.left,
+                        term.leftPresent,
+                        term.leftSlots.length > 0,
+                      )}
+                      {slots(term.leftSlots)}
                     </div>
                     <div>
                       <h3 className="mb-2 text-xs font-medium text-text-secondary">
                         Right: {right.title || "Untitled plan"}
                       </h3>
-                      {list(term.right, term.rightPresent)}
+                      {term.rightPresent && (
+                        <p className="mb-3 text-xs text-text-secondary">
+                          {semesterKindLabel(term.rightKind) ??
+                            "Regular semester"}
+                        </p>
+                      )}
+                      {list(
+                        term.right,
+                        term.rightPresent,
+                        term.rightSlots.length > 0,
+                      )}
+                      {slots(term.rightSlots)}
                     </div>
                   </div>
                 </section>
