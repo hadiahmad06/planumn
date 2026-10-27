@@ -40,3 +40,19 @@ export function MenuItem({ children, onSelect, danger, disabled }: { children: R
 export function MenuSeparator() {
   return <DropdownMenu.Separator className="my-1 h-px bg-border" />;
 }
+
+/** Same items as ContextMenu, opened by a trigger (used for tap menus on mobile). */
+export function ActionMenu({ trigger, actions, align = "start" }: { trigger: ReactNode; actions: { label: string; run: () => void; danger?: boolean; separated?: boolean }[]; align?: "start" | "end" }) {
+  return (
+    <Menu trigger={trigger} align={align}>
+      {actions.map((a) => (
+        <div key={a.label}>
+          {a.separated && <MenuSeparator />}
+          <MenuItem onSelect={a.run} danger={a.danger}>
+            {a.label}
+          </MenuItem>
+        </div>
+      ))}
+    </Menu>
+  );
+}

@@ -35,6 +35,7 @@ export const planActions = {
   addCourse: (term: TermCode, id: CourseId, index?: number) => edit((p) => ops.addCourse(p, term, id, index)),
   removeCourse: (term: TermCode, id: CourseId) => edit((p) => ops.removeCourse(p, term, id)),
   moveCourse: (from: ops.CourseSlot, to: ops.CourseSlot) => edit((p) => ops.moveCourse(p, from, to)),
+  moveCourseToTerm: (from: TermCode, id: CourseId, to: TermCode) => edit((p) => ops.moveCourseToTerm(p, from, id, to)),
   setLock: (term: TermCode, id: CourseId, lock: LockState) => edit((p) => ops.setLock(p, term, id, lock)),
   setTitle: (title: string) => edit((p) => ops.setTitle(p, title)),
   addNextSemester: (skip: Season[] = []) => edit((p) => ops.addNextSemester(p, skip)),
@@ -61,4 +62,16 @@ export const usePlanStore = create<PlanStoreState>()((set) => ({
       if (next === s.plan) return s;
       return { plan: { ...next, last_updated: new Date().toISOString() }, revision: s.revision + 1 };
     }),
+}));
+
+/** Editor UI state that isn't part of the plan. */
+interface EditorUiState {
+  /** Semester picked by clicking its header (A30): Enter in search adds there. */
+  selectedTerm: TermCode | null;
+  selectTerm: (term: TermCode | null) => void;
+}
+
+export const useEditorUi = create<EditorUiState>()((set) => ({
+  selectedTerm: null,
+  selectTerm: (selectedTerm) => set({ selectedTerm }),
 }));

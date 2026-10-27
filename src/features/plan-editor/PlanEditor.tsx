@@ -21,7 +21,9 @@ import type { Plan } from "@/domain/plan";
 import { plannedCourseIds } from "@/domain/plan";
 import { useCourseInfo, useCourses } from "@/features/catalog/courseCache";
 import { PreviewLayer } from "@/features/preview/PreviewLayer";
+import { MobileRailSection } from "@/features/requirements/MobileRailSection";
 import { RequirementsRail } from "@/features/requirements/RequirementsRail";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { CourseCardFace } from "./CourseCard";
 import { CANCEL_DROP_ID, resolveDrop, type DragData, type DropData } from "./dnd";
 import { PlanHeader } from "./PlanHeader";
@@ -55,6 +57,7 @@ export function PlanEditor({ initialPlan }: { initialPlan: Plan }) {
   const loadPlan = usePlanStore((s) => s.loadPlan);
   const plan = usePlanStore((s) => s.plan);
   const [dragging, setDragging] = useState<CourseId | null>(null);
+  const mobile = useIsMobile();
   useEffect(() => loadPlan(initialPlan), [initialPlan, loadPlan]);
   useCourses(plan ? plannedCourseIds(plan) : []);
 
@@ -83,12 +86,15 @@ export function PlanEditor({ initialPlan }: { initialPlan: Plan }) {
         <TopBar />
         {plan && (
           <div className="grid min-h-0 flex-1 grid-cols-1 md:grid-cols-[300px_minmax(0,1fr)]">
-            <aside className="hidden min-h-0 overflow-y-auto border-r border-border p-4 md:block">
-              <RequirementsRail plan={plan} />
-            </aside>
+            {!mobile && (
+              <aside className="min-h-0 overflow-y-auto border-r border-border p-4">
+                <RequirementsRail plan={plan} />
+              </aside>
+            )}
             <main className="min-h-0 overflow-y-auto p-4 md:p-6">
               <div className="mx-auto flex max-w-6xl flex-col gap-6">
                 <PlanHeader plan={plan} />
+                {mobile && <MobileRailSection plan={plan} />}
                 <Schedule plan={plan} />
               </div>
             </main>

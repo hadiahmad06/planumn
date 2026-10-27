@@ -46,7 +46,7 @@ export function PlanHeader({ plan }: { plan: Plan }) {
       <EditableTitle title={plan.title} />
       <div className="flex items-center gap-3 text-text-secondary">
         <span>
-          {courseCount} courses · <strong className="text-text-primary">{formatCredits(total)}</strong> credits
+          {courseCount} {courseCount === 1 ? "course" : "courses"} · <strong className="text-text-primary">{formatCredits(total)}</strong> credits
         </span>
         <SaveStatus />
         <ProgressWidget plan={plan} />

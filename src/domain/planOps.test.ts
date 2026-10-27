@@ -9,6 +9,7 @@ import {
   groupByYear,
   missingTermsInYear,
   moveCourse,
+  moveCourseToTerm,
   removeCourse,
   removeSemester,
   removeYear,
@@ -44,6 +45,15 @@ describe("course edits", () => {
 
     const dup = addCourse(addCourse(base(), "1269", 7), "1273", 7);
     expect(moveCourse(dup, { term: "1269", index: 0 }, { term: "1273", index: 0 })).toBe(dup);
+  });
+
+  it("moves a course to another term, creating the semester if needed", () => {
+    let p = addCourse(base(), "1269", 1);
+    p = moveCourseToTerm(p, "1269", 1, "1273");
+    expect(ids(p, "1273")).toEqual([1]);
+    p = moveCourseToTerm(p, "1273", 1, "1319"); // Fall 2031, beyond the plan
+    expect(ids(p, "1319")).toEqual([1]);
+    expect(p.semesters.at(-1)!.index).toBe("1319");
   });
 
   it("removes a course", () => {

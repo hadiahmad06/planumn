@@ -73,6 +73,16 @@ export function moveCourse(plan: Plan, from: CourseSlot, to: CourseSlot): Plan {
   });
 }
 
+/** Move a course to the end of another term, adding that semester if the plan doesn't have it. */
+export function moveCourseToTerm(plan: Plan, from: TermCode, id: CourseId, to: TermCode): Plan {
+  if (from === to) return plan;
+  const index = findSemester(plan, from)?.courses.findIndex((c) => c.id === id) ?? -1;
+  if (index < 0) return plan;
+  const withTarget = findSemester(plan, to) ? plan : addSemester(plan, to);
+  const moved = moveCourse(withTarget, { term: from, index }, { term: to, index: findSemester(withTarget, to)!.courses.length });
+  return moved === withTarget ? plan : moved;
+}
+
 export function setLock(plan: Plan, term: TermCode, id: CourseId, lock: LockState): Plan {
   return mapSemester(plan, term, (s) => ({
     ...s,

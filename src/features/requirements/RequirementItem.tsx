@@ -7,11 +7,19 @@ import { cn } from "@/components/ui/cn";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { externalId, type DragData } from "@/features/plan-editor/dnd";
 import { usePreviewStore } from "@/features/preview/store";
+import { ActionMenu } from "@/components/ui/Menu";
+import { useIsMobile } from "@/hooks/useIsMobile";
+import { addCourseActions } from "@/features/plan-editor/courseActions";
+import { useDisplaySettings } from "@/features/plan-editor/displaySettings";
+import { usePlanStore } from "@/features/plan-editor/store";
 
 const MAX_CHOICES = 8;
 
 /** A listed course: draggable into the schedule, click for its preview (A27). */
 function OptionChip({ option, primary, planned }: { option: CourseOption; primary?: boolean; planned?: boolean }) {
+  const mobile = useIsMobile();
+  const plan = usePlanStore((s) => s.plan);
+  const hidden = useDisplaySettings((s) => s.hiddenSeasons);
   const openPreview = usePreviewStore((s) => s.openPreview);
   const hoverPreview = usePreviewStore((s) => s.hoverPreview);
   const id = option.courseId;
@@ -21,7 +29,7 @@ function OptionChip({ option, primary, planned }: { option: CourseOption; primar
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: externalId(`req${instance}`, id ?? 0),
     data,
-    disabled: id == null,
+    disabled: id == null || mobile,
   });
   const label = option.code ?? "Other approved course";
 
@@ -36,6 +44,30 @@ function OptionChip({ option, primary, planned }: { option: CourseOption; primar
       </span>
     );
   }
+  const className = cn(
+    "min-w-0 cursor-grab truncate rounded-row text-left hover:text-accent",
+    primary ? "font-medium" : "text-micro text-text-secondary underline decoration-dotted underline-offset-2",
+    planned && "text-success",
+    isDragging && "opacity-40",
+  );
+  const content = (
+    <>
+      {label}
+      {primary && option.title ? <span className="font-normal text-text-secondary"> · {option.title}</span> : null}
+    </>
+  );
+  if (mobile) {
+    return (
+      <ActionMenu
+        actions={addCourseActions(id, plan, hidden)}
+        trigger={
+          <button type="button" className={className}>
+            {content}
+          </button>
+        }
+      />
+    );
+  }
   return (
     <button
       ref={setNodeRef}
@@ -45,15 +77,9 @@ function OptionChip({ option, primary, planned }: { option: CourseOption; primar
       onClick={() => openPreview(id)}
       onMouseEnter={() => hoverPreview(id)}
       onMouseLeave={() => hoverPreview(null)}
-      className={cn(
-        "min-w-0 cursor-grab truncate rounded-row text-left hover:text-accent",
-        primary ? "font-medium" : "text-micro text-text-secondary underline decoration-dotted underline-offset-2",
-        planned && "text-success",
-        isDragging && "opacity-40",
-      )}
+      className={className}
     >
-      {label}
-      {primary && option.title ? <span className="font-normal text-text-secondary"> · {option.title}</span> : null}
+      {content}
     </button>
   );
 }
