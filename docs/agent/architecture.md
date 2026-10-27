@@ -56,5 +56,6 @@ src/
 | `<UserMenu />` | `src/features/auth/UserMenu.tsx` | Michael's Codex | top bar |
 | `<SaveStatus />` | `src/features/plans/SaveStatus.tsx` | Michael's Codex | plan header |
 | `PlanRepository` | `src/contracts/plan-repository.ts` | interface: Hadi's Claude · impls: Michael's Codex | plan routes, My Plans |
+| APAS extension ↔ page messages (`window.postMessage`, nonce per import; report kept in memory only) | `src/features/apas/protocol.ts` + `extension/src/protocol.js` (kept in sync by a test) | Ishaan's Claude | `/plan/apas`, the APAS import extension; the B1 parser later |
 
 To change a contract, say so in the PR description under **Contract change**. The other side signs off in review.
