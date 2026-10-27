@@ -4,7 +4,7 @@ import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useState } from "react";
 import { formatCredits } from "@/domain/course";
-import type { Semester } from "@/domain/plan";
+import { placeholderCredits, type Semester } from "@/domain/plan";
 import { termLabel } from "@/domain/terms";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { cn } from "@/components/ui/cn";
@@ -12,6 +12,8 @@ import { DotsIcon } from "@/components/ui/icons";
 import { Menu, MenuItem } from "@/components/ui/Menu";
 import { useCreditTotal } from "@/features/catalog/courseCache";
 import { CourseCard } from "./CourseCard";
+import { PlaceholderCard } from "./PlaceholderCard";
+import { PlaceholderDialog } from "./PlaceholderDialog";
 import { WorkloadBadge } from "./WorkloadBadge";
 import { plannedId, semesterId, type DropData } from "./dnd";
 import { issueKey } from "./useHealth";
@@ -23,15 +25,20 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 export function SemesterColumn({ semester, issues }: { semester: Semester; issues: Map<string, HealthIssue[]> }) {
   const data: DropData = { type: "semester", term: semester.index };
   const { setNodeRef, isOver } = useDroppable({ id: semesterId(semester.index), data });
-  const credits = useCreditTotal(semester.courses.map((c) => c.id));
+  const courseCredits = useCreditTotal(semester.courses.map((c) => c.id));
+  // B2: placeholder slots count toward the semester's credits.
+  const slots = semester.placeholders ?? [];
+  const slotCredits = placeholderCredits(semester);
+  const credits = { min: courseCredits.min + slotCredits, max: courseCredits.max + slotCredits };
   const [confirming, setConfirming] = useState(false);
+  const [addingSlot, setAddingSlot] = useState(false);
   const label = termLabel(semester.index);
 
   const selected = useEditorUi((s) => s.selectedTerm === semester.index);
   const mobile = useIsMobile();
   const selectTerm = useEditorUi((s) => s.selectTerm);
 
-  const remove = () => (semester.courses.length ? setConfirming(true) : planActions.removeSemester(semester.index));
+  const remove = () => (semester.courses.length || slots.length ? setConfirming(true) : planActions.removeSemester(semester.index));
 
   return (
     // Right-clicking a course opens the course menu instead (Radix skips the outer menu then).
@@ -70,6 +77,7 @@ export function SemesterColumn({ semester, issues }: { semester: Semester; issue
             </button>
           }
         >
+          <MenuItem onSelect={() => setAddingSlot(true)}>Add placeholder…</MenuItem>
           <MenuItem danger onSelect={remove}>Remove {label}</MenuItem>
         </Menu>
       </header>
@@ -78,7 +86,10 @@ export function SemesterColumn({ semester, issues }: { semester: Semester; issue
           {semester.courses.map((c, i) => (
             <CourseCard key={c.id} term={semester.index} index={i} planned={c} issues={issues.get(issueKey(semester.index, c.id))} />
           ))}
-          {semester.courses.length === 0 && (
+          {slots.map((slot) => (
+            <PlaceholderCard key={slot.key} term={semester.index} slot={slot} />
+          ))}
+          {semester.courses.length === 0 && slots.length === 0 && (
             <li className="flex flex-1 list-none items-center justify-center rounded-card border border-dashed border-border-strong/70 py-6 text-micro text-text-tertiary">
               {mobile ? "Add from search or Requirements" : "Drop courses here"}
             </li>
@@ -89,10 +100,11 @@ export function SemesterColumn({ semester, issues }: { semester: Semester; issue
         open={confirming}
         onOpenChange={setConfirming}
         title={`Remove ${label}?`}
-        description={`Its ${semester.courses.length} course${semester.courses.length === 1 ? "" : "s"} will be removed from the plan.`}
+        description={`Its ${semester.courses.length} course${semester.courses.length === 1 ? "" : "s"}${slots.length ? ` and ${slots.length} placeholder${slots.length === 1 ? "" : "s"}` : ""} will be removed from the plan.`}
         confirmLabel="Remove"
         onConfirm={() => planActions.removeSemester(semester.index)}
       />
+      <PlaceholderDialog term={semester.index} open={addingSlot} onOpenChange={setAddingSlot} />
     </section>
     </ContextMenu>
   );

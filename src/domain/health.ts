@@ -1,6 +1,6 @@
 import type { CourseDetails, CourseId } from "./course";
 import { courseCode } from "./course";
-import type { Plan } from "./plan";
+import { placeholderCredits, type Plan } from "./plan";
 import type { PrereqCheck } from "./prereqs";
 import { compareTerms, seasonOf, termLabel, toTermCode, type Season, type TermCode } from "./terms";
 
@@ -72,7 +72,11 @@ export function pacing(plan: Plan, credits: (id: CourseId) => number): Pacing {
         if (!seen.has(c.id)) total += credits(c.id);
         seen.add(c.id);
       }
-      return { term: s.index, credits: semCredits, courses: s.courses.length };
+      // B2 (Ishaan's Claude): placeholder slots are planned credits too.
+      const slots = placeholderCredits(s);
+      semCredits += slots;
+      total += slots;
+      return { term: s.index, credits: semCredits, courses: s.courses.length + (s.placeholders?.length ?? 0) };
     });
   const finalTerm = [...loads].reverse().find((l) => l.courses > 0)?.term ?? null;
   return { credits: total, remaining: Math.max(GRADUATION_CREDITS - total, 0), finalTerm, enough: total >= GRADUATION_CREDITS, loads };

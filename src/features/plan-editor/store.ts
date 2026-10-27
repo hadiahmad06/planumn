@@ -33,6 +33,12 @@ export interface PlanStoreState {
 /** Editor actions: thin wrappers over src/domain/planOps.ts. */
 const edit = (fn: (plan: Plan) => Plan) => usePlanStore.getState().edit(fn);
 
+function newPlaceholderKey(): string {
+  const bytes = new Uint8Array(6);
+  crypto.getRandomValues(bytes);
+  return `ph-${Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")}`;
+}
+
 export const planActions = {
   addCourse: (term: TermCode, id: CourseId, index?: number) => edit((p) => ops.addCourse(p, term, id, index)),
   removeCourse: (term: TermCode, id: CourseId) => edit((p) => ops.removeCourse(p, term, id)),
@@ -48,6 +54,9 @@ export const planActions = {
   addYearAtStart: () => edit(ops.addYearAtStart),
   removeSemester: (term: TermCode) => edit((p) => ops.removeSemester(p, term)),
   removeYear: (startYear: number) => edit((p) => ops.removeYear(p, startYear)),
+  // B2 (Ishaan's Claude): placeholder slots. Keys are random, so they stay unique per semester.
+  addPlaceholder: (term: TermCode, input: ops.PlaceholderInput) => edit((p) => ops.addPlaceholder(p, term, input, newPlaceholderKey())),
+  removePlaceholder: (term: TermCode, key: string) => edit((p) => ops.removePlaceholder(p, term, key)),
 };
 
 export const usePlanStore = create<PlanStoreState>()((set) => ({

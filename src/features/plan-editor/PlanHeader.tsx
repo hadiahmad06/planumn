@@ -38,6 +38,7 @@ function EditableTitle({ title }: { title: string }) {
 
 export function PlanHeader({ plan }: { plan: Plan }) {
   const courseCount = plan.semesters.reduce((n, s) => n + s.courses.length, 0);
+  const slotCount = plan.semesters.reduce((n, s) => n + (s.placeholders?.length ?? 0), 0);
 
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
@@ -45,6 +46,7 @@ export function PlanHeader({ plan }: { plan: Plan }) {
       <div className="flex items-center gap-3 text-text-secondary">
         <span>
           {courseCount} {courseCount === 1 ? "course" : "courses"}
+          {slotCount > 0 && ` + ${slotCount} ${slotCount === 1 ? "slot" : "slots"}`}
         </span>
         <SaveStatus />
         <ProgressWidget plan={plan} />
