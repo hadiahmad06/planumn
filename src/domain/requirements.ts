@@ -48,11 +48,19 @@ export interface TextRule extends RuleBase {
 
 export type Rule = CoursesRule | GroupRule | TextRule;
 
+/**
+ * CourseDog's `requirementLevel` (B26): "admission" = courses a college requires before a student can
+ * be admitted to the major (CSE, Carlson, Nursing); "subplan" = an optional track (integrated B.S./M.S.).
+ * Absent = an ordinary program requirement.
+ */
+export type RequirementLevel = "program" | "admission" | "subplan";
+
 export interface Requirement {
   id: string;
   name: string;
   notes: string | null;
   rules: Rule[];
+  level?: RequirementLevel;
 }
 
 export interface Program {
@@ -62,6 +70,10 @@ export interface Program {
   /** "Major", "Minor", ... */
   type: string;
   requirements: Requirement[];
+  /** B26: the catalog's own "Program Admission Requirements" text (GPA rules, deadlines), as plain text. */
+  admissionNotes?: string | null;
+  /** B26: https links in that text (the college's application page, the technical GPA page). */
+  admissionLinks?: { label: string; url: string }[];
 }
 
 // ---------------------------------------------------------------------------

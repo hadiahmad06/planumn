@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { evaluateProgram, type CoursesRule, type GroupRule } from "@/domain/requirements";
 import fixture from "./__fixtures__/cs-bs.json";
-import { collectGroupIds, htmlToText, normalizeProgram, pickCurrentVersion, type RawProgram } from "./normalize";
+import { collectGroupIds, htmlLinks, htmlToText, normalizeProgram, pickCurrentVersion, type RawProgram } from "./normalize";
 
 // Real CourseDog response for Computer Science B.S. (version 2026-09-08, all requirements; unread fields stripped).
 const raw = pickCurrentVersion(fixture as unknown as Record<string, RawProgram>)!;
@@ -19,6 +19,21 @@ describe("normalizeProgram (CourseDog CS B.S.)", () => {
   it("reads program metadata and every requirement", () => {
     expect(program).toMatchObject({ id: "019627107", type: "Major" });
     expect(program.requirements.map((r) => r.name)).toContain("Mathematics Core");
+  });
+
+  it("tags CourseDog's admission and sub-plan levels, and keeps the admission text and links (B26)", () => {
+    expect(req("Mathematics Core").level).toBe("admission");
+    expect(req("Computer Science Introductory Core").level).toBe("admission");
+    expect(req("Computer Science Core").level).toBeUndefined();
+    expect(req("Integrated Computer Science B.S./M.S. Program").level).toBe("subplan");
+    expect(program.admissionNotes).toMatch(/3\.2 or above technical GPA/);
+    expect(program.admissionLinks?.map((l) => l.url)).toEqual(["https://z.umn.edu/techgpa", "https://cse.umn.edu/cs/bs-application"]);
+  });
+
+  it("reads only https links, decoding entities in the label", () => {
+    expect(htmlLinks('<a href="http://x.test">no</a> <a class="a" href="https://a.test/?b=1&amp;c=2">CS&amp;E site</a>')).toEqual([
+      { label: "CS&E site", url: "https://a.test/?b=1&c=2" },
+    ]);
   });
 
   it("turns minimumCredits rules into credit minimums with alternative options", () => {

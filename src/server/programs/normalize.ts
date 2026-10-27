@@ -1,4 +1,4 @@
-import type { CourseOption, Program, Requirement, Rule } from "@/domain/requirements";
+import type { CourseOption, Program, Requirement, RequirementLevel, Rule } from "@/domain/requirements";
 
 /** Raw CourseDog shapes (only the fields we read). */
 export interface RawValueEntry {
@@ -23,7 +23,13 @@ export interface RawGroup {
   id?: string;
   name?: string;
   notes?: string;
+  requirementLevel?: string;
   rules?: RawRule[];
+}
+export interface RawRequirementLevel {
+  key?: string;
+  label?: string;
+  notes?: string | null;
 }
 export interface RawProgram {
   _id?: string;
@@ -33,7 +39,13 @@ export interface RawProgram {
   programGroupId?: string;
   effectiveStartDate?: string;
   requisites?: Record<string, RawGroup[]>;
+  requirementLevels?: RawRequirementLevel[];
 }
+
+const LEVELS: Record<string, RequirementLevel> = {
+  programAdmissionRequirements: "admission",
+  programSubPlanRequirements: "subplan",
+};
 
 /** Turns a CourseDog course group id into an option (catalog lookup + CourseDog names). */
 export type ResolveOption = (groupId: string) => CourseOption;
@@ -56,6 +68,16 @@ export function htmlToText(html: string | undefined | null): string | null {
     .replace(/\n\s*\n+/g, "\n")
     .trim();
   return text || null;
+}
+
+/** The https links in a CourseDog HTML note, labeled by their text (B26: application pages). */
+export function htmlLinks(html: string | undefined | null): { label: string; url: string }[] {
+  const links = new Map<string, string>();
+  for (const m of (html ?? "").matchAll(/<a\b[^>]*href="(https:\/\/[^"]+)"[^>]*>([\s\S]*?)<\/a>/gi)) {
+    const url = m[1].replace(/&amp;/g, "&");
+    if (!links.has(url)) links.set(url, htmlToText(m[2]) ?? url);
+  }
+  return [...links].map(([url, label]) => ({ label, url }));
 }
 
 /** Every course group id a raw program mentions, so they can be resolved in one batch. */
@@ -112,12 +134,16 @@ export function normalizeProgram(raw: RawProgram, resolve: ResolveOption): Progr
     name: (g.name ?? "").trim() || "Requirement",
     notes: htmlToText(g.notes),
     rules: (g.rules ?? []).map((r, j) => normalizeRule(r, resolve, `req-${i}.${j}`)),
+    ...(g.requirementLevel && LEVELS[g.requirementLevel] ? { level: LEVELS[g.requirementLevel] } : {}),
   }));
+  const admission = raw.requirementLevels?.find((l) => l.key === "programAdmissionRequirements");
   return {
     id: raw.programGroupId ?? "",
     name: raw.catalogDisplayName ?? raw.name ?? "Program",
     type: raw.type ?? "",
     requirements,
+    admissionNotes: htmlToText(admission?.notes),
+    admissionLinks: htmlLinks(admission?.notes),
   };
 }
 
