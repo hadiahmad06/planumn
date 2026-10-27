@@ -38,6 +38,10 @@ export function searchCourses(raw: string, limit = 50, filters: SearchFilters = 
 
   const where: string[] = ["campus = ?"];
   const params: (string | number)[] = [CAMPUS];
+  if (filters.dept) {
+    where.push("dept_abbr = ?");
+    params.push(filters.dept);
+  }
   // Lower priority number = better match.
   let priority = "";
   const priorityParams: string[] = [];

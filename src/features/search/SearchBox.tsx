@@ -10,6 +10,8 @@ import { usePreviewStore } from "@/features/preview/store";
 import { CANCEL_DROP_ID, externalId, type DragData, type DropData } from "@/features/plan-editor/dnd";
 import { useCourseSearch } from "./useCourseSearch";
 import { SearchFilterBar } from "./SearchFilterBar";
+import { useDepartments } from "./useDepartments";
+import { parseNaturalQuery } from "@/domain/naturalQuery";
 import { hasFilters, type SearchFilters } from "@/domain/searchFilters";
 import { useRequirementOptions } from "@/features/requirements/requirementOptions";
 import { termLabel } from "@/domain/terms";
@@ -107,9 +109,13 @@ export function SearchBox() {
   const requirements = useRequirementOptions(usePlanStore((s) => s.plan));
   // A requirement whose program was removed from the plan simply stops filtering.
   const requirement = requirements.find((r) => r.key === requirementKey) ?? null;
-  const effective: SearchFilters = requirement ? { ...filters, courseIds: requirement.courseIds } : filters;
+  const chosen: SearchFilters = requirement ? { ...filters, courseIds: requirement.courseIds } : filters;
+  // B27: "easy fall classes with no prereqs" → filters + title words. Filters picked by hand win.
+  const natural = parseNaturalQuery(query, useDepartments());
+  const effective: SearchFilters = natural ? { ...natural.filters, ...chosen } : chosen;
+  const explicit = hasFilters(chosen);
   const filtered = hasFilters(effective);
-  const { results, settled, error } = useCourseSearch(query, effective);
+  const { results, settled, error } = useCourseSearch(natural ? natural.text : query, effective);
   const openPreview = usePreviewStore((s) => s.openPreview);
   const selectedTerm = useEditorUi((s) => s.selectedTerm);
   const mobile = useIsMobile();
@@ -178,15 +184,15 @@ export function SearchBox() {
             setShowFilters((v) => !v);
             inputRef.current?.focus();
           }}
-          aria-label={filtered ? "Search filters (active)" : "Search filters"}
+          aria-label={explicit ? "Search filters (active)" : "Search filters"}
           aria-pressed={showFilters}
           className={cn(
             "relative shrink-0 rounded-full p-0.5 hover:text-accent",
-            showFilters || filtered ? "text-accent" : "text-text-tertiary",
+            showFilters || explicit ? "text-accent" : "text-text-tertiary",
           )}
         >
           <FilterIcon />
-          {filtered && <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-accent" aria-hidden />}
+          {explicit && <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-accent" aria-hidden />}
         </button>
         <kbd className="hidden shrink-0 text-micro text-text-secondary sm:inline" aria-hidden="true">⌘/Ctrl K</kbd>
       </div>
@@ -203,7 +209,30 @@ export function SearchBox() {
             mobile ? "fixed inset-x-3 top-14" : "absolute top-full right-0 left-0 mt-1",
           )}
         >
-          {(showFilters || filtered) && <SearchFilterBar
+          {natural && (
+            <div className="flex flex-wrap items-center gap-1.5 border-b border-border px-3 pt-1 pb-2 text-micro" aria-live="polite">
+              <span className="text-text-tertiary">Understood:</span>
+              {natural.understood.map((u) => (
+                <span key={u.key} className="rounded-full bg-accent-soft px-2 py-0.5 text-accent">
+                  {u.label}
+                </span>
+              ))}
+              {natural.text && <span className="text-text-secondary">titles matching “{natural.text}”</span>}
+              <button
+                type="button"
+                onClick={() => {
+                  setFilters({ ...natural.filters, ...filters });
+                  setShowFilters(true);
+                  setQuery(natural.text);
+                  inputRef.current?.focus();
+                }}
+                className="ml-auto text-text-secondary underline hover:text-accent"
+              >
+                Use as filters
+              </button>
+            </div>
+          )}
+          {(showFilters || explicit) && <SearchFilterBar
               filters={filters}
               onChange={setFilters}
               requirements={requirements}

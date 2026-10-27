@@ -64,6 +64,7 @@ src/
 | B11 elective badge: `programCourseIds(program)` (every course a program lists) + `useIsElective(courseId, programIds)` (false while programs load or with none selected) | `src/domain/requirements.ts`, `src/features/requirements/useElective.ts` | Hadi's Claude | course cards; later B12 double-dip |
 | `healthCheck`, `pacing`, `offeringHistory` (plan health, B4–B6) + `useHealth(plan)` | `src/domain/health.ts`, `src/features/plan-editor/useHealth.ts` | Hadi's Claude | header panel, cards, advisor export (B10) |
 | `findCourseIdsByCode()` (server) | `src/server/catalog/courses.ts` | Hadi's Claude | transcript import |
+| B27 natural-language search: `parseNaturalQuery(q, departments)` → `{ text, filters, understood }` or null for plain searches; `GET /api/departments` → `{ code, name }[]`; search filter `dept=CSCI` (additive) | `src/domain/naturalQuery.ts`, `src/app/api/departments/route.ts`, `src/features/search/` | Hadi's Claude | top-bar search |
 | `usePlanStore`: `plan`, `revision`, `loadPlan`, `patchMeta`, `subscribe` | `src/features/plan-editor/store.ts` | Hadi's Claude | autosave |
 | `planActions` (`addCourse`, `removeCourse`, `moveCourse`, `setLock`, …) | `src/features/plan-editor/store.ts` | Hadi's Claude | preview (lock toggle), transcript import |
 | `useCourseInfo(id)`, `useCreditTotal(ids)` | `src/features/catalog/courseCache.ts` | Hadi's Claude | anywhere a course or credit sum is shown |
