@@ -10,6 +10,12 @@ export interface RawRule {
   name?: string;
   condition?: string;
   notes?: string;
+  /** C1: the catalog's explanation, often the only place credit totals are stated. */
+  description?: string;
+  /** numberOf: how many sub-rules must be completed. */
+  number?: number;
+  /** numberOf: courses needed across them (CourseDog "restriction"). */
+  restriction?: number;
   minCourses?: number;
   maxCourses?: number;
   minCredits?: number;
@@ -96,9 +102,19 @@ export function collectGroupIds(program: RawProgram): string[] {
 }
 
 function normalizeRule(r: RawRule, resolve: ResolveOption, path: string): Rule {
-  const base = { id: r.id ?? path, name: (r.name ?? "").trim() || "Requirement", notes: htmlToText(r.notes) };
-  if (r.condition === "anyOf" || r.condition === "allOf") {
-    return { ...base, kind: r.condition, children: (r.subRules ?? []).map((s, i) => normalizeRule(s, resolve, `${path}.${i}`)) };
+  const description = htmlToText(r.description);
+  const base = {
+    id: r.id ?? path,
+    name: (r.name ?? "").trim() || "Requirement",
+    notes: htmlToText(r.notes),
+    ...(description ? { description } : {}),
+  };
+  const children = () => (r.subRules ?? []).map((s, i) => normalizeRule(s, resolve, `${path}.${i}`));
+  if (r.condition === "anyOf" || r.condition === "allOf") return { ...base, kind: r.condition, children: children() };
+  if (r.condition === "numberOf") {
+    // C1: "complete N of these" (EE Breadth and Depth: number 4 areas, restriction 5 courses).
+    const total = r.restriction ?? r.minCourses ?? 0;
+    return { ...base, kind: "numberOf", children: children(), count: r.number ?? 1, ...(total > 0 ? { totalCourses: total } : {}) };
   }
   if (typeof r.value === "string" || r.condition === "freeformText") {
     return { ...base, kind: "text", text: htmlToText(typeof r.value === "string" ? r.value : "") ?? "" };

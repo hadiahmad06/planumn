@@ -42,6 +42,16 @@ function fillRule(r: RuleResult, reason: string, p: Picker): boolean {
   const rule = r.rule;
   if (r.satisfied || r.units === 0) return true;
   if (rule.kind === "text") return false;
+  if (rule.kind === "numberOf") {
+    // C1: fill children until `count` of them are complete. The total-courses minimum isn't chased.
+    const need = rule.count ?? 1;
+    let filled = (r.children ?? []).filter((c) => c.satisfied && c.units > 0).length;
+    for (const c of r.children ?? []) {
+      if (filled >= need) break;
+      if (!c.satisfied && c.rule.kind !== "text" && fillRule(c, reason, p)) filled++;
+    }
+    return filled >= need;
+  }
   if (rule.kind !== "courses")
     return rule.kind === "allOf"
       ? (r.children ?? []).map((c) => fillRule(c, reason, p)).every(Boolean)

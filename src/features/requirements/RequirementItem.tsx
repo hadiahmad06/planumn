@@ -142,6 +142,22 @@ function Notes({ text }: { text: string }) {
   );
 }
 
+/** The catalog's description of a rule (C1): visible, clamped to three lines until expanded. */
+function RuleDescription({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const long = text.length > 220;
+  return (
+    <div className="text-micro text-text-secondary">
+      <p className={cn("whitespace-pre-line", long && !open && "line-clamp-3")}>{text}</p>
+      {long && (
+        <button type="button" onClick={() => setOpen(!open)} className="text-accent hover:underline">
+          {open ? "Less" : "More"}
+        </button>
+      )}
+    </div>
+  );
+}
+
 function ruleStatus(r: RuleResult): string | null {
   if (r.rule.kind === "courses") {
     const { minCourses, minCredits } = r.rule;
@@ -152,6 +168,11 @@ function ruleStatus(r: RuleResult): string | null {
     return parts.join(" · ");
   }
   if (r.rule.kind === "anyOf") return r.units ? "choose one" : null;
+  if (r.rule.kind === "numberOf") {
+    const count = r.rule.count ?? 1;
+    const total = r.rule.totalCourses;
+    return `${Math.min(r.areas ?? 0, count)}/${count} areas` + (total ? ` · ${Math.min(r.coursesCount ?? 0, total)}/${total} courses` : "");
+  }
   if (r.rule.kind === "allOf") return r.units ? `${r.filled}/${r.units}` : null;
   return null;
 }
@@ -169,7 +190,14 @@ function RuleView({ result, depth, hideTitle }: { result: RuleResult; depth: num
           {status && <span className="ml-auto shrink-0 text-micro text-text-tertiary">{status}</span>}
         </div>
       )}
+      {rule.description && <RuleDescription text={rule.description} />}
       {rule.notes && <Notes text={rule.notes} />}
+      {rule.kind === "numberOf" && (
+        <p className="text-micro text-text-secondary">
+          Complete {rule.count ?? 1} of these {rule.children.length}
+          {rule.totalCourses ? `, ${rule.totalCourses} courses in all` : ""}. A course counts in one of them only.
+        </p>
+      )}
       {rule.kind === "text" && <p className="text-text-secondary">{rule.text}</p>}
       {rule.kind === "courses" && (
         <ul>

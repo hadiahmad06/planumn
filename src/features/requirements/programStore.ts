@@ -50,7 +50,7 @@ function listedSummaries(program: Program): CourseSummary[] {
             const [dept, number] = o.code.split(" ");
             out.push({ id: o.courseId, dept, number, title: o.title ?? "", credits: o.credits });
           }
-    if (r.kind === "anyOf" || r.kind === "allOf") r.children.forEach(visit);
+    if (r.kind === "anyOf" || r.kind === "allOf" || r.kind === "numberOf") r.children.forEach(visit);
   };
   program.requirements.forEach((q) => q.rules.forEach(visit));
   return out;

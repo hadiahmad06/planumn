@@ -27,6 +27,11 @@ interface RuleBase {
   id: string;
   name: string;
   notes: string | null;
+  /**
+   * C1 (Phase C): the catalog's own explanation of the rule, often the only place credit totals live
+   * ("must total 23 credits… 11 must have a CSCI designator"). Shown as written.
+   */
+  description?: string | null;
 }
 
 export interface CoursesRule extends RuleBase {
@@ -37,8 +42,13 @@ export interface CoursesRule extends RuleBase {
 }
 
 export interface GroupRule extends RuleBase {
-  kind: "anyOf" | "allOf";
+  /** "numberOf" (C1): complete `count` of the children, with at least `totalCourses` courses in all. */
+  kind: "anyOf" | "allOf" | "numberOf";
   children: Rule[];
+  /** numberOf only: how many children (e.g. EE technical specialty areas) must be completed. */
+  count?: number;
+  /** numberOf only: courses needed across those children (EE: 5 courses in 4 areas). */
+  totalCourses?: number;
 }
 
 export interface TextRule extends RuleBase {
@@ -101,6 +111,8 @@ export interface RuleResult {
   credits?: number;
   /** courses rules only: for each choice, the planned course satisfying it (or null). */
   choiceMatches?: (CourseId | null)[];
+  /** numberOf only: children covered, each by a different planned course. */
+  areas?: number;
   children?: RuleResult[];
 }
 
@@ -178,6 +190,8 @@ export function evaluateRule(rule: Rule, planned: PlannedForAudit[]): RuleResult
       const satisfied = children.every((c) => c.satisfied || c.units === 0);
       return { rule, satisfied, units, filled: children.reduce((n, c) => n + c.filled, 0), children };
     }
+    case "numberOf":
+      return evaluateNumberOf(rule, planned);
     case "anyOf": {
       const children = rule.children.map((c) => evaluateRule(c, planned));
       const required = children.some((c) => c.units > 0);
@@ -185,6 +199,26 @@ export function evaluateRule(rule: Rule, planned: PlannedForAudit[]): RuleResult
       return { rule, satisfied, units: required ? 1 : 0, filled: required && satisfied ? 1 : 0, children };
     }
   }
+}
+
+/**
+ * "Complete N of these" (C1). A course counts toward one child only (EE: "No double dipping among
+ * technical specialty areas"), so the children covered are a matching of planned courses to children,
+ * the same matching used for choices. The course total counts every planned course any child lists.
+ * Children that aren't course lists count when satisfied on their own.
+ */
+function evaluateNumberOf(rule: GroupRule, planned: PlannedForAudit[]): RuleResult {
+  const children = rule.children.map((c) => evaluateRule(c, planned));
+  const lists = rule.children.filter((c): c is CoursesRule => c.kind === "courses");
+  const asChoices = lists.map((c) => ({ options: c.choices.flatMap((ch) => ch.options) }));
+  const areas =
+    matchChoices(asChoices, planned).filter((id) => id != null).length +
+    children.filter((c) => c.rule.kind !== "courses" && c.satisfied && c.units > 0).length;
+  const listed = new Set(lists.flatMap(listedCourseIds));
+  const coursesCount = new Set(planned.map((p) => p.courseId).filter((id) => listed.has(id))).size;
+  const count = rule.count ?? 1;
+  const satisfied = areas >= count && coursesCount >= (rule.totalCourses ?? 0);
+  return { rule, satisfied, units: 1, filled: satisfied ? 1 : 0, children, areas, coursesCount };
 }
 
 function collectCourseIds(r: RuleResult, out: Set<CourseId>) {
