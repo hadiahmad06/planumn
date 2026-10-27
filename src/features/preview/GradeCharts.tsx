@@ -10,7 +10,8 @@ import { cn } from "@/components/ui/cn";
  * grades (F → A, with the average GPA) beside a small bar chart of S / N / W. Hover or focus shows the
  * exact share. Each chart has a visually hidden table with the same numbers.
  */
-const LETTERS = ["F", "D-", "D", "D+", "C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+"];
+// UMN awards no D-; A+ shows only when the data has it.
+const LETTERS = ["F", "D", "D+", "C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+"];
 const OTHER = ["S", "P", "N", "W"];
 /** 2025 rule: a W share above 7.5% is worth flagging. */
 const HIGH_W = 0.075;

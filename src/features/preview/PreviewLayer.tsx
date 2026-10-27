@@ -6,6 +6,7 @@ import { courseCode } from "@/domain/course";
 import { cn } from "@/components/ui/cn";
 import { CloseIcon, GripIcon } from "@/components/ui/icons";
 import { CourseDetails, PreviewHeading } from "./CourseDetails";
+import { AddToSemesterButton } from "@/features/plan-editor/AddToSemesterButton";
 import { clampPanel } from "./geometry";
 import { usePreviewStore } from "./store";
 
@@ -195,6 +196,8 @@ function PreviewPanel({
             }}
           >
             {course ? <PreviewHeading course={course} className="flex-1" /> : <div className="flex-1" />}
+            {/* "+" adds this course to the selected semester (Hadi, 2026-10-27). */}
+            {course && <AddToSemesterButton courseId={course.id} code={courseCode(course)} className="-mt-0.5 mr-1" />}
             <button
               type="button"
               className="-mt-1 shrink-0 cursor-grab rounded-row p-1.5 text-text-tertiary hover:text-text-primary focus-visible:outline-2 focus-visible:outline-accent"
