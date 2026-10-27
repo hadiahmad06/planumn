@@ -32,10 +32,12 @@ export function UserMenu() {
     <>
       <Dropdown.Root>
         <Dropdown.Trigger
-          className="rounded-full border border-border-strong bg-surface px-4 py-2 text-sm focus-visible:outline-2 focus-visible:outline-accent"
+          className="h-10 max-w-24 truncate rounded-full border border-border-strong bg-surface px-3 text-sm focus-visible:outline-2 focus-visible:outline-accent"
           disabled={loading}
+          aria-label={loading ? "Checking account" : "Open account menu"}
+          title={user?.email || "Account"}
         >
-          {loading ? "Checking account…" : user?.email || "Account"}
+          {loading ? "…" : user?.email?.slice(0, 1).toUpperCase() || "Account"}
         </Dropdown.Trigger>
         <Dropdown.Portal>
           <Dropdown.Content
@@ -43,6 +45,11 @@ export function UserMenu() {
             sideOffset={8}
             className="z-[190] min-w-48 rounded-card border border-border bg-surface p-1 shadow-overlay"
           >
+            {user?.email && (
+              <Dropdown.Label className="max-w-64 break-all px-3 py-2 text-xs text-text-secondary">
+                {user.email}
+              </Dropdown.Label>
+            )}
             {!user && (
               <Dropdown.Item className={item} onSelect={() => setModal("auth")}>
                 Sign in / Create account
