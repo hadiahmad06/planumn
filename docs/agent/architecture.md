@@ -50,6 +50,7 @@ src/
 | Course types | `src/domain/course.ts` | Hadi's Claude | everyone |
 | `GET /api/courses/search?q=` → `CourseSummary[]` | `src/app/api/courses/search/route.ts` | Hadi's Claude | search, transcript import |
 | `GET /api/courses?ids=` → `CourseDetails[]` | `src/app/api/courses/route.ts` | Hadi's Claude | course cache |
+| `GET /api/courses/[courseId]/instructors` → `InstructorInsight[]` (named instructor/term/grade aggregates; Twin Cities only; invalid ID 400, catalog unavailable 503; unknown ID empty) | `src/server/catalog/instructors.ts`, new API route, `src/features/preview/instructor.ts` | Michael's Codex (B9 assignment on #16) | `<InstructorInsights courseId />` in previews; alphabetical history, ≥20 letter grades for GPA, loading/empty/error/retry states; RMP deferred |
 | `useCourse(id)`, `useCourses(ids)`, `fetchCourses(ids)` | `src/features/catalog/courseCache.ts` | Hadi's Claude | preview, cards, requirements |
 | `GET /api/programs/:programGroupId` → `Program` (requirements, courses resolved to catalog ids) | `src/app/api/programs/[id]/route.ts` | Hadi's Claude | requirements rail |
 | `CourseDetails.prereqText` (prerequisite clause) + `parsePrereqs` / `checkPrereqs` | `src/domain/course.ts`, `src/domain/prereqs.ts` | Hadi's Claude | schedule warnings, preview |
