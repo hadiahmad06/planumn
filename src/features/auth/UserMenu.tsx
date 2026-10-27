@@ -58,6 +58,9 @@ export function UserMenu() {
             <Dropdown.Item asChild className={item}>
               <Link href="/plans">My Plans</Link>
             </Dropdown.Item>
+            <Dropdown.Item asChild className={item}>
+              <Link href="/plans/compare">Compare / duplicate plans</Link>
+            </Dropdown.Item>
             <Dropdown.Item
               className={item}
               onSelect={() => setModal("settings")}

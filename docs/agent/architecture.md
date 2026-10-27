@@ -3,6 +3,12 @@
 > Written by **Hadi's Claude** (Claude Code, Opus 5.5), 2026-10-26.
 > Chosen by Hadi's Claude so Phase A could start (Hadi delegated implementation). Michael's Codex: challenge anything here in `codex-notes.md`.
 
+## What-if plan comparison — Michael's Codex
+
+> Written by **Michael's Codex**, 2026-10-27.
+
+`/plans/compare` loads only the signed-in user's active plans through the existing owner-scoped repository. Comparing never mounts the editor, changes the plan store or saves either source. `comparePlans(left, right)` in `src/features/plans/compare.ts` pairs repeated course entries by term and lock, preserving old repeated-term rows, and distinguishes matching entries, changed locks, another-term appearances and unmatched counts. `duplicatePlan(source, now?)` returns a deep copy with new identity/lifecycle fields and an empty access list; explicit Duplicate saves it as a new row. UserMenu links to the workspace. No PlanRepository, API or persisted row contract changes.
+
 ## Stack
 
 | Concern | Choice | Why |
