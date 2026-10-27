@@ -4,7 +4,7 @@ import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useState } from "react";
 import { formatCredits } from "@/domain/course";
-import { placeholderCredits, SEMESTER_KINDS, type Semester } from "@/domain/plan";
+import { placeholderCredits, SEMESTER_KINDS, semesterKindLabel, type Semester } from "@/domain/plan";
 import { termLabel } from "@/domain/terms";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { cn } from "@/components/ui/cn";
@@ -38,7 +38,8 @@ export function SemesterColumn({ semester, issues }: { semester: Semester; issue
   const mobile = useIsMobile();
   const selectTerm = useEditorUi((s) => s.selectTerm);
 
-  const kindLabel = SEMESTER_KINDS.find((k) => k.kind === semester.kind)?.label;
+  const kindLabel = semesterKindLabel(semester.kind);
+  const prior = semester.kind === "prior";
   const remove = () => (semester.courses.length || slots.length ? setConfirming(true) : planActions.removeSemester(semester.index));
 
   return (
@@ -73,7 +74,7 @@ export function SemesterColumn({ semester, issues }: { semester: Semester; issue
           </span>
         )}
         <span className="ml-auto flex items-center gap-1.5 text-micro text-text-secondary">
-          <WorkloadBadge semester={semester} />
+          {!prior && <WorkloadBadge semester={semester} />}
           {formatCredits(credits)} cr
         </span>
         <Menu
@@ -84,12 +85,12 @@ export function SemesterColumn({ semester, issues }: { semester: Semester; issue
           }
         >
           <MenuItem onSelect={() => setAddingSlot(true)}>Add placeholder…</MenuItem>
-          {SEMESTER_KINDS.filter((k) => k.kind !== semester.kind).map((k) => (
+          {!prior && SEMESTER_KINDS.filter((k) => k.kind !== semester.kind).map((k) => (
             <MenuItem key={k.kind} onSelect={() => planActions.setSemesterKind(semester.index, k.kind)}>
               Mark as {k.label.toLowerCase()}
             </MenuItem>
           ))}
-          {semester.kind && <MenuItem onSelect={() => planActions.setSemesterKind(semester.index, null)}>Mark as regular semester</MenuItem>}
+          {semester.kind && !prior && <MenuItem onSelect={() => planActions.setSemesterKind(semester.index, null)}>Mark as regular semester</MenuItem>}
           <MenuItem danger onSelect={remove}>Remove {label}</MenuItem>
         </Menu>
       </header>
@@ -103,7 +104,11 @@ export function SemesterColumn({ semester, issues }: { semester: Semester; issue
           ))}
           {semester.courses.length === 0 && slots.length === 0 && (
             <li className="flex flex-1 list-none items-center justify-center rounded-card border border-dashed border-border-strong/70 py-6 text-micro text-text-tertiary">
-              {mobile ? "Add from search or Requirements" : "Drop courses here"}
+              {prior
+                ? "Drag the UMN equivalents of AP, IB or transfer courses here, or add a placeholder"
+                : mobile
+                  ? "Add from search or Requirements"
+                  : "Drop courses here"}
             </li>
           )}
         </ul>

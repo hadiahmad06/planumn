@@ -59,6 +59,8 @@ export const planActions = {
   removePlaceholder: (term: TermCode, key: string) => edit((p) => ops.removePlaceholder(p, term, key)),
   // B19 (Ishaan's Claude): study abroad / co-op / leave, or null for a regular semester.
   setSemesterKind: (term: TermCode, kind: SemesterKind | null) => edit((p) => ops.setSemesterKind(p, term, kind)),
+  // B18 (Ishaan's Claude): the AP / IB / transfer credit bucket.
+  addPriorCredit: () => edit((p) => ops.addPriorCredit(p)),
 };
 
 export const usePlanStore = create<PlanStoreState>()((set) => ({

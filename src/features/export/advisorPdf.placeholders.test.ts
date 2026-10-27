@@ -27,3 +27,14 @@ describe("advisor PDF with special semesters (B19)", () => {
     expect(text).toContain("Study abroad");
   });
 });
+
+describe("advisor PDF with prior credit (B18)", () => {
+  it("lists prior credit in the header instead of the year grid", async () => {
+    const plan = createEmptyPlan(new Date("2026-10-26T12:00:00Z"));
+    plan.semesters.unshift({ index: "1265", courses: [{ id: 1, lock: "unlocked" }], placeholders: [{ key: "p", label: "AP Psychology", credits: 3 }], kind: "prior" });
+    const course: CourseSummary = { id: 1, dept: "MATH", number: "1271", title: "Calculus I", credits: { min: 4, max: 4 } };
+    const text = await extractTranscriptText(Buffer.from((await createAdvisorPdf(plan, { 1: course })).bytes));
+    expect(text).toContain("Prior credit (AP, IB, transfer): MATH 1271 (4 cr); AP Psychology (3 cr)");
+    expect(text).not.toContain("2025"); // no extra 2025–26 row for the bucket
+  });
+});

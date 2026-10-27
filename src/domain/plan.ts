@@ -37,13 +37,29 @@ export interface Semester {
 }
 
 /** Special semesters (B19, Ishaan's Claude): study abroad, co-op / internship, leave of absence. */
-export type SemesterKind = "abroad" | "coop" | "leave";
-export const SEMESTER_KINDS: { kind: SemesterKind; label: string }[] = [
+export type SemesterKind = "abroad" | "coop" | "leave" | "prior";
+/** Kinds a student can mark a term as (B19). "prior" (B18) is created by the prior-credit panel instead. */
+export const SEMESTER_KINDS: { kind: Exclude<SemesterKind, "prior">; label: string }[] = [
   { kind: "abroad", label: "Study abroad" },
   { kind: "coop", label: "Co-op / internship" },
   { kind: "leave", label: "Leave of absence" },
 ];
-export const isSemesterKind = (v: unknown): v is SemesterKind => v === "abroad" || v === "coop" || v === "leave";
+export const isSemesterKind = (v: unknown): v is SemesterKind => v === "abroad" || v === "coop" || v === "leave" || v === "prior";
+
+/**
+ * B18 (Ishaan's Claude): AP / IB / CLEP / transfer credit lives in one "prior credit" semester, one term
+ * before the plan's first regular semester. It's a normal semester in the 2025 row shape (courses +
+ * B2 slots), so credit totals, prerequisites and requirements count it with no extra wiring.
+ */
+export const PRIOR_CREDIT_LABEL = "Prior credit (AP, IB, transfer)";
+
+export function semesterKindLabel(kind: SemesterKind | undefined): string | null {
+  if (!kind) return null;
+  if (kind === "prior") return PRIOR_CREDIT_LABEL;
+  return SEMESTER_KINDS.find((k) => k.kind === kind)?.label ?? null;
+}
+
+export const isPriorCredit = (s: Pick<Semester, "kind">) => s.kind === "prior";
 
 export const MAX_PLACEHOLDERS_PER_SEMESTER = 20;
 

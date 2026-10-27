@@ -121,6 +121,8 @@ export function healthCheck({ plan, courses, prereqs, now = new Date() }: Health
   const current = currentTerm(now);
 
   for (const s of plan.semesters) {
+    // B18: prior credit (AP / IB / transfer) is already earned, so it gets no prerequisite or offering notes.
+    if (s.kind === "prior") continue;
     for (const c of s.courses) {
       const course = courses[c.id];
       if (!course || c.lock === "locked") continue;
