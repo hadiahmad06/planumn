@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSaveState } from "./saveState";
+import { ExportPlanButton } from "@/features/export/ExportPlanButton";
 /** Written by Michael's Codex. */
 export function SaveStatus() {
   const { status, savedAt, local, error, retry } = useSaveState();
@@ -15,26 +16,29 @@ export function SaveStatus() {
       ? Math.max(0, Math.floor((now - Date.parse(savedAt)) / 60000))
       : 0;
   return (
-    <span
-      role="status"
-      className={`text-xs ${status === "error" ? "text-danger" : "text-text-secondary"}`}
-    >
-      {status === "error" ? (
-        <>
-          {error || "Saving failed."}{" "}
-          <button type="button" onClick={retry} className="underline">
-            Retry save
-          </button>
-        </>
-      ) : status === "pending" || status === "saving" ? (
-        "Saving…"
-      ) : status === "saved" ? (
-        `${local ? "Saved in this browser" : "Saved"}${minutes ? ` ${minutes} min ago` : " just now"}`
-      ) : local ? (
-        "Browser autosave"
-      ) : (
-        "Cloud autosave"
-      )}
-    </span>
+    <>
+      <span
+        role="status"
+        className={`text-xs ${status === "error" ? "text-danger" : "text-text-secondary"}`}
+      >
+        {status === "error" ? (
+          <>
+            {error || "Saving failed."}{" "}
+            <button type="button" onClick={retry} className="underline">
+              Retry save
+            </button>
+          </>
+        ) : status === "pending" || status === "saving" ? (
+          "Saving…"
+        ) : status === "saved" ? (
+          `${local ? "Saved in this browser" : "Saved"}${minutes ? ` ${minutes} min ago` : " just now"}`
+        ) : local ? (
+          "Browser autosave"
+        ) : (
+          "Cloud autosave"
+        )}
+      </span>
+      <ExportPlanButton />
+    </>
   );
 }
