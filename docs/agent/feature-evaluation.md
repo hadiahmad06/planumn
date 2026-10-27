@@ -89,8 +89,8 @@ Ordered so each row only depends on rows above it. "2025" = how far it got in th
 | 32 | E19 | Mobile layout, collapsible requirements, tap-to-add picker | Live / Partial | 4, 27 | 13 | |
 | **A6** | | **Site** | | | | |
 | 33 | E20 | Landing page (hero, demo video, signed-in vs out), contact, privacy, OG image/logo, analytics | Live | 3 | — | |
-| **A7** | | **Built in 2025, pending a keep/cut call** | | | | |
-| 34 | E17 | AI Advisor chatbot (OpenRouter, tools: search, details, plan info, prereqs) | Branch | 1, 16, 29 | **6** | Hadi: "probably pointless." Recommend **cut**. It's listed here only because it was built in 2025. |
+| **Z** | | **Phase Z — backburner (Hadi, 2026-10-26)** | | | | |
+| 34 | E17 | AI Advisor chatbot (OpenRouter, tools: search, details, plan info, prereqs) | Branch | 1, 16, 29 | **6** | **Moved to Phase Z (backburner)** by Hadi, 2026-10-26 |
 
 ---
 
