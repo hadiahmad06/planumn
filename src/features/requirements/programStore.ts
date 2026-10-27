@@ -20,7 +20,8 @@ export async function loadProgram(id: string, force = false) {
   useProgramStore.setState((s) => ({ entries: { ...s.entries, [id]: { status: "loading" } } }));
   try {
     const res = await fetch(`/api/programs/${encodeURIComponent(id)}`);
-    const body = await res.json();
+    // Platform error pages (e.g. a gateway timeout) aren't JSON; keep the route's own message when it is.
+    const body = await res.json().catch(() => ({ error: `planu.mn couldn't load this program (error ${res.status}). Try again.` }));
     if (res.ok) useCourseCache.getState().putSummaries(listedSummaries(body as Program));
     const entry: Entry = res.ok ? { status: "ready", program: body as Program } : { status: "error", message: body.error ?? `Error ${res.status}` };
     useProgramStore.setState((s) => ({ entries: { ...s.entries, [id]: entry } }));

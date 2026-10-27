@@ -7,6 +7,8 @@ import type { RawProgram } from "./normalize";
  * cached for a day and every caller must handle failure.
  */
 const BASE = "https://app.coursedog.com/api/v1/cm/umn_umntc_peoplesoft";
+/** A hung catalog request becomes the route's 502 instead of holding the function open. */
+const TIMEOUT_MS = 10_000;
 const HEADERS = {
   Accept: "application/json",
   Origin: "https://umtc.catalog.prod.coursedog.com",
@@ -32,7 +34,7 @@ export async function fetchProgramVersions(programGroupId: string): Promise<Reco
     `${BASE}/programs?programGroupIds=${encodeURIComponent(programGroupId)}` +
     `&effectiveDatesRange=${today}%2C${later}` +
     "&doNotDisplayAllMappedRevisionsAsDependencies=true&formatDependents=true&includeMappedDocumentItems=true";
-  const res = await fetch(url, { headers: HEADERS });
+  const res = await fetch(url, { headers: HEADERS, signal: AbortSignal.timeout(TIMEOUT_MS) });
   if (!res.ok) throw new Error(`CourseDog programs ${programGroupId}: ${res.status}`);
   return (await res.json()) as Record<string, RawProgram>;
 }
@@ -45,7 +47,7 @@ export async function fetchCourseDogCourses(groupIds: string[]): Promise<CourseD
   const url =
     `${BASE}/courses/search/%24filters?courseGroupIds=${groupIds.map(encodeURIComponent).join(",")}` +
     `&limit=${groupIds.length + 20}&columns=code,name,courseGroupId,credits,subjectCode,courseNumber`;
-  const res = await fetch(url, { headers: HEADERS });
+  const res = await fetch(url, { headers: HEADERS, signal: AbortSignal.timeout(TIMEOUT_MS) });
   if (!res.ok) throw new Error(`CourseDog courses: ${res.status}`);
   const body = (await res.json()) as { data?: CourseDogCourse[] };
   return body.data ?? [];
