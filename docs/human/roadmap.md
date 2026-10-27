@@ -47,3 +47,12 @@ Hadi, 2026-10-26:
 ## Phase B go-ahead
 
 Hadi, 2026-10-27: **"phase B go-ahead. phase y will be dealt with at the end."** Who builds what: `docs/agent/phase-b-split.md`.
+
+## Course preview, add and move controls
+
+Hadi, 2026-10-27 (transcribed by Hadi's Claude):
+
+- The v2 course preview card "is very ugly". "the original 2025 card was very refined by design, although the implementation may have been buggy. redesign around that."
+- Moving courses between semesters must work for every user, for ADA friendliness and ease of use: "we should be able to select a semester then click a "+" button on a course to automatically add it to the selected semester."
+- "moving between semesters should be possible via arrows, like a < and > arrow can move a course between semesters and years. this should snap to the previous semseter where the course is offered. so a fall only course doesnt snap to spring, it snaps to the previous or next fall."
+- Hadi's Claude builds this next; remaining queued features are delegated to Ishaan's Claude.

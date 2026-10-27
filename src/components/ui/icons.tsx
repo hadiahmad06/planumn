@@ -40,6 +40,16 @@ export const SearchIcon = (p: IconProps) => (
 export const FilterIcon = (p: IconProps) => (
   <Icon {...p}><path d="M2.5 4h11M4.5 8h7M6.5 12h3" /></Icon>
 );
+export const GripIcon = (p: IconProps) => (
+  <Icon {...p}>
+    <circle cx="6" cy="4" r="0.6" fill="currentColor" />
+    <circle cx="10" cy="4" r="0.6" fill="currentColor" />
+    <circle cx="6" cy="8" r="0.6" fill="currentColor" />
+    <circle cx="10" cy="8" r="0.6" fill="currentColor" />
+    <circle cx="6" cy="12" r="0.6" fill="currentColor" />
+    <circle cx="10" cy="12" r="0.6" fill="currentColor" />
+  </Icon>
+);
 export const SettingsIcon = (p: IconProps) => (
   <Icon {...p}><circle cx="8" cy="8" r="2" /><path d="M8 1.8v1.6M8 12.6v1.6M1.8 8h1.6M12.6 8h1.6M3.6 3.6l1.1 1.1M11.3 11.3l1.1 1.1M3.6 12.4l1.1-1.1M11.3 4.7l1.1-1.1" /></Icon>
 );

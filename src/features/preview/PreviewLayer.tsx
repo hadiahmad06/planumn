@@ -3,11 +3,13 @@
 import { useEffect, useRef, useState, type PointerEvent } from "react";
 import { fetchCourses, useCourseCache } from "@/features/catalog/courseCache";
 import { courseCode } from "@/domain/course";
-import { CourseDetails } from "./CourseDetails";
+import { cn } from "@/components/ui/cn";
+import { CloseIcon, GripIcon } from "@/components/ui/icons";
+import { CourseDetails, PreviewHeading } from "./CourseDetails";
 import { clampPanel } from "./geometry";
 import { usePreviewStore } from "./store";
 
-/** Written by Michael's Codex. Nonmodal panels keep the plan usable while comparing. */
+/** Written by Michael's Codex; 2025-style chrome by Hadi's Claude. Nonmodal panels keep the plan usable while comparing. */
 function PreviewPanel({
   id,
   index,
@@ -82,7 +84,7 @@ function PreviewPanel({
         ),
       );
   }
-  function start(event: PointerEvent<HTMLButtonElement>) {
+  function start(event: PointerEvent<HTMLElement>) {
     if (event.button !== 0) return;
     if (!temporary) open(id);
     drag.current = {
@@ -94,13 +96,44 @@ function PreviewPanel({
     event.currentTarget.setPointerCapture(event.pointerId);
   }
 
+  const status = course ? null : missing ? (
+    <p className="p-5" role="status">
+      This course is no longer in the catalog.
+    </p>
+  ) : error ? (
+    <div className="p-5" role="alert">
+      <p>Course details could not be loaded.</p>
+      <button
+        type="button"
+        className="mt-3 text-accent underline"
+        onClick={() => {
+          setError(false);
+          setRetry((r) => r + 1);
+        }}
+      >
+        Try again
+      </button>
+    </div>
+  ) : (
+    <div className="flex animate-pulse flex-col gap-2 p-5 motion-reduce:animate-none" role="status" aria-label="Loading course details">
+      <div className="h-6 w-2/5 rounded-row bg-sunken" />
+      <div className="h-4 w-3/5 rounded-row bg-sunken" />
+      <div className="mt-2 h-14 rounded-row bg-sunken" />
+    </div>
+  );
+
   return (
     <aside
       ref={panel}
       role="dialog"
       aria-modal="false"
       aria-label={course ? `${courseCode(course)} preview` : "Course preview"}
-      className="pointer-events-auto fixed flex w-[min(360px,calc(100vw-16px))] flex-col overflow-hidden rounded-modal border border-border-strong bg-surface shadow-overlay"
+      className={cn(
+        "pointer-events-auto fixed flex flex-col overflow-hidden rounded-modal border bg-surface shadow-overlay transition-shadow",
+        temporary
+          ? "w-[min(560px,calc(100vw-16px))] border-border-strong"
+          : "w-[min(380px,calc(100vw-16px))] border-accent ring-4 ring-accent/20",
+      )}
       style={{
         left: position.x,
         top: position.y,
@@ -127,42 +160,12 @@ function PreviewPanel({
         }
       }}
     >
-      <header className="flex shrink-0 items-center border-b border-border bg-sunken px-2 py-1.5">
-        <button
-          type="button"
-          className="min-w-0 flex-1 cursor-grab touch-none rounded-row p-2 text-left text-xs font-medium focus-visible:outline-2 focus-visible:outline-accent"
-          aria-label="Move preview panel. Use arrow keys to reposition."
-          onPointerDown={start}
-          onPointerUp={() => {
-            drag.current = null;
-          }}
-          onPointerCancel={() => {
-            drag.current = null;
-          }}
-          onPointerMove={(event) => {
-            const d = drag.current;
-            if (d) move(d.px + event.clientX - d.x, d.py + event.clientY - d.y);
-          }}
-          onKeyDown={(event) => {
-            const delta: Record<string, [number, number]> = {
-              ArrowLeft: [-20, 0],
-              ArrowRight: [20, 0],
-              ArrowUp: [0, -20],
-              ArrowDown: [0, 20],
-            };
-            const d = delta[event.key];
-            if (d) {
-              event.preventDefault();
-              move(position.x + d[0], position.y + d[1]);
-            }
-          }}
-        >
-          {temporary ? "Quick preview" : "Course comparison"}
-        </button>
-        {temporary && (
+      {temporary ? (
+        <div className="min-h-0 overflow-y-auto overscroll-contain">
+          {course ? <CourseDetails course={course} variant="hover" /> : status}
           <button
             type="button"
-            className="rounded-row px-3 py-2 text-xs font-semibold text-accent"
+            className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:right-2 focus:rounded-row focus:bg-surface focus:px-2 focus:py-1 focus:text-micro focus:text-accent"
             onClick={() => {
               open(id);
               hover(null);
@@ -170,49 +173,60 @@ function PreviewPanel({
           >
             Keep open
           </button>
-        )}
-        <button
-          type="button"
-          className="rounded-row px-3 py-2 text-lg hover:bg-accent-soft focus-visible:outline-2 focus-visible:outline-accent"
-          aria-label="Close preview"
-          onClick={() => {
-            if (temporary) hover(null);
-            else close(id);
-          }}
-        >
-          ×
-        </button>
-      </header>
-      <div className="min-h-0 overflow-y-auto overscroll-contain">
-        {course ? (
-          <CourseDetails course={course} />
-        ) : missing ? (
-          <p className="p-5" role="status">
-            This course is no longer in the catalog.
-          </p>
-        ) : error ? (
-          <div className="p-5" role="alert">
-            <p>Course details could not be loaded.</p>
+        </div>
+      ) : (
+        <>
+          {/* The heading is the drag handle (2025: the whole card dragged); the grip button moves it by keyboard. */}
+          <header
+            className="flex shrink-0 cursor-grab touch-none items-start gap-1 px-5 pt-4 pb-2 active:cursor-grabbing"
+            onPointerDown={(event) => {
+              if ((event.target as Element).closest("button")) return;
+              start(event);
+            }}
+            onPointerUp={() => {
+              drag.current = null;
+            }}
+            onPointerCancel={() => {
+              drag.current = null;
+            }}
+            onPointerMove={(event) => {
+              const d = drag.current;
+              if (d) move(d.px + event.clientX - d.x, d.py + event.clientY - d.y);
+            }}
+          >
+            {course ? <PreviewHeading course={course} className="flex-1" /> : <div className="flex-1" />}
             <button
               type="button"
-              className="mt-3 text-accent underline"
-              onClick={() => {
-                setError(false);
-                setRetry((r) => r + 1);
+              className="-mt-1 shrink-0 cursor-grab rounded-row p-1.5 text-text-tertiary hover:text-text-primary focus-visible:outline-2 focus-visible:outline-accent"
+              aria-label="Move preview panel. Use arrow keys to reposition."
+              onKeyDown={(event) => {
+                const delta: Record<string, [number, number]> = {
+                  ArrowLeft: [-20, 0],
+                  ArrowRight: [20, 0],
+                  ArrowUp: [0, -20],
+                  ArrowDown: [0, 20],
+                };
+                const d = delta[event.key];
+                if (d) {
+                  event.preventDefault();
+                  move(position.x + d[0], position.y + d[1]);
+                }
               }}
             >
-              Try again
+              <GripIcon />
             </button>
-          </div>
-        ) : (
-          <p
-            className="animate-pulse p-5 motion-reduce:animate-none"
-            role="status"
-          >
-            Loading course details…
-          </p>
-        )}
-      </div>
+            <button
+              type="button"
+              className="-mt-1 -mr-2 shrink-0 rounded-row p-1.5 text-text-secondary hover:bg-accent-soft hover:text-accent focus-visible:outline-2 focus-visible:outline-accent"
+              aria-label="Close preview"
+              onClick={() => close(id)}
+            >
+              <CloseIcon />
+            </button>
+          </header>
+          <div className="min-h-0 overflow-y-auto overscroll-contain">{course ? <CourseDetails course={course} /> : status}</div>
+        </>
+      )}
     </aside>
   );
 }
