@@ -23,6 +23,8 @@ export function parseQuery(raw: string): ParsedQuery {
 }
 
 export function searchCourses(raw: string, limit = 50): CourseSummary[] {
+  // SQLite treats a negative LIMIT as "no limit", so never pass one through.
+  const safeLimit = Number.isInteger(limit) ? Math.min(Math.max(limit, 1), 100) : 50;
   const { dept, number, words } = parseQuery(raw);
   if (!dept && !number && words.length === 0) return [];
 
@@ -63,6 +65,6 @@ export function searchCourses(raw: string, limit = 50): CourseSummary[] {
        ORDER BY ${priority ? `${priority}, ` : ""}dept_abbr, CAST(course_num AS INTEGER), course_num
        LIMIT ?`,
     )
-    .all(...params, ...priorityParams, limit) as unknown as CourseRow[];
+    .all(...params, ...priorityParams, safeLimit) as unknown as CourseRow[];
   return rows.map(toSummary);
 }
