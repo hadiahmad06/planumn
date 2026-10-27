@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { Plan } from "@/domain/plan";
 import { SaveStatus } from "@/features/plans/SaveStatus";
 import { SharePlanButton } from "@/features/sharing/SharePlanButton";
+import { AutofillButton } from "./AutofillButton";
 import { ProgressWidget } from "@/features/requirements/ProgressWidget";
 import { planActions } from "./store";
 import { HealthPanel } from "./HealthPanel";
@@ -52,6 +53,8 @@ export function PlanHeader({ plan }: { plan: Plan }) {
         <SaveStatus />
         {/* B15 editor action (Ishaan's Claude): guests and saved plans alike can share a snapshot. */}
         <SharePlanButton plan={plan} compact />
+        {/* B24: suggest courses for the remaining semesters (review first). */}
+        <AutofillButton plan={plan} />
         <ProgressWidget plan={plan} />
         <HealthPanel plan={plan} />
         <ViewOptions />
