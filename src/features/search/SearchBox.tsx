@@ -4,6 +4,7 @@ import { useDndMonitor, useDraggable, useDroppable } from "@dnd-kit/core";
 import { useId, useRef, useState } from "react";
 import { courseCode, formatCredits, type CourseSummary } from "@/domain/course";
 import { cn } from "@/components/ui/cn";
+import { useSearchShortcut } from "@/features/theme/useSearchShortcut";
 import { SearchIcon } from "@/components/ui/icons";
 import { usePreviewStore } from "@/features/preview/store";
 import { CANCEL_DROP_ID, externalId, type DragData, type DropData } from "@/features/plan-editor/dnd";
@@ -92,6 +93,7 @@ export function SearchBox() {
   const [active, setActive] = useState(0);
   const [expanded, setExpanded] = useState<number | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  useSearchShortcut(inputRef);
   const listId = useId();
   const { results, loading, query: settled } = useCourseSearch(query);
   const openPreview = usePreviewStore((s) => s.openPreview);
@@ -142,12 +144,14 @@ export function SearchBox() {
           }}
           placeholder={mobile ? "Search courses" : "Search courses: csci 2041, discrete math…"}
           aria-label="Search courses"
+          aria-keyshortcuts="Meta+K Control+K"
           role="combobox"
           aria-expanded={open}
           aria-controls={listId}
           aria-activedescendant={open && results[activeIndex] ? `${listId}-${activeIndex}` : undefined}
           className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-text-tertiary"
         />
+        <kbd className="hidden shrink-0 text-micro text-text-secondary sm:inline" aria-hidden="true">⌘/Ctrl K</kbd>
       </div>
       {open && (
         <div

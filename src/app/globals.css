@@ -7,6 +7,7 @@
  * Dark mode (Phase B) = one more block overriding the same names.
  */
 :root {
+  color-scheme: light;
   --bg-canvas: #f8ece8;
   --bg-surface: #ffffff;
   --bg-sunken: #f3e4df;
@@ -34,7 +35,68 @@
   --stripe-neutral: #a89e9c;
 
   --shadow-card: 0 1px 2px rgb(26 20 20 / 0.06), 0 1px 1px rgb(26 20 20 / 0.04);
-  --shadow-overlay: 0 12px 32px rgb(26 20 20 / 0.16), 0 2px 6px rgb(26 20 20 / 0.08);
+  --shadow-overlay:
+    0 12px 32px rgb(26 20 20 / 0.16), 0 2px 6px rgb(26 20 20 / 0.08);
+}
+
+/* Written by Michael's Codex. Explicit light overrides the device preference. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg-canvas: #171316;
+  --bg-surface: #211b1e;
+  --bg-sunken: #2b2428;
+  --text-primary: #f4eaee;
+  --text-secondary: #c8b8be;
+  --text-tertiary: #b7a8ad;
+  --accent: #f2a4b8;
+  --accent-hover: #ffc0cf;
+  --accent-soft: #4b2937;
+  --success: #80cba3;
+  --success-soft: #203b2c;
+  --warning: #e9b964;
+  --warning-soft: #40341f;
+  --danger: #f1a19b;
+  --border-subtle: #44343c;
+  --border-strong: #68535c;
+  --stripe-1: #f2a4b8;
+  --stripe-2: #e5b754;
+  --stripe-3: #d79b7d;
+  --stripe-4: #8db5d0;
+  --stripe-5: #95bd91;
+  --stripe-6: #b59bcf;
+  --stripe-neutral: #b7a8ad;
+  --shadow-card: 0 1px 3px rgb(0 0 0 / 0.3);
+  --shadow-overlay: 0 12px 32px rgb(0 0 0 / 0.5);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg-canvas: #171316;
+    --bg-surface: #211b1e;
+    --bg-sunken: #2b2428;
+    --text-primary: #f4eaee;
+    --text-secondary: #c8b8be;
+    --text-tertiary: #b7a8ad;
+    --accent: #f2a4b8;
+    --accent-hover: #ffc0cf;
+    --accent-soft: #4b2937;
+    --success: #80cba3;
+    --success-soft: #203b2c;
+    --warning: #e9b964;
+    --warning-soft: #40341f;
+    --danger: #f1a19b;
+    --border-subtle: #44343c;
+    --border-strong: #68535c;
+    --stripe-1: #f2a4b8;
+    --stripe-2: #e5b754;
+    --stripe-3: #d79b7d;
+    --stripe-4: #8db5d0;
+    --stripe-5: #95bd91;
+    --stripe-6: #b59bcf;
+    --stripe-neutral: #b7a8ad;
+    --shadow-card: 0 1px 3px rgb(0 0 0 / 0.3);
+    --shadow-overlay: 0 12px 32px rgb(0 0 0 / 0.5);
+  }
 }
 
 @theme inline {
