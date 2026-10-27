@@ -37,6 +37,9 @@ export const LockIcon = (p: IconProps) => (
 export const SearchIcon = (p: IconProps) => (
   <Icon {...p}><circle cx="7" cy="7" r="4.25" /><path d="M10.2 10.2L13 13" /></Icon>
 );
+export const FilterIcon = (p: IconProps) => (
+  <Icon {...p}><path d="M2.5 4h11M4.5 8h7M6.5 12h3" /></Icon>
+);
 export const SettingsIcon = (p: IconProps) => (
   <Icon {...p}><circle cx="8" cy="8" r="2" /><path d="M8 1.8v1.6M8 12.6v1.6M1.8 8h1.6M12.6 8h1.6M3.6 3.6l1.1 1.1M11.3 11.3l1.1 1.1M3.6 12.4l1.1-1.1M11.3 4.7l1.1-1.1" /></Icon>
 );

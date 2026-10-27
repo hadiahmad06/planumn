@@ -5,10 +5,12 @@ import { useId, useRef, useState } from "react";
 import { courseCode, formatCredits, type CourseSummary } from "@/domain/course";
 import { cn } from "@/components/ui/cn";
 import { useSearchShortcut } from "@/features/theme/useSearchShortcut";
-import { SearchIcon } from "@/components/ui/icons";
+import { FilterIcon, SearchIcon } from "@/components/ui/icons";
 import { usePreviewStore } from "@/features/preview/store";
 import { CANCEL_DROP_ID, externalId, type DragData, type DropData } from "@/features/plan-editor/dnd";
 import { useCourseSearch } from "./useCourseSearch";
+import { SearchFilterBar } from "./SearchFilterBar";
+import { hasFilters, type SearchFilters } from "@/domain/searchFilters";
 import { termLabel } from "@/domain/terms";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { addCourseActions } from "@/features/plan-editor/courseActions";
@@ -85,6 +87,7 @@ function ResultRow({ course, active, id }: { course: CourseSummary; active: bool
 /**
  * Top-bar course search (A13). Results drop down under the input; drag a row into a semester,
  * or click it to open its preview. The dropdown stays open while a result is being dragged.
+ * The filter button opens B8's smart filters; with a filter set, the query may be empty.
  */
 export function SearchBox() {
   const [query, setQuery] = useState("");
@@ -92,10 +95,14 @@ export function SearchBox() {
   const [dragging, setDragging] = useState(false);
   const [active, setActive] = useState(0);
   const [expanded, setExpanded] = useState<number | null>(null);
+  const [filters, setFilters] = useState<SearchFilters>({});
+  const [showFilters, setShowFilters] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
   useSearchShortcut(inputRef);
   const listId = useId();
-  const { results, loading, query: settled } = useCourseSearch(query);
+  const filtered = hasFilters(filters);
+  const { results, settled, error } = useCourseSearch(query, filters);
   const openPreview = usePreviewStore((s) => s.openPreview);
   const selectedTerm = useEditorUi((s) => s.selectedTerm);
   const mobile = useIsMobile();
@@ -106,13 +113,22 @@ export function SearchBox() {
     onDragCancel: () => setDragging(false),
   });
 
-  const open = (focused || dragging) && query.trim().length > 0;
+  const searching = query.trim().length > 0 || filtered;
+  const open = (focused || dragging) && (searching || showFilters);
   const cancelData: DropData = { type: "cancel" };
   const { setNodeRef: setCancelRef } = useDroppable({ id: CANCEL_DROP_ID, data: cancelData, disabled: !open });
   const activeIndex = Math.min(active, Math.max(results.length - 1, 0));
 
   return (
-    <div className="relative w-full max-w-xl">
+    <div
+      ref={rootRef}
+      className="relative w-full max-w-xl"
+      // Focus moving between the input, the filter button and the filters keeps the dropdown open.
+      onFocus={() => setFocused(true)}
+      onBlur={(e) => {
+        if (!rootRef.current?.contains(e.relatedTarget as Node | null)) setFocused(false);
+      }}
+    >
       <div className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 focus-within:border-accent">
         <SearchIcon className="shrink-0 text-text-tertiary" />
         <input
@@ -122,8 +138,6 @@ export function SearchBox() {
             setQuery(e.target.value);
             setActive(0);
           }}
-          onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
           onKeyDown={(e) => {
             if (e.key === "ArrowDown") {
               e.preventDefault();
@@ -151,19 +165,41 @@ export function SearchBox() {
           aria-activedescendant={open && results[activeIndex] ? `${listId}-${activeIndex}` : undefined}
           className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-text-tertiary"
         />
+        <button
+          type="button"
+          onClick={() => {
+            setShowFilters((v) => !v);
+            inputRef.current?.focus();
+          }}
+          aria-label={filtered ? "Search filters (active)" : "Search filters"}
+          aria-pressed={showFilters}
+          className={cn(
+            "relative shrink-0 rounded-full p-0.5 hover:text-accent",
+            showFilters || filtered ? "text-accent" : "text-text-tertiary",
+          )}
+        >
+          <FilterIcon />
+          {filtered && <span className="absolute -top-0.5 -right-0.5 size-1.5 rounded-full bg-accent" aria-hidden />}
+        </button>
         <kbd className="hidden shrink-0 text-micro text-text-secondary sm:inline" aria-hidden="true">⌘/Ctrl K</kbd>
       </div>
       {open && (
         <div
           // Keep focus in the input while pressing on a result, so the dropdown doesn't close mid-drag.
           ref={setCancelRef}
-          onMouseDown={(e) => e.preventDefault()}
+          // The filter selects need their own mouse presses to open.
+          onMouseDown={(e) => {
+            if (!(e.target as Element).closest("[data-search-filters]")) e.preventDefault();
+          }}
           className={cn(
             "z-40 max-h-[60vh] overflow-auto rounded-card border border-border bg-surface p-1 shadow-overlay",
             mobile ? "fixed inset-x-3 top-14" : "absolute top-full right-0 left-0 mt-1",
           )}
         >
-          {results.length > 0 ? (
+          {(showFilters || filtered) && <SearchFilterBar filters={filters} onChange={setFilters} />}
+          {!searching ? (
+            <p className="px-3 py-2 text-text-tertiary">Pick a filter or type to search</p>
+          ) : results.length > 0 ? (
             <ul id={listId} role="listbox" aria-label="Search results">
               {results.map((c, i) =>
                 mobile ? (
@@ -180,7 +216,9 @@ export function SearchBox() {
               )}
             </ul>
           ) : (
-            <p className="px-3 py-2 text-text-tertiary">{loading || settled !== query.trim() ? "Searching…" : "No courses found"}</p>
+            <p className="px-3 py-2 text-text-tertiary">
+              {!settled ? "Searching…" : error ? error : filtered ? "No courses match these filters" : "No courses found"}
+            </p>
           )}
           {results.length > 0 && (
             <p className="px-3 pt-1 pb-1.5 text-micro text-text-tertiary">

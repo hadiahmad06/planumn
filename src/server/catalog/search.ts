@@ -1,6 +1,8 @@
 import "server-only";
 import type { CourseSummary } from "@/domain/course";
+import { hasFilters, matchesFilters, type SearchFilters } from "@/domain/searchFilters";
 import { CAMPUS, catalog } from "./db";
+import { courseFacts } from "./facts";
 import { toSummary, type CourseRow } from "./rows";
 
 export interface ParsedQuery {
@@ -22,11 +24,17 @@ export function parseQuery(raw: string): ParsedQuery {
   return { dept: null, number: null, words: q.split(" ").filter(Boolean) };
 }
 
-export function searchCourses(raw: string, limit = 50): CourseSummary[] {
+/**
+ * Text search, optionally narrowed by B8 filters. With filters, the query may be empty ("every Fall
+ * 1xxx course"). `libEdGroups` holds the CourseDog course group ids carrying `filters.libEd`,
+ * resolved by the caller from the UMN catalog.
+ */
+export function searchCourses(raw: string, limit = 50, filters: SearchFilters = {}, libEdGroups?: Set<string>): CourseSummary[] {
   // SQLite treats a negative LIMIT as "no limit", so never pass one through.
   const safeLimit = Number.isInteger(limit) ? Math.min(Math.max(limit, 1), 100) : 50;
   const { dept, number, words } = parseQuery(raw);
-  if (!dept && !number && words.length === 0) return [];
+  const filtered = hasFilters(filters);
+  if (!dept && !number && words.length === 0 && !filtered) return [];
 
   const where: string[] = ["campus = ?"];
   const params: (string | number)[] = [CAMPUS];
@@ -42,7 +50,7 @@ export function searchCourses(raw: string, limit = 50): CourseSummary[] {
   } else if (number) {
     where.push("course_num LIKE ?");
     params.push(`${number}%`);
-  } else {
+  } else if (words.length > 0) {
     // A lone 2–4 letter word may be a department or a title word ("art", "math").
     const clauses = words.map(() => "UPPER(class_desc) LIKE ?");
     const titleMatch = clauses.join(" AND ");
@@ -59,12 +67,23 @@ export function searchCourses(raw: string, limit = 50): CourseSummary[] {
 
   const rows = catalog()
     .prepare(
-      `SELECT id, dept_abbr, course_num, class_desc, cred_min, cred_max
+      `SELECT id, dept_abbr, course_num, class_desc, cred_min, cred_max, courseGroupId
        FROM classdistribution
        WHERE ${where.join(" AND ")}
        ORDER BY ${priority ? `${priority}, ` : ""}dept_abbr, CAST(course_num AS INTEGER), course_num
-       LIMIT ?`,
+       ${filtered ? "" : "LIMIT ?"}`,
     )
-    .all(...params, ...priorityParams, safeLimit) as unknown as CourseRow[];
-  return rows.map(toSummary);
+    .all(...params, ...priorityParams, ...(filtered ? [] : [safeLimit])) as unknown as (CourseRow & { courseGroupId: string | null })[];
+  if (!filtered) return rows.map(toSummary);
+
+  const facts = courseFacts();
+  const out: CourseSummary[] = [];
+  for (const r of rows) {
+    if (filters.libEd && !(r.courseGroupId && libEdGroups?.has(r.courseGroupId))) continue;
+    const f = facts.get(r.id);
+    if (!f || !matchesFilters(f, filters)) continue;
+    out.push(toSummary(r));
+    if (out.length === safeLimit) break;
+  }
+  return out;
 }
