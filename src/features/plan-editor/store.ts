@@ -84,3 +84,12 @@ export function hoverCourse(id: CourseId | null) {
   if (id !== null && useEditorUi.getState().dragging) return;
   usePreviewStore.getState().hoverPreview(id);
 }
+
+// Keep the selected semester valid (review of #22): clear it when another plan loads (revision
+// resets to 0) or when the selected semester is removed from the plan.
+usePlanStore.subscribe((state, previous) => {
+  const selected = useEditorUi.getState().selectedTerm;
+  if (!selected || state.plan === previous.plan) return;
+  const loaded = state.revision === 0 && state.plan !== previous.plan;
+  if (loaded || !state.plan?.semesters.some((s) => s.index === selected)) useEditorUi.getState().selectTerm(null);
+});

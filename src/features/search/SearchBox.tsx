@@ -131,7 +131,9 @@ export function SearchBox() {
               setActive((i) => Math.max(i - 1, 0));
             } else if (e.key === "Enter" && results[activeIndex]) {
               // With a semester selected (click its header), Enter adds the course there.
-              if (selectedTerm) planActions.addCourse(selectedTerm, results[activeIndex].id);
+              const plan = usePlanStore.getState().plan;
+              if (selectedTerm && plan?.semesters.some((s) => s.index === selectedTerm))
+                planActions.addCourse(selectedTerm, results[activeIndex].id);
               else openPreview(results[activeIndex].id);
             } else if (e.key === "Escape") {
               setQuery("");
