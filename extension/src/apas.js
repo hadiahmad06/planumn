@@ -51,7 +51,42 @@
   }
 
   const setAuto = (auto) => ext.runtime.sendMessage({ kind: "autoState", auto }).catch(() => null);
-  const go = (path) => window.location.assign(new URL(path, window.location.origin).href);
+
+  // Stop must cancel whatever step is running: its timers, navigations and saved state (review fix
+  // from Michael's Codex on #72). Every automation timer, navigation and state write goes through these.
+  let stopped = false;
+  const timers = new Set();
+  const later = (fn, ms) => {
+    const t = setTimeout(() => {
+      timers.delete(t);
+      if (!stopped) fn();
+    }, ms);
+    timers.add(t);
+  };
+  const every = (fn, ms) => {
+    const t = setInterval(() => {
+      if (!stopped) fn();
+    }, ms);
+    timers.add(t);
+    return () => {
+      clearInterval(t);
+      timers.delete(t);
+    };
+  };
+  /** Save the step unless stopped. If Stop landed while saving, clear the state again. */
+  async function save(auto) {
+    if (stopped) return false;
+    await setAuto(auto);
+    if (stopped) {
+      await setAuto(null);
+      return false;
+    }
+    return true;
+  }
+  const navigate = (url) => {
+    if (!stopped) window.location.assign(url);
+  };
+  const go = (path) => navigate(new URL(path, window.location.origin).href);
 
   async function send() {
     show("Sending to planu.mn…");
@@ -77,6 +112,12 @@
   }
 
   async function stop(text) {
+    stopped = true;
+    for (const t of timers) {
+      clearTimeout(t);
+      clearInterval(t);
+    }
+    timers.clear();
     await setAuto(null);
     show(text ?? "Stopped. Open a report and send it yourself, or close this tab.", [
       { label: "Send this page", kind: "primary", onClick: send },
@@ -100,7 +141,7 @@
     // 1. Note the audits that already exist, so the new one can be told apart without trusting clocks.
     if (auto.phase === "baseline") {
       if (kind !== "list") return go(A.LIST_PATH);
-      await setAuto({ phase: "run", baseline: completedAudits().map((r) => r.id) });
+      if (!(await save({ phase: "run", baseline: completedAudits().map((r) => r.id) }))) return;
       return go(A.CREATE_PATH);
     }
 
@@ -110,22 +151,31 @@
       const run = document.querySelector("#runAudit");
       if (!run) return stop("Couldn't find APAS's Run Declared Programs button. Run it yourself, open the audit, and click Send.");
       show("Running your audit (Run Declared Programs)…", [stopButton]);
-      await setAuto({ ...auto, phase: "wait", startedAt: Date.now() });
+      if (!(await save({ ...auto, phase: "wait", startedAt: Date.now() }))) return;
       run.click();
       // If APAS doesn't move on by itself, go to the list where finished audits appear.
-      setTimeout(() => go(`${A.LIST_PATH}?autoPoll=true`), 10000);
+      later(() => go(`${A.LIST_PATH}?autoPoll=true`), 10000);
       return;
     }
 
     // 3. Wait on the list until an audit we haven't seen appears, then open it.
     if (auto.phase === "wait") {
       if (kind !== "list") return go(`${A.LIST_PATH}?autoPoll=true`);
+      let busy = false;
       const check = async () => {
+        if (stopped || busy) return stopped;
+        busy = true;
+        try {
+          return await checkOnce();
+        } finally {
+          busy = false;
+        }
+      };
+      const checkOnce = async () => {
         const pick = A.pickNewAudit(completedAudits(), auto.baseline);
         if (pick) {
           show("Your audit is ready. Opening it…", [stopButton]);
-          await setAuto({ ...auto, phase: "open", target: pick.href });
-          window.location.assign(pick.href);
+          if (await save({ ...auto, phase: "open", target: pick.href })) navigate(pick.href);
           return true;
         }
         if (Date.now() - (auto.startedAt ?? Date.now()) > A.WAIT_MS) {
@@ -136,18 +186,18 @@
       };
       if (await check()) return;
       show("Waiting for APAS to finish your audit. This usually takes under a minute.", [stopButton]);
-      const timer = setInterval(async () => {
-        if (await check()) clearInterval(timer);
+      const cancel = every(async () => {
+        if (await check()) cancel();
       }, 2000);
       // The list refreshes itself; reload anyway in case it stopped polling.
-      setTimeout(() => window.location.reload(), A.RELOAD_MS * 3);
+      later(() => window.location.reload(), A.RELOAD_MS * 3);
       return;
     }
 
     // 4. On the new audit: send it.
     if (auto.phase === "open") {
-      if (kind !== "audit") return auto.target ? window.location.assign(auto.target) : stop();
-      await setAuto(null);
+      if (kind !== "audit") return auto.target ? navigate(auto.target) : stop();
+      if (!(await save(null))) return;
       return send();
     }
     return stop();
@@ -164,8 +214,7 @@
       onClick: async () => {
         show("Starting…", [stopButton]);
         const auto = { phase: "baseline" };
-        await setAuto(auto);
-        void automate(auto);
+        if (await save(auto)) void automate(auto);
       },
     },
     { label: "I'll pick a report", onClick: manual },
