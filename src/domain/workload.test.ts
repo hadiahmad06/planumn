@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { averageGpa, semesterWorkload } from "./workload";
+import { averageGpa, semesterWorkload, semesterWorkloadStatus } from "./workload";
 
 describe("workload (B7)", () => {
   it("averages letter grades and ignores S/N/W", () => {
@@ -14,5 +14,28 @@ describe("workload (B7)", () => {
     expect(semesterWorkload([easy, easy, easy]).level).toBe("light");
     expect(semesterWorkload([easy, easy, hard, easy]).level).toBe("moderate");
     expect(semesterWorkload([]).gpa).toBeNull();
+  });
+});
+
+// Review fix by Ishaan's Claude (#34): never rate a semester from a partial set of course details.
+describe("workload with partial catalog data (review of #34)", () => {
+  const four = { credits: { min: 4 }, grades: { A: 80, B: 20 } };
+
+  it("waits while any course's details are still loading", () => {
+    // Four 4-credit courses, only one cached: this used to read as a "light" 4-credit semester.
+    expect(semesterWorkloadStatus([1, 2, 3, 4], { 1: four }, {})).toEqual({ status: "loading" });
+  });
+
+  it("says incomplete (not light) when a course isn't in the catalog", () => {
+    expect(semesterWorkloadStatus([1, 2, 3, 4], { 1: four, 2: four, 3: four }, { 4: true })).toEqual({
+      status: "incomplete",
+      unavailable: 1,
+    });
+  });
+
+  it("rates the whole semester once every course has details", () => {
+    const r = semesterWorkloadStatus([1, 2, 3, 4], { 1: four, 2: four, 3: four, 4: four }, {});
+    expect(r).toMatchObject({ status: "ready", workload: { credits: 16 } });
+    expect(semesterWorkloadStatus([], {}, {})).toEqual({ status: "empty" });
   });
 });

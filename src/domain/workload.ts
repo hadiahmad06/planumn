@@ -1,4 +1,4 @@
-import type { GradeCounts } from "./course";
+import type { CourseId, GradeCounts } from "./course";
 
 /**
  * Semester workload meter (Phase B: B7). A rough signal from historical grades (GopherGrades, through
@@ -48,4 +48,30 @@ export function semesterWorkload(courses: { credits: number; grades: GradeCounts
   }, 0);
   const level: WorkloadLevel = effort >= 20 ? "heavy" : effort <= 13 ? "light" : "moderate";
   return { level, credits, gpa };
+}
+
+export type WorkloadStatus =
+  | { status: "empty" }
+  /** Some course details haven't arrived yet: don't guess from the ones that have. */
+  | { status: "loading" }
+  /** Some courses aren't in the catalog, so the semester can't be rated honestly. */
+  | { status: "incomplete"; unavailable: number }
+  | { status: "ready"; workload: Workload };
+
+/**
+ * Rate a semester only once every planned course has catalog details (review fix by Ishaan's Claude
+ * on #34: a partly cached four-course semester used to read as a one-course "light" semester).
+ * `details` = courses with loaded details; `unavailable` = ids the catalog doesn't have.
+ */
+export function semesterWorkloadStatus(
+  ids: CourseId[],
+  details: Record<CourseId, { credits: { min: number }; grades: GradeCounts } | undefined>,
+  unavailable: Record<CourseId, true | undefined>,
+): WorkloadStatus {
+  if (ids.length === 0) return { status: "empty" };
+  const missing = ids.filter((id) => !details[id]);
+  const gone = missing.filter((id) => unavailable[id]).length;
+  if (gone > 0) return { status: "incomplete", unavailable: gone };
+  if (missing.length > 0) return { status: "loading" };
+  return { status: "ready", workload: semesterWorkload(ids.map((id) => ({ credits: details[id]!.credits.min, grades: details[id]!.grades }))) };
 }
