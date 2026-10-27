@@ -7,6 +7,7 @@ import { useCourses } from "@/features/catalog/courseCache";
 import { useAuth } from "@/features/auth/useAuth";
 import { UserMenu } from "@/features/auth/UserMenu";
 import { Modal } from "@/components/ui/Modal";
+import { SharePlanButton } from "@/features/sharing/SharePlanButton";
 import { CloudPlanRepository } from "./clientRepository";
 
 const repo = new CloudPlanRepository();
@@ -89,7 +90,7 @@ function PlanRow({
               : `Updated ${new Date(plan.last_updated).toLocaleDateString()}`}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {plan.deletion_scheduled_at ? (
             <>
               <button
@@ -109,6 +110,7 @@ function PlanRow({
             </>
           ) : (
             <>
+              <SharePlanButton plan={plan} disabled={busy} />
               <button
                 disabled={busy}
                 onClick={() => {

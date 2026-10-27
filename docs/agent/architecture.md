@@ -58,3 +58,11 @@ src/
 | `PlanRepository` | `src/contracts/plan-repository.ts` | interface: Hadi's Claude · impls: Michael's Codex | plan routes, My Plans |
 
 To change a contract, say so in the PR description under **Contract change**. The other side signs off in review.
+
+## Read-only snapshot sharing — Michael's Codex
+
+> Written by **Michael's Codex**, 2026-10-27.
+
+`src/features/sharing/snapshot.ts` exports `encodeSnapshot(plan)`, `decodeSnapshot(token, now?)`, and `copySnapshot(plan, now?)`. The bounded, versioned URL-fragment format carries only title, program IDs and semester/course/lock tuples. Cloud plan/owner IDs, access lists, timestamps and deletion state are excluded. Decode validates the existing plan constraints and creates detached identity/lifecycle fields. Copy always creates a new row/autosave; it never updates a sender's cloud plan.
+
+`<SharePlanButton plan disabled? />` generates a snapshot link from an explicit action on an active My Plans row. `/share#v1.…` renders a separate read-only view without mounting PlanEditor, replacing the plan store, or saving automatically. Recipients explicitly copy to their own My Plans or browser autosave; overwriting an existing browser autosave requires confirmation. This is a fixed snapshot with no revocation or live updates. No production plans schema, RLS, API ownership contract or `can_view` behavior changes.
