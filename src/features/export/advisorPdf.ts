@@ -6,7 +6,12 @@ import {
   type PDFPage,
 } from "pdf-lib";
 import { courseCode, formatCredits, type CourseSummary } from "@/domain/course";
-import type { Plan } from "@/domain/plan";
+import {
+  placeholderCredits,
+  type PlaceholderCourse,
+  type Plan,
+  type PlannedCourse,
+} from "@/domain/plan";
 import { groupByYear } from "@/domain/planOps";
 import {
   academicYearLabel,
@@ -102,12 +107,17 @@ export async function createAdvisorPdf(
   document.setCreator("planu.mn advisor export");
   const entries = plan.semesters.flatMap((semester) => semester.courses);
   const missingCourses = entries.filter((entry) => !courses[entry.id]).length;
+  // B2 (Ishaan's Claude): placeholder slots count toward planned credits.
+  const slotCredits = plan.semesters.reduce(
+    (sum, semester) => sum + placeholderCredits(semester),
+    0,
+  );
   const totals = entries.reduce(
     (total, entry) => ({
       min: total.min + (courses[entry.id]?.credits.min ?? 0),
       max: total.max + (courses[entry.id]?.credits.max ?? 0),
     }),
-    { min: 0, max: 0 },
+    { min: slotCredits, max: slotCredits },
   );
   const headerPrograms = options.programNames?.length
     ? `Programs: ${options.programNames.join("; ")}`
@@ -193,7 +203,11 @@ export async function createAdvisorPdf(
     );
     const rows = Math.max(
       1,
-      ...semesters.map((semester) => semester?.courses.length ?? 0),
+      ...semesters.map(
+        (semester) =>
+          (semester?.courses.length ?? 0) +
+          (semester?.placeholders?.length ?? 0),
+      ),
     );
     const segments = Math.ceil(rows / maxRows);
     for (let segment = 0; segment < segments; segment++) {
@@ -226,7 +240,10 @@ export async function createAdvisorPdf(
             min: sum.min + (courses[entry.id]?.credits.min ?? 0),
             max: sum.max + (courses[entry.id]?.credits.max ?? 0),
           }),
-          { min: 0, max: 0 },
+          {
+            min: placeholderCredits(semester),
+            max: placeholderCredits(semester),
+          },
         ) ?? { min: 0, max: 0 };
         text(
           `${termLabel(term)}${segment ? " (cont.)" : ""}`,
@@ -241,9 +258,21 @@ export async function createAdvisorPdf(
           ? `${formatCredits(semTotal)}${unknown ? " + ?" : ""} cr`
           : "Not in plan";
         text(label, x + COLUMN - 58, cursor - 28, 8, false, 58);
-        const slice =
-          semester?.courses.slice(segment * maxRows, (segment + 1) * maxRows) ??
-          [];
+        // Courses first, then placeholder slots (B2).
+        const items: (
+          | { kind: "course"; entry: PlannedCourse }
+          | { kind: "slot"; slot: PlaceholderCourse }
+        )[] = [
+          ...(semester?.courses ?? []).map((entry) => ({
+            kind: "course" as const,
+            entry,
+          })),
+          ...(semester?.placeholders ?? []).map((slot) => ({
+            kind: "slot" as const,
+            slot,
+          })),
+        ];
+        const slice = items.slice(segment * maxRows, (segment + 1) * maxRows);
         if (!slice.length)
           text(
             segment ? "" : semester ? "No courses planned" : "",
@@ -253,9 +282,16 @@ export async function createAdvisorPdf(
             false,
             COLUMN,
           );
-        slice.forEach((entry, index) => {
-          const course = courses[entry.id];
+        slice.forEach((item, index) => {
           const y = cursor - 42 - index * LINE;
+          if (item.kind === "slot") {
+            text("Slot", x, y, 8.5, true, 68);
+            text(item.slot.label, x + 72, y, 8, false, COLUMN - 102);
+            text(String(item.slot.credits), x + COLUMN - 26, y, 8, false, 26);
+            return;
+          }
+          const entry = item.entry;
+          const course = courses[entry.id];
           text(
             `${course ? courseCode(course) : `ID ${entry.id}`}${entry.lock === "locked" ? " *" : ""}`,
             x,
@@ -295,7 +331,7 @@ export async function createAdvisorPdf(
       7.5,
     );
     text(
-      `Scheduled credits may include retakes. * Locked course. ? Unavailable catalog credits.${missingCourses ? ` ${missingCourses} course entries need catalog review.` : ""}`,
+      `Scheduled credits may include retakes. * Locked course. Slot = placeholder for a course not chosen yet. ? Unavailable catalog credits.${missingCourses ? ` ${missingCourses} course entries need catalog review.` : ""}`,
       MARGIN,
       27,
       7.5,

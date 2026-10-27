@@ -67,11 +67,19 @@ export function semesterWorkloadStatus(
   ids: CourseId[],
   details: Record<CourseId, { credits: { min: number }; grades: GradeCounts } | undefined>,
   unavailable: Record<CourseId, true | undefined>,
+  /** B2: credits of placeholder slots, rated like courses without grade history. */
+  slotCredits: number[] = [],
 ): WorkloadStatus {
-  if (ids.length === 0) return { status: "empty" };
+  if (ids.length === 0 && slotCredits.length === 0) return { status: "empty" };
   const missing = ids.filter((id) => !details[id]);
   const gone = missing.filter((id) => unavailable[id]).length;
   if (gone > 0) return { status: "incomplete", unavailable: gone };
   if (missing.length > 0) return { status: "loading" };
-  return { status: "ready", workload: semesterWorkload(ids.map((id) => ({ credits: details[id]!.credits.min, grades: details[id]!.grades }))) };
+  return {
+    status: "ready",
+    workload: semesterWorkload([
+      ...ids.map((id) => ({ credits: details[id]!.credits.min, grades: details[id]!.grades })),
+      ...slotCredits.map((credits) => ({ credits, grades: {} })),
+    ]),
+  };
 }

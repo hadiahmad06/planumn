@@ -1,5 +1,5 @@
 import type { CourseId, CreditRange } from "./course";
-import type { LockState, Plan, PlannedCourse, Semester } from "./plan";
+import { MAX_PLACEHOLDERS_PER_SEMESTER, type LockState, type Plan, type PlannedCourse, type Semester } from "./plan";
 import { academicYear, nextTerm, seasonOf, toTermCode, type Season, type TermCode } from "./terms";
 
 /**
@@ -179,3 +179,37 @@ export function sumCredits(ranges: CreditRange[]): CreditRange {
   return ranges.reduce((acc, r) => ({ min: acc.min + r.min, max: acc.max + r.max }), { min: 0, max: 0 });
 }
 
+
+// ---------------------------------------------------------------------------
+// Placeholder courses (B2, Ishaan's Claude)
+
+export interface PlaceholderInput {
+  label: string;
+  credits: number;
+  libEd?: string;
+}
+
+/** Clean a placeholder from the UI: trimmed 1–80 char label, 0–20 credits (whole or half). */
+export function cleanPlaceholder(input: PlaceholderInput): PlaceholderInput | null {
+  const label = input.label.trim().replace(/\s+/g, " ").slice(0, 80);
+  const credits = Math.round(input.credits * 2) / 2;
+  if (!label || !Number.isFinite(credits) || credits < 0 || credits > 20) return null;
+  return { label, credits, ...(input.libEd ? { libEd: input.libEd } : {}) };
+}
+
+/** Add a placeholder to a semester. `key` must be unique in that semester (no-op if it isn't). */
+export function addPlaceholder(plan: Plan, term: TermCode, input: PlaceholderInput, key: string): Plan {
+  const clean = cleanPlaceholder(input);
+  if (!clean) return plan;
+  return mapSemester(plan, term, (s) => {
+    const list = s.placeholders ?? [];
+    if (list.length >= MAX_PLACEHOLDERS_PER_SEMESTER || list.some((p) => p.key === key)) return s;
+    return { ...s, placeholders: [...list, { key, ...clean }] };
+  });
+}
+
+export function removePlaceholder(plan: Plan, term: TermCode, key: string): Plan {
+  return mapSemester(plan, term, (s) =>
+    s.placeholders?.some((p) => p.key === key) ? { ...s, placeholders: s.placeholders.filter((p) => p.key !== key) } : s,
+  );
+}

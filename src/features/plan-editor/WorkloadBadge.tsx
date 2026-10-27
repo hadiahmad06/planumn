@@ -24,6 +24,7 @@ export function WorkloadBadge({ semester }: { semester: Semester }) {
     semester.courses.map((c) => c.id),
     courses,
     missing,
+    (semester.placeholders ?? []).map((p) => p.credits),
   );
   if (result.status === "empty" || result.status === "loading") return null;
 

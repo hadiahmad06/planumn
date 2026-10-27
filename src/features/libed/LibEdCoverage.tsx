@@ -35,6 +35,7 @@ function Row({ item }: { item: Coverage }) {
           <p className="text-micro text-text-secondary">
             {item.courses
               .map((c) => {
+                if (c.kind === "slot") return `${c.label}: slot (${termLabel(c.term)})`;
                 const course = courses[c.courseId];
                 return `${course ? courseCode(course) : "…"} (${termLabel(c.term)})`;
               })

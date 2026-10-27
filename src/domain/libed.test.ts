@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { libEdCodes, libEdCoverage, TWIN_CITIES_LIBED } from "./libed";
 import { createEmptyPlan } from "./plan";
-import { addCourse } from "./planOps";
+import { addCourse, addPlaceholder } from "./planOps";
 
 const plan = () => createEmptyPlan(new Date(2026, 3, 1)); // Fall 2026 … Summer 2030
 const covered = (r: ReturnType<typeof libEdCoverage>, code: string) =>
-  r.coverage.find((c) => c.designation.code === code)!.courses.map((c) => `${c.courseId}@${c.term}`);
+  r.coverage
+    .find((c) => c.designation.code === code)!
+    .courses.map((c) => (c.kind === "course" ? `${c.courseId}@${c.term}` : `slot:${c.label}@${c.term}`));
 
 describe("Lib Ed designations (B3)", () => {
   it("lists the 7 core areas, 5 themes and Writing Intensive", () => {
@@ -36,6 +38,15 @@ describe("libEdCoverage (B3)", () => {
     expect(covered(r, "WI")).toEqual(["2@1273"]);
     expect(covered(r, "BIOL")).toEqual([]);
     expect(r).toMatchObject({ pending: 1, unknown: 1 });
+  });
+
+  it("lists Lib Ed placeholder slots under their designation, after real courses (B2)", () => {
+    let p = addCourse(plan(), "1269", 1);
+    p = addPlaceholder(p, "1273", { label: "Lib Ed: Global Perspectives", credits: 3, libEd: "GP" }, "a");
+    p = addPlaceholder(p, "1273", { label: "CSCI elective", credits: 4 }, "b");
+    const r = libEdCoverage(p, { 1: ["GP"] });
+    expect(covered(r, "GP")).toEqual(["1@1269", "slot:Lib Ed: Global Perspectives@1273"]);
+    expect(r.coverage.flatMap((c) => c.courses).filter((c) => c.kind === "slot")).toHaveLength(1);
   });
 
   it("is empty for an empty plan", () => {

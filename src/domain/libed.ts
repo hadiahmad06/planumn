@@ -56,11 +56,11 @@ export function libEdCodes(attributes: unknown): string[] {
 /** Per course: its CLE codes, or null when the UMN catalog has no record of it. */
 export type LibEdLookup = Record<CourseId, string[] | null | undefined>;
 
-export interface LibEdCourse {
-  courseId: CourseId;
-  /** Earliest planned term (a retake is listed once). */
-  term: TermCode;
-}
+export type LibEdCourse =
+  /** A planned course; `term` is its earliest planned term (a retake is listed once). */
+  | { kind: "course"; courseId: CourseId; term: TermCode }
+  /** A placeholder slot meant for this designation (B2). Not a course yet. */
+  | { kind: "slot"; label: string; term: TermCode };
 
 export interface LibEdCoverage {
   designation: LibEdDesignation;
@@ -90,12 +90,19 @@ export function libEdCoverage(plan: Plan, lookup: LibEdLookup): LibEdResult {
     else known.push({ courseId, term, codes });
   }
 
+  const slots = plan.semesters.flatMap((s) => (s.placeholders ?? []).map((p) => ({ ...p, term: s.index })));
   return {
     coverage: TWIN_CITIES_LIBED.map((designation) => ({
       designation,
-      courses: known
-        .filter((k) => k.codes.includes(designation.code))
-        .map(({ courseId, term }) => ({ courseId, term })),
+      courses: [
+        ...known
+          .filter((k) => k.codes.includes(designation.code))
+          .map(({ courseId, term }): LibEdCourse => ({ kind: "course", courseId, term })),
+        ...slots
+          .filter((p) => p.libEd === designation.code)
+          .sort((a, b) => compareTerms(a.term, b.term))
+          .map(({ label, term }): LibEdCourse => ({ kind: "slot", label, term })),
+      ],
     })),
     pending,
     unknown,

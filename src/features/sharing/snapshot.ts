@@ -16,6 +16,14 @@ export function encodeSnapshot(plan: Plan): string {
     plan.semesters.map((semester) => [
       semester.index,
       semester.courses.map((course) => [course.id, LOCKS.indexOf(course.lock)]),
+      // B2 (Ishaan's Claude): optional third element, only when the semester has placeholders.
+      ...(semester.placeholders?.length
+        ? [
+            semester.placeholders.map((p) =>
+              p.libEd ? [p.label, p.credits, p.libEd] : [p.label, p.credits],
+            ),
+          ]
+        : []),
     ]),
   ];
   const bytes = new TextEncoder().encode(JSON.stringify(compact));
@@ -44,9 +52,29 @@ export function decodeSnapshot(token: string, now = new Date()): Plan {
     if (!Array.isArray(data) || data.length !== 3 || !Array.isArray(data[2]))
       throw invalid();
     const semesters = data[2].map((term: unknown) => {
-      if (!Array.isArray(term) || term.length !== 2 || !Array.isArray(term[1]))
+      if (
+        !Array.isArray(term) ||
+        (term.length !== 2 && term.length !== 3) ||
+        !Array.isArray(term[1]) ||
+        (term.length === 3 && !Array.isArray(term[2]))
+      )
         throw invalid();
+      // B2 (Ishaan's Claude): placeholders get fresh keys; isPlan validates the rest.
+      const placeholders =
+        term.length === 3
+          ? (term[2] as unknown[]).map((entry, i) => {
+              if (!Array.isArray(entry) || entry.length < 2 || entry.length > 3)
+                throw invalid();
+              return {
+                key: `p${i + 1}`,
+                label: entry[0],
+                credits: entry[1],
+                ...(entry.length === 3 ? { libEd: entry[2] } : {}),
+              };
+            })
+          : undefined;
       return {
+        ...(placeholders ? { placeholders } : {}),
         index: term[0],
         courses: term[1].map((course: unknown) => {
           if (
