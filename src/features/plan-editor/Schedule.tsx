@@ -139,11 +139,29 @@ export function Schedule({ plan }: { plan: Plan }) {
   const layout = useDisplaySettings((s) => s.layout);
   const mobile = useIsMobile();
   const seasons = SEASONS.filter((s) => !hidden.includes(s));
-  const years = groupByYear(plan.semesters);
+  // B18: the prior-credit bucket gets its own panel, not a column in the year grid.
+  const prior = plan.semesters.find((s) => s.kind === "prior");
+  const years = groupByYear(plan.semesters.filter((s) => s.kind !== "prior"));
   const issues = useHealth(plan).byCourse;
 
   return (
     <div className="flex flex-col gap-6">
+      {prior ? (
+        <div className="flex flex-col gap-2">
+          <h2 className="font-semibold">Credit before your first semester</h2>
+          <p className="text-micro text-text-tertiary">
+            AP, IB, CLEP and transfer credit. Add the UMN course each one counts as (search, then drag it here), or a
+            placeholder when there&apos;s no direct equivalent. Your APAS shows how UMN actually applied them.
+          </p>
+          <div className="max-w-md">
+            <SemesterColumn semester={prior} issues={issues} />
+          </div>
+        </div>
+      ) : (
+        <button type="button" onClick={planActions.addPriorCredit} className="flex items-center gap-1 self-start text-micro text-text-tertiary hover:text-accent">
+          <PlusIcon size={12} /> Add AP, IB or transfer credit
+        </button>
+      )}
       <button type="button" onClick={planActions.addYearAtStart} className="flex items-center gap-1 self-start text-micro text-text-tertiary hover:text-accent">
         <PlusIcon size={12} /> Add earlier year
       </button>

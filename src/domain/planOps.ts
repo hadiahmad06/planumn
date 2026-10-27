@@ -1,6 +1,6 @@
 import type { CourseId, CreditRange } from "./course";
-import { MAX_PLACEHOLDERS_PER_SEMESTER, type LockState, type Plan, type PlannedCourse, type Semester, type SemesterKind } from "./plan";
-import { academicYear, nextTerm, seasonOf, toTermCode, type Season, type TermCode } from "./terms";
+import { isPriorCredit, MAX_PLACEHOLDERS_PER_SEMESTER, type LockState, type Plan, type PlannedCourse, type Semester, type SemesterKind } from "./plan";
+import { academicYear, defaultStartTerm, nextTerm, previousTerm, seasonOf, toTermCode, type Season, type TermCode } from "./terms";
 
 /**
  * Pure plan edits. Each returns a new Plan (or the same object when nothing changes).
@@ -124,9 +124,17 @@ export function addYearAtEnd(plan: Plan): Plan {
 
 /** Add a full academic year before the first year (e.g. for courses taken earlier). */
 export function addYearAtStart(plan: Plan): Plan {
-  const first = plan.semesters[0]?.index;
+  // The B18 prior-credit bucket isn't a year of the plan: start from the first regular semester.
+  const first = sortSemesters(plan.semesters).find((s) => !isPriorCredit(s))?.index;
   if (!first) return addNextSemester(plan);
-  return addYear(plan, toTermCode({ year: academicYear(first) - 1, season: "fall" }));
+  // Set the bucket aside so the new year gets all three terms, then put it back before them.
+  const prior = plan.semesters.find(isPriorCredit);
+  const regular = prior ? { ...plan, semesters: plan.semesters.filter((s) => s !== prior) } : plan;
+  const added = addYear(regular, toTermCode({ year: academicYear(first) - 1, season: "fall" }));
+  if (!prior) return added;
+  if (added === regular) return plan;
+  const index = freeTermBefore(added, sortSemesters(added.semesters)[0].index);
+  return { ...added, semesters: sortSemesters([...added.semesters, { ...prior, index }]) };
 }
 
 function addYear(plan: Plan, fall: TermCode): Plan {
@@ -226,4 +234,32 @@ export function setSemesterKind(plan: Plan, term: TermCode, kind: SemesterKind |
     void _drop;
     return regular;
   });
+}
+
+// ---------------------------------------------------------------------------
+// Prior credit: AP / IB / transfer (B18, Ishaan's Claude)
+
+/** The term just before `term` that the plan doesn't use yet. */
+function freeTermBefore(plan: Plan, term: TermCode): TermCode {
+  let t = previousTerm(term);
+  while (plan.semesters.some((s) => s.index === t)) t = previousTerm(t);
+  return t;
+}
+
+/** Add the prior-credit bucket one term before the first regular semester (no-op if it exists). */
+export function addPriorCredit(plan: Plan, now = new Date()): Plan {
+  if (plan.semesters.some(isPriorCredit)) return plan;
+  const first = sortSemesters(plan.semesters)[0]?.index ?? defaultStartTerm(now);
+  const index = freeTermBefore(plan, first);
+  return { ...plan, semesters: sortSemesters([...plan.semesters, { index, courses: [], kind: "prior" }]) };
+}
+
+/** Keep the prior-credit bucket before every regular semester (e.g. after adding an earlier year). */
+export function keepPriorFirst(plan: Plan): Plan {
+  const prior = plan.semesters.find(isPriorCredit);
+  const firstRegular = sortSemesters(plan.semesters).find((s) => !isPriorCredit(s))?.index;
+  if (!prior || !firstRegular || Number(prior.index) < Number(firstRegular)) return plan;
+  const rest = plan.semesters.filter((s) => s !== prior);
+  const index = freeTermBefore({ ...plan, semesters: rest }, sortSemesters(rest)[0].index);
+  return { ...plan, semesters: sortSemesters([...rest, { ...prior, index }]) };
 }

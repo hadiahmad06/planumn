@@ -26,7 +26,9 @@ export function snapMove(
   termsOffered: string[] | undefined,
   hiddenSeasons: readonly Season[] = [],
 ): SnapTarget | null {
-  const terms = plan.semesters.map((s) => s.index).sort(compareTerms);
+  // B18 (Ishaan's Claude): the AP / IB / transfer credit bucket is not a term to move courses into.
+  if (plan.semesters.find((s) => s.index === from)?.kind === "prior") return null;
+  const terms = plan.semesters.filter((s) => s.kind !== "prior").map((s) => s.index).sort(compareTerms);
   if (terms.length === 0) return null;
   const [first, last] = [terms[0], terms[terms.length - 1]];
   const offering = offeringHistory(termsOffered ?? []);
