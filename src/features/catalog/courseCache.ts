@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { create } from "zustand";
-import type { CourseDetails, CourseId } from "@/domain/course";
+import type { CourseDetails, CourseId, CourseSummary, CreditRange } from "@/domain/course";
 
 /**
  * Client-side course details cache, shared by every feature (schedule cards, preview, requirements).
@@ -11,16 +11,41 @@ import type { CourseDetails, CourseId } from "@/domain/course";
 interface CourseCacheState {
   courses: Record<CourseId, CourseDetails>;
   missing: Record<CourseId, true>;
+  /** Search results seen so far, so a just-dropped course renders before its details arrive. */
+  summaries: Record<CourseId, CourseSummary>;
   /** Merge already-fetched details (e.g. from a server component). */
   put: (courses: CourseDetails[]) => void;
+  putSummaries: (courses: CourseSummary[]) => void;
 }
 
 export const useCourseCache = create<CourseCacheState>()((set) => ({
   courses: {},
   missing: {},
+  summaries: {},
   put: (courses) =>
     set((s) => ({ courses: { ...s.courses, ...Object.fromEntries(courses.map((c) => [c.id, c])) } })),
+  putSummaries: (courses) =>
+    set((s) => ({ summaries: { ...s.summaries, ...Object.fromEntries(courses.map((c) => [c.id, c])) } })),
 }));
+
+/** Credits of a set of courses from whatever is cached (unknown courses count as 0). */
+export function useCreditTotal(ids: CourseId[]): CreditRange {
+  const courses = useCourseCache((s) => s.courses);
+  const summaries = useCourseCache((s) => s.summaries);
+  let min = 0;
+  let max = 0;
+  for (const id of ids) {
+    const c = (courses[id] ?? summaries[id])?.credits;
+    min += c?.min ?? 0;
+    max += c?.max ?? 0;
+  }
+  return { min, max };
+}
+
+/** Best info available for a course right now: full details, else a search summary. */
+export function useCourseInfo(id: CourseId): CourseSummary | undefined {
+  return useCourseCache((s) => s.courses[id] ?? s.summaries[id]);
+}
 
 const inFlight = new Set<CourseId>();
 const BATCH = 200;
