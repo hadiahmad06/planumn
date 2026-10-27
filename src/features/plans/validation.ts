@@ -1,4 +1,8 @@
 import type { Plan } from "@/domain/plan";
+/** Written by Michael's Codex. Older cloud rows may have nullable array columns. */
+export function normalizePlan(row: Plan): Plan {
+  return { ...row, programs: row.programs ?? [], can_view: row.can_view ?? [] };
+}
 /** Written by Michael's Codex. Accept only the 2025 persisted row format. */
 export function isPlan(value: unknown): value is Plan {
   if (!value || typeof value !== "object") return false;
