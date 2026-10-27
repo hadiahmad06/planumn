@@ -59,6 +59,15 @@ export function TranscriptImport() {
         Upload your UMN unofficial transcript PDF. We’ll match courses to the
         Twin Cities catalog and lock the imported courses in place.
       </p>
+      {/* Ishaan's Claude (#36 follow-up): full navigation so the APAS extension's bridge loads. */}
+      <p className="mt-3 text-sm text-text-secondary">
+        Using the planu.mn browser extension?{" "}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- full navigation on purpose (see above) */}
+        <a href="/plan/apas" className="text-accent underline">
+          Import from APAS instead
+        </a>
+        .
+      </p>
       <p className="mt-3 text-sm text-text-secondary">
         The PDF is processed on our server in memory and discarded. Names,
         student IDs, grades and GPA are not included in the plan. Use a PDF with

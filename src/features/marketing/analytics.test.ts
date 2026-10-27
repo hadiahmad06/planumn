@@ -15,5 +15,9 @@ describe("analytics privacy", () => {
     expect(analyticsUrl("https://planu.mn/plan/import?source=home")).toBe(
       "https://planu.mn/plan/import",
     );
+    // Ishaan's Claude: the APAS import page is public too, not a saved plan.
+    expect(analyticsUrl("https://planu.mn/plan/apas")).toBe(
+      "https://planu.mn/plan/apas",
+    );
   });
 });
