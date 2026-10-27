@@ -1,6 +1,7 @@
 # APAS import (B1): browser extension research
 
 > Written by **Ishaan's Claude** (Claude Code, Opus 5.5), 2026-10-27. Docs only, with no code.
+> Revised 2026-10-27 after Hadi's Claude's review on #28 (raw-HTML handling, AMO "none", bridge scope, stale tab, manifest fallback).
 > Scope comes from Hadi's decision in `docs/human/roadmap.md` (#27): a Chrome/Firefox extension opens APAS, **stops at the UMN login page**, the student signs in themselves, and the extension hands the raw report to planu.mn. Fetch and hand-off come first; the parser comes later.
 > Each claim is marked **[doc]** (checked against vendor documentation, linked at the end) or **[unverified]** (my inference, still to test). I did not log into any UMN system and used no UMN credentials.
 
@@ -11,7 +12,7 @@
 | Open APAS | `tabs.create({ url: APAS_URL })` from a click on planu.mn → the extension. The tab goes through UMN SSO/Duo on its own, and the extension never sees the login form. |
 | Detect "logged in" | A **content script that matches only the APAS report host**. It can only run once the browser is back on that host, i.e. after SSO. Then it waits for the report DOM to appear. No need to watch the login pages. |
 | Read the report | The same content script reads the rendered report from the DOM (`document.documentElement.outerHTML`, or the report container) **in the student's own tab**, so no extension-side fetch with cookies is needed. |
-| Hand-off to planu.mn | **One design for both browsers:** a content script on `https://planu.mn/*` bridges `window.postMessage` ↔ `runtime.sendMessage`. Chrome's `externally_connectable` is a possible later addition but **doesn't work in Firefox**. |
+| Hand-off to planu.mn | **One design for both browsers:** a content script on the planu.mn import route only (e.g. `https://planu.mn/plan/*`) bridges `window.postMessage` ↔ `runtime.sendMessage`. Chrome's `externally_connectable` is a possible later addition but **doesn't work in Firefox**. |
 | Permissions | `host_permissions` for the APAS host and `planu.mn` only, plus `tabs` is probably not needed (see §4). No `cookies`, `webRequest`, `<all_urls>` or `scripting`. |
 | Store review | Chrome: single purpose, a justification per permission, privacy policy plus a Limited Use statement. Firefox (AMO): `data_collection_permissions` is **mandatory for new add-ons**, and source must be submitted if the build is bundled or minified. |
 
@@ -45,7 +46,7 @@ bridge content script ─runtime.sendMessage─▶ checks sender.tab.url origin 
 bridge content script ◀──────────────────────
   │ window.postMessage({type:"planumn:apas:report", nonce, html}, "https://planu.mn")
   ▼
-planu.mn page checks event.origin, event.source === window, nonce → stores raw HTML → (later) parser
+planu.mn page checks event.origin, event.source === window, nonce → keeps raw HTML in tab memory only → (later) client-side parser
 ```
 
 Design notes:
@@ -53,6 +54,8 @@ Design notes:
 - **Don't keep the service worker waiting.** Login plus Duo can take minutes. **[doc]** Chrome MV3 service workers stop when idle. **[unverified]** Don't hold an open `sendResponse` or port across the login. Store `{planumnTabId, nonce, apasTabId}` in `chrome.storage.session` and continue when the APAS content script reports in.
 - **Nonce.** planu.mn generates it per import and only accepts a report carrying it. That blocks stray or replayed messages.
 - **Close the APAS tab** after the student sends the report, or offer to. The extension never stores the report itself.
+- **Where the raw HTML goes (privacy promise).** The report stays **in the planu.mn tab's memory only**. It is never written to `localStorage`, IndexedDB or `chrome.storage`, and **never sent to the planu.mn server or Supabase**. The parser runs client-side and keeps only courses, terms and grades-as-taken. Name, student ID, GPA and advisor fields are dropped before anything goes into the plan. Only the resulting plan is saved, through the normal autosave the student already uses. That also keeps the AMO declaration simple (§6).
+- **Stale target tab.** Before `tabs.sendMessage(planumnTabId, …)`, the background checks that the tab still exists and is still on the planu.mn import route. The `planu.mn` host permission lets it read that tab's URL without the `tabs` permission [unverified]. If the tab is gone or has navigated away, the extension drops the report and shows "Reopen the import on planu.mn" instead of sending it anywhere.
 
 ## 4. Mechanics per step
 
@@ -74,7 +77,7 @@ Design notes:
 | Option | Chrome | Firefox | Notes |
 |---|---|---|---|
 | `externally_connectable` (`matches: ["https://planu.mn/*"]`) → page calls `chrome.runtime.sendMessage(EXT_ID, …)` → `runtime.onMessageExternal` | **[doc]** Supported. The page needs the extension ID, and Chrome's docs check `sender.url` | **[doc] Not supported** for web pages (MDN: "In Firefox, neither API is supported", bug 1319168) | Chrome only. The page also needs a different extension ID per store. |
-| **Content-script bridge** on `https://planu.mn/*` with `window.postMessage` | works | works | **Recommended.** One code path. The page must check `event.origin === "https://planu.mn"` and `event.source === window`, and the content script must check `event.source === window` and the message `type`. Treat every message as untrusted (MDN/Chrome both say to validate content-script input). |
+| **Content-script bridge** on the import route only (e.g. `https://planu.mn/plan/*`) with `window.postMessage` | works | works | **Recommended.** One code path. The page must check `event.origin === "https://planu.mn"` and `event.source === window`, and the content script must check `event.source === window` and the message `type`. Treat every message as untrusted (MDN/Chrome both say to validate content-script input). |
 
 Dev and staging: add `http://localhost:3000/*` (and the Vercel preview host, if wanted) to the planu.mn match list **only in a dev build** of the manifest, never in the store build.
 
@@ -89,15 +92,15 @@ Dev and staging: add `http://localhost:3000/*` (and the Vercel preview host, if 
   "name": "planu.mn APAS import",
   "permissions": ["storage"],                       // chrome.storage.session for the pending import
   "host_permissions": ["https://umn.uachieve.com/*", "https://planu.mn/*"],
-  "background": { "service_worker": "bg.js", "scripts": ["bg.js"] },   // Chrome uses service_worker, Firefox uses scripts [unverified: both keys tolerated together in current versions]
+  "background": { "service_worker": "bg.js", "scripts": ["bg.js"] },   // Chrome uses service_worker, Firefox uses scripts [unverified: test on current Chrome; fallback = per-browser manifest generated at build time]
   "content_scripts": [
-    { "matches": ["https://planu.mn/*"], "js": ["bridge.js"] },
+    { "matches": ["https://planu.mn/plan/*"], "js": ["bridge.js"] },   // import route only, not the whole site
     { "matches": ["https://umn.uachieve.com/*"], "js": ["apas.js"] }
   ],
   "browser_specific_settings": {
     "gecko": {
       "id": "apas@planu.mn",
-      "data_collection_permissions": { "required": ["<categories TBD, see §6>"] }
+      "data_collection_permissions": { "required": ["none"] }   // only if the in-memory rule in §3 holds; see §6
     }
   }
 }
@@ -115,7 +118,8 @@ Dev and staging: add `http://localhost:3000/*` (and the Vercel preview host, if 
 
 ### Firefox (AMO)
 - **[doc] `browser_specific_settings.gecko.data_collection_permissions` is required for new extensions** (enforced since 2025-11-03). Submissions without it are blocked and not signed. Even an add-on that collects nothing must declare `"none"`. The disclosure shows in the install dialog, on the listing and in about:addons.
-- **[unverified]** Which category names apply: an APAS report holds name, student ID and academic record, so probably a personal-information category plus whatever Mozilla calls education/records data. Check the current MDN list before submitting.
+- **[doc]** Mozilla counts as *transmission* data "handled outside the add-on or the local browser". If `"none"` is required, nothing may be collected without consent. The categories are `personallyIdentifyingInfo`, `healthInfo`, `financialAndPaymentInfo`, `authenticationInfo`, `personalCommunications`, `locationInfo`, `browsingActivity`, `websiteContent`, `websiteActivity`, `searchTerms`, `bookmarksInfo`, plus optional `technicalAndInteraction`.
+- **Our answer is probably `"required": ["none"]`.** [unverified, inference] The extension only moves the report between two of the student's own tabs, and under the §3 rule it never leaves the browser, so nothing is "handled outside the local browser". This holds **only** as long as planu.mn never uploads the raw report. If we ever send the report (or the name and ID in it) to our server, the honest declaration becomes `personallyIdentifyingInfo` + `websiteContent`. Confirm with an AMO reviewer, or on Mozilla's add-ons discourse, before the first submission.
 - **[unverified]** If the build bundles or minifies code, AMO requires the source plus build instructions. Plain unbundled JS avoids that.
 
 ## 7. Risks and open questions
@@ -135,5 +139,5 @@ Dev and staging: add `http://localhost:3000/*` (and the Vercel preview host, if 
 ## Sources
 - Chrome: [`externally_connectable`](https://developer.chrome.com/docs/extensions/reference/manifest/externally-connectable), [Message passing](https://developer.chrome.com/docs/extensions/develop/concepts/messaging) (JSON serialization, 64 MiB limit, `onMessageExternal`), [Limited Use policy](https://developer.chrome.com/docs/webstore/program-policies/limited-use)
 - MDN: [`externally_connectable`](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/externally_connectable) (Firefox: not supported for web pages, bug 1319168), [`host_permissions`](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/manifest.json/host_permissions) (optional by default in Firefox MV3; install prompt from Firefox 127)
-- Firefox data collection: [Mozilla discourse](https://discourse.mozilla.org/t/the-data-collection-permissions-property-is-reserved/145449), [heise](https://heise.de/-10914352), [SecurityWeek](https://www.securityweek.com/new-firefox-extensions-required-to-disclose-data-collection-practices/amp/)
+- Firefox data collection: [Extension Workshop: built-in data consent](https://extensionworkshop.com/documentation/develop/firefox-builtin-data-consent/) (transmission definition, category list, `none`), [Mozilla discourse](https://discourse.mozilla.org/t/the-data-collection-permissions-property-is-reserved/145449), [heise](https://heise.de/-10914352), [SecurityWeek](https://www.securityweek.com/new-firefox-extensions-required-to-disclose-data-collection-practices/amp/)
 - UMN: [One Stop APAS page](https://onestop.umn.edu/node/106) (MyU → Academics → APAS; `umn.uachieve.com`; PDF option; completed requests)
