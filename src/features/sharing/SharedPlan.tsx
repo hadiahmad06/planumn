@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { plannedCourseIds, SEMESTER_KINDS, type Plan } from "@/domain/plan";
+import { plannedCourseIds, semesterKindLabel, type Plan } from "@/domain/plan";
 import { termLabel } from "@/domain/terms";
 import { courseCode, formatCredits } from "@/domain/course";
 import { useAuth } from "@/features/auth/useAuth";
@@ -213,7 +213,7 @@ export function SharedPlan() {
                     {termLabel(semester.index)}
                     {/* B19 (Ishaan's Claude): special-semester label carried in the link. */}
                     {semester.kind &&
-                      ` · ${SEMESTER_KINDS.find((k) => k.kind === semester.kind)?.label ?? ""}`}
+                      ` · ${semesterKindLabel(semester.kind) ?? ""}`}
                   </h2>
                   {semester.courses.length || semester.placeholders?.length ? (
                     <ul className="space-y-3">

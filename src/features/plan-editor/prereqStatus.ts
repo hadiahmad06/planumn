@@ -24,7 +24,8 @@ export function usePrereqStatus(plan: Plan): Map<string, PrereqCheck> {
     for (const sem of semesters) {
       for (const pc of sem.courses) {
         const c = courses[pc.id];
-        if (!c?.prereqText || pc.lock === "locked") continue;
+        // B18: prior credit is already earned; it still counts as taken for later courses (below).
+        if (!c?.prereqText || pc.lock === "locked" || sem.kind === "prior") continue;
         const node = parsePrereqs(c.prereqText, c.dept);
         if (node) out.set(prereqKey(sem.index, pc.id), checkPrereqs(node, (code) => before.has(code)));
       }

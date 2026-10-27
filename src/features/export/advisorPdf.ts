@@ -8,7 +8,8 @@ import {
 import { courseCode, formatCredits, type CourseSummary } from "@/domain/course";
 import {
   placeholderCredits,
-  SEMESTER_KINDS,
+  semesterKindLabel,
+  PRIOR_CREDIT_LABEL,
   type PlaceholderCourse,
   type Plan,
   type PlannedCourse,
@@ -132,6 +133,29 @@ export async function createAdvisorPdf(
         WIDTH - MARGIN * 2,
       )
     : [];
+  // B18 (Ishaan's Claude): prior credit is listed in the header, not as a term in the year grid.
+  const priorSemester = plan.semesters.find((s) => s.kind === "prior");
+  const priorItems = priorSemester
+    ? [
+        ...priorSemester.courses.map((entry) => {
+          const course = courses[entry.id];
+          return course
+            ? `${courseCode(course)} (${formatCredits(course.credits)} cr)`
+            : `ID ${entry.id}`;
+        }),
+        ...(priorSemester.placeholders ?? []).map(
+          (slot) => `${slot.label} (${slot.credits} cr)`,
+        ),
+      ]
+    : [];
+  const priorLines = priorItems.length
+    ? lines(
+        `${PRIOR_CREDIT_LABEL}: ${priorItems.join("; ")}`,
+        regular,
+        8,
+        WIDTH - MARGIN * 2,
+      )
+    : [];
   // newPage assigns this before it draws a header, and is called before any body rows.
   let page!: PDFPage;
   let cursor = 0;
@@ -181,6 +205,10 @@ export async function createAdvisorPdf(
       text(line, MARGIN, headerY, 8);
       headerY -= 11;
     }
+    for (const line of priorLines.slice(0, 2)) {
+      text(line, MARGIN, headerY, 8);
+      headerY -= 11;
+    }
     if (plan.programs.length && !options.audits?.length) {
       text(
         "Program checks are not included in this snapshot. Review your official APAS report.",
@@ -194,7 +222,9 @@ export async function createAdvisorPdf(
     pageTop = cursor;
   }
   newPage();
-  const groups = groupByYear(plan.semesters);
+  const groups = groupByYear(
+    plan.semesters.filter((semester) => semester.kind !== "prior"),
+  );
   if (!groups.length)
     text("No semesters in this plan.", MARGIN, cursor - 20, 10);
   const maxRows = Math.max(1, Math.floor((pageTop - BOTTOM - 36) / LINE));
@@ -247,7 +277,7 @@ export async function createAdvisorPdf(
           },
         ) ?? { min: 0, max: 0 };
         // B19: name special terms, e.g. "Fall 2027 · Study abroad".
-        const kindLabel = SEMESTER_KINDS.find((k) => k.kind === semester?.kind)?.label;
+        const kindLabel = semesterKindLabel(semester?.kind);
         text(
           `${termLabel(term)}${kindLabel ? ` · ${kindLabel}` : ""}${segment ? " (cont.)" : ""}`,
           x,
