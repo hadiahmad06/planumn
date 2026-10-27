@@ -1,7 +1,8 @@
 import "server-only";
-import type { CourseOption, Program } from "@/domain/requirements";
+import type { Program } from "@/domain/requirements";
 import { findCoursesByGroupIds } from "@/server/catalog/courses";
-import { fetchCourseDogCourses, fetchProgramVersions } from "./coursedog";
+import { fetchCourseDogCourses, fetchProgramVersions, type CourseDogCourse } from "./coursedog";
+import { coursesByRequestedId, isCourseDogId } from "./deprecatedIds";
 import { collectGroupIds, normalizeProgram, pickCurrentVersion, samplePlanUrl } from "./normalize";
 
 /** Program requirements with every listed course resolved to the catalog where possible. */
@@ -11,28 +12,30 @@ export async function getProgram(programGroupId: string): Promise<Program | null
 
   const groupIds = collectGroupIds(raw);
   const inCatalog = findCoursesByGroupIds(groupIds);
-  // CourseDog's own ids are 7 digits; anything else (course sets, etc.) can't be looked up.
-  const missing = groupIds.filter((id) => !inCatalog.has(id) && /^\d{7}$/.test(id));
-  const external = new Map<string, CourseOption>();
+  // 7-digit CourseDog ids, and the older 20-character ids some programs still use (C1c).
+  const missing = groupIds.filter((id) => !inCatalog.has(id) && isCourseDogId(id));
+  let byRequested = new Map<string, CourseDogCourse>();
   try {
-    for (const c of await fetchCourseDogCourses(missing)) {
-      const hours = c.credits?.creditHours;
-      external.set(c.courseGroupId, {
-        groupId: c.courseGroupId,
-        courseId: null,
-        code: `${c.subjectCode} ${c.courseNumber}`,
-        title: c.name,
-        credits: hours?.min != null ? { min: hours.min, max: hours.max ?? hours.min } : null,
-      });
-    }
+    byRequested = coursesByRequestedId(await fetchCourseDogCourses(missing), missing);
   } catch {
     // Names for not-in-catalog courses are a nicety; the rail still works without them.
   }
+  // Old ids resolve to the course's current group id, which may be in the catalog.
+  const renamed = findCoursesByGroupIds([...byRequested.values()].map((c) => c.courseGroupId));
 
   const program = normalizeProgram(raw, (groupId) => {
-    const c = inCatalog.get(groupId);
+    const c = inCatalog.get(groupId) ?? renamed.get(byRequested.get(groupId)?.courseGroupId ?? "");
     if (c) return { groupId, courseId: c.id, code: `${c.dept} ${c.number}`, title: c.title, credits: c.credits };
-    return external.get(groupId) ?? { groupId, courseId: null, code: null, title: null, credits: null };
+    const d = byRequested.get(groupId);
+    if (!d) return { groupId, courseId: null, code: null, title: null, credits: null };
+    const hours = d.credits?.creditHours;
+    return {
+      groupId,
+      courseId: null,
+      code: `${d.subjectCode} ${d.courseNumber}`,
+      title: d.name,
+      credits: hours?.min != null ? { min: hours.min, max: hours.max ?? hours.min } : null,
+    };
   });
   const samplePlan = samplePlanUrl(raw); // B17
   return samplePlan ? { ...program, samplePlanUrl: samplePlan } : program;
