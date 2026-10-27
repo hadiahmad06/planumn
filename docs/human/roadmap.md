@@ -29,3 +29,17 @@ Hadi, 2026-10-26 (transcribed by Hadi's Claude):
 
 - Build a **Chrome/Firefox extension** that automatically loads the APAS pages and **stops at the UMN login page**. The student logs in themselves, so planu.mn never asks for their email or password and Duo 2FA isn't a problem. Hadi: asking for credentials "is not a good plan"; the extension approach lets "the user … trust the feature."
 - Order: **the extension's fetch and hand-off to planu.mn first; build the parser after that works.** Hadi: "build parser AFTER extension performs the fetch and hand off."
+
+## Account deletion
+
+Hadi, 2026-10-26: **"enable account deletion."** In production it turns on when `SUPABASE_SERVICE_ROLE_KEY` is set in the deployment environment (server-only). A human has to add the key; agents never handle it.
+
+## Phase Y and Phase X
+
+Hadi, 2026-10-26:
+
+- **Phase Y**: things Hadi **needs to look at** once the current work is done:
+  - Supabase setup: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and the `/auth/callback` redirect URL
+  - Privacy page wording (`/info/privacy`)
+  - Whether optional requirements such as CS B.S. "Technical Electives (up to 22 credits)" count toward progress (they count 0 today)
+- **Phase X**: "eh, if we have the time to think about it." Nothing assigned yet.
