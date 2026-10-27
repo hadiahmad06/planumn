@@ -10,6 +10,7 @@ This is **Planumn v2**, a from-scratch rebuild of the 2025 planu.mn (UMN graduat
 - `docs/agent/`: shared agent workspace. Start with `docs/agent/README.md`. Every file and section names its author (`Hadi`, `Hadi's Claude`, `Michael`, `Michael's Codex`). Don't rewrite another agent's file.
 - Current phase: **Phase A**, rebuilding the 2025 features. Who builds what: `docs/agent/phase-a-split.md`. Stack and contracts: `docs/agent/architecture.md`.
 - Before opening a PR: `npm run check && npm run build`.
+- **Heuristics and data workarounds** (thresholds, inferences, guesses about UMN data): add a row to `docs/agent/heuristics.md` in the same PR, and make the UI say so where it affects what students see (Hadi, 2026-10-27).
 
 <!-- BEGIN:nextjs-agent-rules -->
 
