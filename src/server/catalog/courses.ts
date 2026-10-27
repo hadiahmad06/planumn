@@ -36,8 +36,9 @@ export function getCourses(ids: CourseId[]): CourseDetails[] {
   const libEds = new Map<number, string[]>();
   for (const r of db
     .prepare(
-      `SELECT a.left_id AS id, l.name AS name FROM libedAssociationTable a
-       JOIN libed l ON l.id = a.right_id WHERE a.left_id IN (${ph})`,
+      // libedAssociationTable: left_id → libed.id, right_id → classdistribution.id
+      `SELECT a.right_id AS id, l.name AS name FROM libedAssociationTable a
+       JOIN libed l ON l.id = a.left_id WHERE a.right_id IN (${ph}) ORDER BY l.name`,
     )
     .all(...unique) as unknown as { id: number; name: string }[]) {
     libEds.set(r.id, [...(libEds.get(r.id) ?? []), r.name]);
