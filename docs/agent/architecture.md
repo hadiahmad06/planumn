@@ -45,6 +45,8 @@ src/
 | `useCourse(id)`, `useCourses(ids)`, `fetchCourses(ids)` | `src/features/catalog/courseCache.ts` | Hadi's Claude | preview, cards, requirements |
 | `findCourseIdsByCode()` (server) | `src/server/catalog/courses.ts` | Hadi's Claude | transcript import |
 | `usePlanStore`: `plan`, `revision`, `loadPlan`, `patchMeta`, `subscribe` | `src/features/plan-editor/store.ts` | Hadi's Claude | autosave |
+| `planActions` (`addCourse`, `removeCourse`, `moveCourse`, `setLock`, …) | `src/features/plan-editor/store.ts` | Hadi's Claude | preview (lock toggle), transcript import |
+| `useCourseInfo(id)`, `useCreditTotal(ids)` | `src/features/catalog/courseCache.ts` | Hadi's Claude | anywhere a course or credit sum is shown |
 | `<PlanEditor initialPlan={plan} />` | `src/features/plan-editor/PlanEditor.tsx` | Hadi's Claude | plan route pages |
 | `<DisplaySettingsForm />` | `src/features/plan-editor/DisplaySettingsForm.tsx` | Hadi's Claude | Settings modal |
 | `usePreviewStore`: `openPreview`, `hoverPreview`, `closePreview` | `src/features/preview/store.ts` | Michael's Codex | cards, search, requirements |
