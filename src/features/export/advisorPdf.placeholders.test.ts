@@ -18,3 +18,12 @@ describe("advisor PDF with placeholder slots (B2)", () => {
     expect(text).toMatch(/\b7 cr\b/); // Fall 2026: 4 + 3
   });
 });
+
+describe("advisor PDF with special semesters (B19)", () => {
+  it("names the term's kind in its heading", async () => {
+    const plan = createEmptyPlan(new Date("2026-10-26T12:00:00Z"));
+    plan.semesters[1].kind = "abroad";
+    const text = await extractTranscriptText(Buffer.from((await createAdvisorPdf(plan, {})).bytes));
+    expect(text).toContain("Study abroad");
+  });
+});

@@ -1,5 +1,5 @@
 import type { CourseId, CreditRange } from "./course";
-import { MAX_PLACEHOLDERS_PER_SEMESTER, type LockState, type Plan, type PlannedCourse, type Semester } from "./plan";
+import { MAX_PLACEHOLDERS_PER_SEMESTER, type LockState, type Plan, type PlannedCourse, type Semester, type SemesterKind } from "./plan";
 import { academicYear, nextTerm, seasonOf, toTermCode, type Season, type TermCode } from "./terms";
 
 /**
@@ -212,4 +212,18 @@ export function removePlaceholder(plan: Plan, term: TermCode, key: string): Plan
   return mapSemester(plan, term, (s) =>
     s.placeholders?.some((p) => p.key === key) ? { ...s, placeholders: s.placeholders.filter((p) => p.key !== key) } : s,
   );
+}
+
+// ---------------------------------------------------------------------------
+// Special semesters (B19, Ishaan's Claude)
+
+/** Mark a term as study abroad / co-op / leave, or `null` for a regular semester (drops the field). */
+export function setSemesterKind(plan: Plan, term: TermCode, kind: SemesterKind | null): Plan {
+  return mapSemester(plan, term, (s) => {
+    if ((s.kind ?? null) === kind) return s;
+    if (kind) return { ...s, kind };
+    const { kind: _drop, ...regular } = s;
+    void _drop;
+    return regular;
+  });
 }

@@ -16,14 +16,15 @@ export function encodeSnapshot(plan: Plan): string {
     plan.semesters.map((semester) => [
       semester.index,
       semester.courses.map((course) => [course.id, LOCKS.indexOf(course.lock)]),
-      // B2 (Ishaan's Claude): optional third element, only when the semester has placeholders.
-      ...(semester.placeholders?.length
+      // B2/B19 (Ishaan's Claude): optional 3rd element = placeholders, optional 4th = semester kind.
+      ...(semester.placeholders?.length || semester.kind
         ? [
-            semester.placeholders.map((p) =>
+            (semester.placeholders ?? []).map((p) =>
               p.libEd ? [p.label, p.credits, p.libEd] : [p.label, p.credits],
             ),
           ]
         : []),
+      ...(semester.kind ? [semester.kind] : []),
     ]),
   ];
   const bytes = new TextEncoder().encode(JSON.stringify(compact));
@@ -54,14 +55,15 @@ export function decodeSnapshot(token: string, now = new Date()): Plan {
     const semesters = data[2].map((term: unknown) => {
       if (
         !Array.isArray(term) ||
-        (term.length !== 2 && term.length !== 3) ||
+        term.length < 2 ||
+        term.length > 4 ||
         !Array.isArray(term[1]) ||
-        (term.length === 3 && !Array.isArray(term[2]))
+        (term.length >= 3 && !Array.isArray(term[2]))
       )
         throw invalid();
       // B2 (Ishaan's Claude): placeholders get fresh keys; isPlan validates the rest.
       const placeholders =
-        term.length === 3
+        term.length >= 3 && (term[2] as unknown[]).length > 0
           ? (term[2] as unknown[]).map((entry, i) => {
               if (!Array.isArray(entry) || entry.length < 2 || entry.length > 3)
                 throw invalid();
@@ -75,6 +77,7 @@ export function decodeSnapshot(token: string, now = new Date()): Plan {
           : undefined;
       return {
         ...(placeholders ? { placeholders } : {}),
+        ...(term.length === 4 ? { kind: term[3] } : {}),
         index: term[0],
         courses: term[1].map((course: unknown) => {
           if (
