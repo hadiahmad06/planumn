@@ -26,6 +26,8 @@ describe("UMN transcript import", () => {
     expect(result.unmatched).toEqual(["ZZZZ 9999"]);
     expect(result.plan.user_id).toBeNull();
     expect(result.plan.semesters.at(-1)?.index).toBe("1275");
+    expect(result.plan.semesters.map((s) => s.index)).toContain("1235");
+    expect(result.plan.semesters.map((s) => s.index)).toContain("1263");
   });
   it("rejects non-UMN text, missing semesters and wholly unmatched transcripts", () => {
     expect(() => transcriptCourses("Fall Semester 2022 CSCI 1133")).toThrow();

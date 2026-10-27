@@ -65,18 +65,25 @@ export function transcriptPlan(
     now.getFullYear() + (now.getMonth() >= 8 ? 1 : 0),
   );
   const end = toTermCode({ year: endYear, season: "summer" });
-  const future = [];
+  const last = Math.max(Number(end), Number(ordered[ordered.length - 1].index));
+  const byTerm = new Map(ordered.map((semester) => [semester.index, semester]));
+  const complete = [];
   for (
-    let term = nextTerm(ordered[ordered.length - 1].index);
-    Number(term) <= Number(end);
+    let term = ordered[0].index;
+    Number(term) <= last;
     term = nextTerm(term)
-  )
-    future.push({ index: term, courses: [] });
+  ) {
+    if (complete.length >= 150)
+      throw new Error(
+        "The transcript spans too many semesters to import. Check its semester dates.",
+      );
+    complete.push(byTerm.get(term) ?? { index: term, courses: [] });
+  }
   return {
     plan: {
       ...plan,
       title: "Imported transcript",
-      semesters: [...ordered, ...future],
+      semesters: complete,
     },
     matched,
     unmatched: [...unmatched].sort(),
