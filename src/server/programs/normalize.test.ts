@@ -3,7 +3,7 @@ import { evaluateProgram, type CoursesRule, type GroupRule } from "@/domain/requ
 import fixture from "./__fixtures__/cs-bs.json";
 import { collectGroupIds, htmlToText, normalizeProgram, pickCurrentVersion, type RawProgram } from "./normalize";
 
-// Real CourseDog response for Computer Science B.S. (trimmed to 5 requirements).
+// Real CourseDog response for Computer Science B.S. (version 2026-09-08, all requirements; unread fields stripped).
 const raw = pickCurrentVersion(fixture as unknown as Record<string, RawProgram>)!;
 // Pretend every 7-digit id is in the catalog with id = Number(groupId).
 const program = normalizeProgram(raw, (groupId) => ({
@@ -43,6 +43,23 @@ describe("normalizeProgram (CourseDog CS B.S.)", () => {
     expect(intro.satisfied).toBe(true);
     const math = result.requirements.find((r) => r.requirement.name === "Mathematics Core")!;
     expect(math).toMatchObject({ satisfied: false, filled: 1 });
+  });
+
+  it("keeps the deepest nesting: Linear Algebra → anyOf → allOf (MATH 4242 substitution)", () => {
+    const core = req("Computer Science Core").rules[0] as GroupRule;
+    expect(core.kind).toBe("allOf");
+    const linear = core.children.find((c) => c.name === "Linear Algebra") as GroupRule;
+    expect(linear.kind).toBe("anyOf");
+    const sub = linear.children.find((c) => c.name.startsWith("Acceptable Substitutions with MATH 4242")) as GroupRule;
+    expect(sub.kind).toBe("allOf");
+    expect(sub.children).toHaveLength(2);
+  });
+
+  it("reads long single-course lists (Upper Division Math: any 1 of many)", () => {
+    const tech = req("Technical Electives & Upper Division Math-Oriented Requirement").rules[0] as GroupRule;
+    const math = tech.children.find((c) => c.name === "Upper Division Math-Oriented Requirement") as CoursesRule;
+    expect(math.minCourses).toBe(1);
+    expect(math.choices.length).toBeGreaterThan(5);
   });
 
   it("collects every course group id for batch lookup", () => {

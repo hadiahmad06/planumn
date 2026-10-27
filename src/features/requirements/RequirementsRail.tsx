@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { Plan } from "@/domain/plan";
-import type { RequirementResult } from "@/domain/requirements";
+import type { Requirement, Rule } from "@/domain/requirements";
 import { CloseIcon } from "@/components/ui/icons";
 import { planActions } from "@/features/plan-editor/store";
 import { loadProgram, usePrograms } from "./programStore";
@@ -11,11 +11,19 @@ import { ProgramPicker } from "./ProgramPicker";
 import { RequirementItem } from "./RequirementItem";
 import { useAudit } from "./useAudit";
 
-/** True if the requirement's name, a rule name, or any listed course code/title matches the filter (A28). */
-function matches(r: RequirementResult, query: string) {
+/** Searchable text of a rule: its name, notes, and listed course codes/titles (not JSON keys or ids). */
+function ruleText(rule: Rule): string[] {
+  const own = [rule.name, rule.notes ?? ""];
+  if (rule.kind === "courses") return [...own, ...rule.choices.flatMap((c) => c.options.flatMap((o) => [o.code ?? "", o.title ?? ""]))];
+  if (rule.kind === "text") return [...own, rule.text];
+  return [...own, ...rule.children.flatMap(ruleText)];
+}
+
+/** True if the requirement's name, a rule name/notes, or a listed course code/title matches the filter (A28). */
+export function matchesFilter(r: Requirement, query: string) {
   const q = query.trim().toLowerCase();
   if (!q) return true;
-  return r.requirement.name.toLowerCase().includes(q) || JSON.stringify(r.requirement.rules).toLowerCase().includes(q);
+  return [r.name, r.notes ?? "", ...r.rules.flatMap(ruleText)].some((t) => t.toLowerCase().includes(q));
 }
 
 /** Left rail: the plan's programs and their requirements (A22–A28). */
@@ -65,7 +73,7 @@ export function RequirementsRail({ plan }: { plan: Plan }) {
       {plan.programs.map((id) => {
         const entry = entries[id];
         const result = results.find((r) => r.program.id === id);
-        const shown = result?.requirements.filter((r) => matches(r, query) && !(hideDone && r.satisfied)) ?? [];
+        const shown = result?.requirements.filter((r) => matchesFilter(r.requirement, query) && !(hideDone && r.satisfied)) ?? [];
         return (
           <section key={id} className="flex flex-col gap-2">
             <div className="flex items-baseline gap-2">
