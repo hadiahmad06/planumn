@@ -63,6 +63,7 @@ src/
 | `CourseDetails.prereqText` (prerequisite clause) + `parsePrereqs` / `checkPrereqs` | `src/domain/course.ts`, `src/domain/prereqs.ts` | Hadi's Claude | schedule warnings, preview |
 | B11 elective badge: `programCourseIds(program)` (every course a program lists) + `useIsElective(courseId, programIds)` (false while programs load or with none selected) | `src/domain/requirements.ts`, `src/features/requirements/useElective.ts` | Hadi's Claude | course cards; later B12 double-dip |
 | `healthCheck`, `pacing`, `offeringHistory` (plan health, B4–B6) + `useHealth(plan)` | `src/domain/health.ts`, `src/features/plan-editor/useHealth.ts` | Hadi's Claude | header panel, cards, advisor export (B10) |
+| ‹ › move arrows: `snapMove(plan, from, courseId, "earlier" \| "later", termsOffered, hiddenSeasons)` → nearest offered term within the plan (skips hidden seasons, leave semesters, duplicates); `moveTargets` / `moveTo` / `announce` (focus follows the card) | `src/domain/moveSnap.ts`, `src/features/plan-editor/moveCourse.ts` | Hadi's Claude | course cards, card menus |
 | `findCourseIdsByCode()` (server) | `src/server/catalog/courses.ts` | Hadi's Claude | transcript import |
 | `usePlanStore`: `plan`, `revision`, `loadPlan`, `patchMeta`, `subscribe` | `src/features/plan-editor/store.ts` | Hadi's Claude | autosave |
 | `planActions` (`addCourse`, `removeCourse`, `moveCourse`, `setLock`, …) | `src/features/plan-editor/store.ts` | Hadi's Claude | preview (lock toggle), transcript import |

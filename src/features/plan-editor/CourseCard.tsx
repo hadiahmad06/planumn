@@ -12,13 +12,14 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import { courseActions } from "./courseActions";
 import { AlertIcon, CloseIcon, LockIcon } from "@/components/ui/icons";
 import type { HealthIssue } from "@/domain/health";
-import { useCourseInfo } from "@/features/catalog/courseCache";
+import { useCourseCache, useCourseInfo } from "@/features/catalog/courseCache";
 import { useIsElective } from "@/features/requirements/useElective";
 import { usePreviewStore } from "@/features/preview/store";
 import { stripeColor } from "./courseColor";
 import { plannedId, type DragData } from "./dnd";
 import { useDisplaySettings } from "./displaySettings";
 import { hoverCourse, planActions, usePlanStore } from "./store";
+import { moveLabel, moveTargets, moveTo } from "./moveCourse";
 
 /** Card height grows with credits so a semester's load is visible at a glance (2026 redesign). */
 export function cardHeight(course: CourseSummary | undefined) {
@@ -98,6 +99,11 @@ export function CourseCard({ term, index, planned, issues }: { term: TermCode; i
   const hiddenSeasons = useDisplaySettings((s) => s.hiddenSeasons);
   const actions = courseActions(term, planned, course, hiddenSeasons);
   const label = course ? `${courseCode(course)}, ${course.title}` : "Course";
+  const code = course ? courseCode(course) : "Course";
+  // Re-render when the plan or this course's details change, so the arrows' targets stay current.
+  usePlanStore((s) => s.plan);
+  useCourseCache((s) => s.courses[planned.id]);
+  const targets = locked ? { earlier: null, later: null } : moveTargets(term, planned.id, hiddenSeasons);
   const face = <CourseCardFace course={course} lock={planned.lock} issues={issues} elective={elective} />;
 
   if (mobile) {
@@ -130,14 +136,45 @@ export function CourseCard({ term, index, planned, issues }: { term: TermCode; i
           {...listeners}
           onClick={() => openPreview(planned.id)}
           onKeyDown={(e) => {
+            // Alt+←/→: the keyboard version of the ‹ › arrows.
+            if (e.altKey && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+              e.preventDefault();
+              const target = e.key === "ArrowLeft" ? targets.earlier : targets.later;
+              if (target) moveTo(term, planned.id, target, code);
+              return;
+            }
             listeners?.onKeyDown?.(e);
             if ((e.key === "Delete" || e.key === "Backspace") && !locked) planActions.removeCourse(term, planned.id);
           }}
+          data-course-card={`${term}:${planned.id}`}
+          aria-keyshortcuts={locked ? undefined : "Alt+ArrowLeft Alt+ArrowRight"}
           aria-label={label}
           className={cn("block w-full rounded-card focus-visible:outline-2 focus-visible:outline-accent", locked ? "cursor-pointer" : "cursor-grab")}
         >
           {face}
         </button>
+        {!locked && (
+          // ‹ › snap to the previous / next term the course is offered in (Hadi, 2026-10-27).
+          <span className="absolute -bottom-2.5 left-1/2 z-10 hidden -translate-x-1/2 overflow-hidden rounded-full border border-border bg-surface shadow-card group-focus-within:flex group-hover:flex">
+            {(["earlier", "later"] as const).map((dir) => {
+              const target = targets[dir];
+              return (
+                <button
+                  key={dir}
+                  type="button"
+                  disabled={!target}
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={() => target && moveTo(term, planned.id, target, code)}
+                  aria-label={`${code}: ${moveLabel(dir, target)}`}
+                  title={moveLabel(dir, target)}
+                  className="px-1.5 text-micro leading-5 text-text-secondary hover:bg-accent-soft hover:text-accent focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-text-secondary"
+                >
+                  {dir === "earlier" ? "‹" : "›"}
+                </button>
+              );
+            })}
+          </span>
+        )}
         {!locked && (
           <button
             type="button"
