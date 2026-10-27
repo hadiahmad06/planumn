@@ -1,0 +1,83 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens: the single source of truth (2026 redesign ADR-0004, carried into v2).
+ * Components use the Tailwind names below (bg-canvas, text-text-secondary, border-border, ...)
+ * or var(--token) in CSS. No raw hex outside this file.
+ * Dark mode (Phase B) = one more block overriding the same names.
+ */
+:root {
+  --bg-canvas: #f8ece8;
+  --bg-surface: #ffffff;
+  --bg-sunken: #f3e4df;
+  --text-primary: #1a1414;
+  --text-secondary: #6b6363;
+  --text-tertiary: #a89e9c;
+  --accent: #811331;
+  --accent-hover: #6a0f28;
+  --accent-soft: #f4dde3;
+  --success: #1f8b4c;
+  --success-soft: #e3f3e9;
+  --warning: #b7791f;
+  --warning-soft: #fbf0dc;
+  --danger: #c0392b;
+  --border-subtle: #e8dcd9;
+  --border-strong: #d4c4c0;
+
+  /* Course stripe palette (by department bucket) */
+  --stripe-1: #811331;
+  --stripe-2: #d49a2e;
+  --stripe-3: #b97250;
+  --stripe-4: #3f6e8c;
+  --stripe-5: #5b8a5a;
+  --stripe-6: #7a5c99;
+  --stripe-neutral: #a89e9c;
+
+  --shadow-card: 0 1px 2px rgb(26 20 20 / 0.06), 0 1px 1px rgb(26 20 20 / 0.04);
+  --shadow-overlay: 0 12px 32px rgb(26 20 20 / 0.16), 0 2px 6px rgb(26 20 20 / 0.08);
+}
+
+@theme inline {
+  --color-canvas: var(--bg-canvas);
+  --color-surface: var(--bg-surface);
+  --color-sunken: var(--bg-sunken);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-tertiary: var(--text-tertiary);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-border: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+
+  --text-micro: 11px;
+  --text-body: 14px;
+  --text-label: 16px;
+  --text-title: 32px;
+
+  --radius-row: 4px;
+  --radius-card: 8px;
+  --radius-modal: 12px;
+
+  --shadow-card: var(--shadow-card);
+  --shadow-overlay: var(--shadow-overlay);
+}
+
+html,
+body {
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+}
+
+body {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 14px;
+}
