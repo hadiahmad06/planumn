@@ -8,6 +8,7 @@ import {
 import { courseCode, formatCredits, type CourseSummary } from "@/domain/course";
 import {
   placeholderCredits,
+  SEMESTER_KINDS,
   type PlaceholderCourse,
   type Plan,
   type PlannedCourse,
@@ -245,8 +246,10 @@ export async function createAdvisorPdf(
             max: placeholderCredits(semester),
           },
         ) ?? { min: 0, max: 0 };
+        // B19: name special terms, e.g. "Fall 2027 · Study abroad".
+        const kindLabel = SEMESTER_KINDS.find((k) => k.kind === semester?.kind)?.label;
         text(
-          `${termLabel(term)}${segment ? " (cont.)" : ""}`,
+          `${termLabel(term)}${kindLabel ? ` · ${kindLabel}` : ""}${segment ? " (cont.)" : ""}`,
           x,
           cursor - 28,
           9,

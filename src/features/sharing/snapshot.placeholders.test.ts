@@ -36,3 +36,20 @@ describe("snapshot links with placeholders (B2)", () => {
       expect(() => decodeSnapshot(tokenFor(["t", [], [["1269", [], bad]]]))).toThrow();
   });
 });
+
+describe("snapshot links with special semesters (B19)", () => {
+  it("round-trips the semester kind, with or without placeholders", () => {
+    const plan = createEmptyPlan(new Date("2026-10-26"));
+    plan.semesters[1].kind = "abroad";
+    plan.semesters[2].kind = "coop";
+    plan.semesters[2].placeholders = [{ key: "k", label: "Co-op credit", credits: 1 }];
+    const decoded = decodeSnapshot(encodeSnapshot(plan));
+    expect(decoded.semesters[1]).toEqual({ index: plan.semesters[1].index, courses: [], kind: "abroad" });
+    expect(decoded.semesters[2]).toMatchObject({ kind: "coop", placeholders: [{ label: "Co-op credit", credits: 1 }] });
+    expect("kind" in decoded.semesters[0]).toBe(false);
+  });
+
+  it("rejects unknown kinds", () => {
+    expect(() => decodeSnapshot(tokenFor(["t", [], [["1269", [], [], "vacation"]]]))).toThrow();
+  });
+});

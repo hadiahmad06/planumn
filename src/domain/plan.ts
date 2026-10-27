@@ -32,7 +32,18 @@ export interface Semester {
   courses: PlannedCourse[];
   /** Optional (B2): absent on 2025 rows, which keep loading unchanged. */
   placeholders?: PlaceholderCourse[];
+  /** Optional (B19): a non-regular term. Absent = a regular semester (all 2025 rows). */
+  kind?: SemesterKind;
 }
+
+/** Special semesters (B19, Ishaan's Claude): study abroad, co-op / internship, leave of absence. */
+export type SemesterKind = "abroad" | "coop" | "leave";
+export const SEMESTER_KINDS: { kind: SemesterKind; label: string }[] = [
+  { kind: "abroad", label: "Study abroad" },
+  { kind: "coop", label: "Co-op / internship" },
+  { kind: "leave", label: "Leave of absence" },
+];
+export const isSemesterKind = (v: unknown): v is SemesterKind => v === "abroad" || v === "coop" || v === "leave";
 
 export const MAX_PLACEHOLDERS_PER_SEMESTER = 20;
 

@@ -1,4 +1,4 @@
-import { MAX_PLACEHOLDERS_PER_SEMESTER, type Plan } from "@/domain/plan";
+import { isSemesterKind, MAX_PLACEHOLDERS_PER_SEMESTER, type Plan } from "@/domain/plan";
 /** Written by Michael's Codex. Older cloud rows may have nullable array columns. */
 export function normalizePlan(row: Plan): Plan {
   return { ...row, programs: row.programs ?? [], can_view: row.can_view ?? [] };
@@ -39,7 +39,8 @@ export function isPlan(value: unknown): value is Plan {
             c.id > 0 &&
             ["locked", "unlocked", "autofilled"].includes(c.lock),
         ) &&
-        isPlaceholderList(s.placeholders),
+        isPlaceholderList(s.placeholders) &&
+        (s.kind === undefined || isSemesterKind(s.kind)),
     )
   );
 }

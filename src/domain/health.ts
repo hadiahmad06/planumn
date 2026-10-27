@@ -85,7 +85,7 @@ export function pacing(plan: Plan, credits: (id: CourseId) => number): Pacing {
 // ---------------------------------------------------------------------------
 // B6: health check
 
-export type IssueKind = "prereq" | "offering" | "heavy" | "light" | "credits";
+export type IssueKind = "prereq" | "offering" | "heavy" | "light" | "credits" | "leave";
 
 export interface HealthIssue {
   kind: IssueKind;
@@ -147,9 +147,20 @@ export function healthCheck({ plan, courses, prereqs, now = new Date() }: Health
   }
 
   const pace = pacing(plan, credit);
+  // B19 (Ishaan's Claude): abroad / co-op / leave terms follow their own credit rules, so no load notes.
+  const kinds = new Map(plan.semesters.map((s) => [s.index, s.kind]));
   for (const load of pace.loads) {
     // Completed and in-progress terms can't be changed anymore, so only upcoming terms get load notes.
     if (load.courses === 0 || compareTerms(load.term, current) <= 0) continue;
+    if (kinds.get(load.term) === "leave")
+      issues.push({
+        kind: "leave",
+        severity: "info",
+        term: load.term,
+        courseId: null,
+        message: `${termLabel(load.term)} is marked as a leave of absence but has courses planned.`,
+      });
+    if (kinds.get(load.term)) continue;
     if (load.credits > HEAVY_LOAD)
       issues.push({
         kind: "heavy",

@@ -4,7 +4,7 @@ import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useState } from "react";
 import { formatCredits } from "@/domain/course";
-import { placeholderCredits, type Semester } from "@/domain/plan";
+import { placeholderCredits, SEMESTER_KINDS, type Semester } from "@/domain/plan";
 import { termLabel } from "@/domain/terms";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { cn } from "@/components/ui/cn";
@@ -38,6 +38,7 @@ export function SemesterColumn({ semester, issues }: { semester: Semester; issue
   const mobile = useIsMobile();
   const selectTerm = useEditorUi((s) => s.selectTerm);
 
+  const kindLabel = SEMESTER_KINDS.find((k) => k.kind === semester.kind)?.label;
   const remove = () => (semester.courses.length || slots.length ? setConfirming(true) : planActions.removeSemester(semester.index));
 
   return (
@@ -66,6 +67,11 @@ export function SemesterColumn({ semester, issues }: { semester: Semester; issue
             {label}
           </button>
         </h3>
+        {kindLabel && (
+          <span className="rounded-full bg-accent-soft px-1.5 py-px text-[10px] font-medium text-accent" title={`${label}: ${kindLabel}`}>
+            {kindLabel}
+          </span>
+        )}
         <span className="ml-auto flex items-center gap-1.5 text-micro text-text-secondary">
           <WorkloadBadge semester={semester} />
           {formatCredits(credits)} cr
@@ -78,6 +84,12 @@ export function SemesterColumn({ semester, issues }: { semester: Semester; issue
           }
         >
           <MenuItem onSelect={() => setAddingSlot(true)}>Add placeholder…</MenuItem>
+          {SEMESTER_KINDS.filter((k) => k.kind !== semester.kind).map((k) => (
+            <MenuItem key={k.kind} onSelect={() => planActions.setSemesterKind(semester.index, k.kind)}>
+              Mark as {k.label.toLowerCase()}
+            </MenuItem>
+          ))}
+          {semester.kind && <MenuItem onSelect={() => planActions.setSemesterKind(semester.index, null)}>Mark as regular semester</MenuItem>}
           <MenuItem danger onSelect={remove}>Remove {label}</MenuItem>
         </Menu>
       </header>

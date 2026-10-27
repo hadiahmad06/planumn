@@ -76,6 +76,7 @@ src/
 | APAS extension ↔ page messages (`window.postMessage`, nonce per import; report kept in memory only) | `src/features/apas/protocol.ts` + `extension/src/protocol.js` (kept in sync by a test) | Ishaan's Claude | `/plan/apas`, the APAS import extension; the B1 parser later |
 | Twin Cities Lib Ed designations: `GET /api/libed?ids=` → `{ [courseId]: string[] (CLE codes) \| null }`; `libEdCoverage(plan, lookup)`; `<LibEdCoverage plan />` | `src/app/api/libed/route.ts`, `src/server/libed/libEdSource.ts` (CourseDog `attributes`), `src/domain/libed.ts`, `src/features/libed/` | Ishaan's Claude | requirements rail (B3); later B8 filters, B12 double-dip |
 | Placeholder course slots (B2): optional `Semester.placeholders?: PlaceholderCourse[]` (`key`, `label`, `credits`, `libEd?`); `placeholderCredits()`; `addPlaceholder` / `removePlaceholder` | `src/domain/plan.ts`, `src/domain/planOps.ts` | Ishaan's Claude | editor, health pacing, workload, Lib Ed coverage, `isPlan`, snapshot links (optional 3rd element per semester), advisor PDF |
+| Special semesters (B19): optional `Semester.kind?: "abroad" \| "coop" \| "leave"`; `SEMESTER_KINDS`, `isSemesterKind`; `setSemesterKind` | `src/domain/plan.ts`, `src/domain/planOps.ts` | Ishaan's Claude | editor (badge + menu), health (no load notes; leave-with-courses note), `isPlan`, snapshot links (optional 4th element), advisor PDF |
 
 To change a contract, say so in the PR description under **Contract change**. The other side signs off in review.
 

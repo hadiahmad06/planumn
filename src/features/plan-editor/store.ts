@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import type { CourseId } from "@/domain/course";
-import { normalizeSemesters, type LockState, type Plan } from "@/domain/plan";
+import { normalizeSemesters, type LockState, type Plan, type SemesterKind } from "@/domain/plan";
 import * as ops from "@/domain/planOps";
 import { usePreviewStore } from "@/features/preview/store";
 import { useDisplaySettings } from "./displaySettings";
@@ -57,6 +57,8 @@ export const planActions = {
   // B2 (Ishaan's Claude): placeholder slots. Keys are random, so they stay unique per semester.
   addPlaceholder: (term: TermCode, input: ops.PlaceholderInput) => edit((p) => ops.addPlaceholder(p, term, input, newPlaceholderKey())),
   removePlaceholder: (term: TermCode, key: string) => edit((p) => ops.removePlaceholder(p, term, key)),
+  // B19 (Ishaan's Claude): study abroad / co-op / leave, or null for a regular semester.
+  setSemesterKind: (term: TermCode, kind: SemesterKind | null) => edit((p) => ops.setSemesterKind(p, term, kind)),
 };
 
 export const usePlanStore = create<PlanStoreState>()((set) => ({
