@@ -28,6 +28,8 @@ export interface RawGroup {
 export interface RawProgram {
   _id?: string;
   name?: string;
+  /** `cdSamplePlanLink` is HTML: `<p><a href="https://sampleplan.umn.edu/node/666">…</a></p>` (B17). */
+  customFields?: { cdSamplePlanLink?: string | null };
   catalogDisplayName?: string;
   type?: string;
   programGroupId?: string;
@@ -129,4 +131,21 @@ export function pickCurrentVersion(response: Record<string, RawProgram>, today =
   const started = versions.filter((v) => (v.effectiveStartDate ?? "") <= iso);
   const pool = started.length ? started : versions;
   return pool.sort((a, b) => (b.effectiveStartDate ?? "").localeCompare(a.effectiveStartDate ?? ""))[0];
+}
+
+/**
+ * The first https link to a umn.edu site in the catalog's sample-plan field (B17). Anything else
+ * (no link, http, another host) is dropped rather than linked.
+ */
+export function samplePlanUrl(raw: RawProgram): string | undefined {
+  for (const m of (raw.customFields?.cdSamplePlanLink ?? "").matchAll(/href="([^"]+)"/gi)) {
+    const href = m[1].replace(/&amp;/g, "&");
+    try {
+      const url = new URL(href);
+      if (url.protocol === "https:" && (url.hostname === "umn.edu" || url.hostname.endsWith(".umn.edu"))) return url.href;
+    } catch {
+      // Not a URL; try the next link.
+    }
+  }
+  return undefined;
 }

@@ -61,6 +61,11 @@ export interface Program {
   name: string;
   /** "Major", "Minor", ... */
   type: string;
+  /**
+   * B17: the program's page on UMN's sample-plan site (sampleplan.umn.edu), from the catalog's own
+   * "sample plan link" field. Absent when the catalog has none. planu.mn doesn't copy the plan itself.
+   */
+  samplePlanUrl?: string;
   requirements: Requirement[];
 }
 

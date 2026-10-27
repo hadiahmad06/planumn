@@ -87,6 +87,18 @@ export function RequirementsRail({ plan }: { plan: Plan }) {
                 </span>
               )}
             </div>
+            {/* B17: UMN's own sample plan for the program, linked rather than copied (Hadi, 2026-10-27). */}
+            {result?.program.samplePlanUrl && (
+              <a
+                href={result.program.samplePlanUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="-mt-1 self-start text-micro text-accent underline"
+                title="The department's suggested semester-by-semester plan on UMN's sample plan site. Opens in a new tab."
+              >
+                Sample four-year plan (UMN) ↗
+              </a>
+            )}
             {(!entry || entry.status === "loading") && <p className="text-text-tertiary">Loading requirements…</p>}
             {entry?.status === "error" && (
               <p className="text-danger">

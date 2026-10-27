@@ -2,7 +2,7 @@ import "server-only";
 import type { CourseOption, Program } from "@/domain/requirements";
 import { findCoursesByGroupIds } from "@/server/catalog/courses";
 import { fetchCourseDogCourses, fetchProgramVersions } from "./coursedog";
-import { collectGroupIds, normalizeProgram, pickCurrentVersion } from "./normalize";
+import { collectGroupIds, normalizeProgram, pickCurrentVersion, samplePlanUrl } from "./normalize";
 
 /** Program requirements with every listed course resolved to the catalog where possible. */
 export async function getProgram(programGroupId: string): Promise<Program | null> {
@@ -29,9 +29,11 @@ export async function getProgram(programGroupId: string): Promise<Program | null
     // Names for not-in-catalog courses are a nicety; the rail still works without them.
   }
 
-  return normalizeProgram(raw, (groupId) => {
+  const program = normalizeProgram(raw, (groupId) => {
     const c = inCatalog.get(groupId);
     if (c) return { groupId, courseId: c.id, code: `${c.dept} ${c.number}`, title: c.title, credits: c.credits };
     return external.get(groupId) ?? { groupId, courseId: null, code: null, title: null, credits: null };
   });
+  const samplePlan = samplePlanUrl(raw); // B17
+  return samplePlan ? { ...program, samplePlanUrl: samplePlan } : program;
 }
