@@ -61,9 +61,9 @@ export function academicYearLabel(startYear: number): string {
   return `${startYear}–${String((startYear + 1) % 100).padStart(2, "0")}`;
 }
 
-/** The Fall term to start a new plan on: this Fall, or next Fall once this year's Fall has started. */
+/** New plans start on this calendar year's Fall (2025 behavior): the upcoming Fall, or the current one. */
 export function defaultStartTerm(now = new Date()): TermCode {
-  return toTermCode({ year: now.getMonth() >= 8 ? now.getFullYear() + 1 : now.getFullYear(), season: "fall" });
+  return toTermCode({ year: now.getFullYear(), season: "fall" });
 }
 
 /** `years` academic years of Fall, Spring, Summer starting at `start`. */
