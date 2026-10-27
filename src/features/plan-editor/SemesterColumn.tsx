@@ -13,13 +13,13 @@ import { Menu, MenuItem } from "@/components/ui/Menu";
 import { useCreditTotal } from "@/features/catalog/courseCache";
 import { CourseCard } from "./CourseCard";
 import { plannedId, semesterId, type DropData } from "./dnd";
-import { prereqKey } from "./prereqStatus";
-import type { PrereqCheck } from "@/domain/prereqs";
+import { issueKey } from "./useHealth";
+import type { HealthIssue } from "@/domain/health";
 import { planActions, useEditorUi } from "./store";
 import { ContextMenu } from "@/components/ui/ContextMenu";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
-export function SemesterColumn({ semester, prereqs }: { semester: Semester; prereqs: Map<string, PrereqCheck> }) {
+export function SemesterColumn({ semester, issues }: { semester: Semester; issues: Map<string, HealthIssue[]> }) {
   const data: DropData = { type: "semester", term: semester.index };
   const { setNodeRef, isOver } = useDroppable({ id: semesterId(semester.index), data });
   const credits = useCreditTotal(semester.courses.map((c) => c.id));
@@ -72,7 +72,7 @@ export function SemesterColumn({ semester, prereqs }: { semester: Semester; prer
       <SortableContext items={semester.courses.map((c) => plannedId(semester.index, c.id))} strategy={verticalListSortingStrategy}>
         <ul className="flex flex-1 flex-col gap-1.5">
           {semester.courses.map((c, i) => (
-            <CourseCard key={c.id} term={semester.index} index={i} planned={c} prereq={prereqs.get(prereqKey(semester.index, c.id))} />
+            <CourseCard key={c.id} term={semester.index} index={i} planned={c} issues={issues.get(issueKey(semester.index, c.id))} />
           ))}
           {semester.courses.length === 0 && (
             <li className="flex flex-1 list-none items-center justify-center rounded-card border border-dashed border-border-strong/70 py-6 text-micro text-text-tertiary">

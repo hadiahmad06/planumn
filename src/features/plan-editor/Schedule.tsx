@@ -4,7 +4,7 @@ import { useState } from "react";
 import { formatCredits } from "@/domain/course";
 import { groupByYear, missingTermsInYear, type YearGroup } from "@/domain/planOps";
 import type { Plan } from "@/domain/plan";
-import type { PrereqCheck } from "@/domain/prereqs";
+import type { HealthIssue } from "@/domain/health";
 import { academicYearLabel, seasonOf, termLabel, toTermCode, type Season } from "@/domain/terms";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { cn } from "@/components/ui/cn";
@@ -13,7 +13,7 @@ import { Menu, MenuItem } from "@/components/ui/Menu";
 import { useCreditTotal } from "@/features/catalog/courseCache";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { useDisplaySettings } from "./displaySettings";
-import { usePrereqStatus } from "./prereqStatus";
+import { useHealth } from "./useHealth";
 import { SemesterColumn } from "./SemesterColumn";
 import { planActions } from "./store";
 
@@ -72,7 +72,7 @@ function YearMenu({ group, plan, seasons }: { group: YearGroup; plan: Plan; seas
 }
 
 /** Default layout: one row per academic year; each row collapses to a summary (A30). */
-function YearRow({ group, plan, seasons, prereqs, columns }: { group: YearGroup; plan: Plan; seasons: Season[]; prereqs: Map<string, PrereqCheck>; columns: number }) {
+function YearRow({ group, plan, seasons, issues, columns }: { group: YearGroup; plan: Plan; seasons: Season[]; issues: Map<string, HealthIssue[]>; columns: number }) {
   const collapsed = useDisplaySettings((s) => s.collapsedYears.includes(group.startYear));
   const toggleYear = useDisplaySettings((s) => s.toggleYear);
   const ids = group.semesters.flatMap((s) => s.courses.map((c) => c.id));
@@ -95,7 +95,7 @@ function YearRow({ group, plan, seasons, prereqs, columns }: { group: YearGroup;
         <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
           {seasons.map((season) => {
             const semester = group.semesters.find((s) => seasonOf(s.index) === season);
-            if (semester) return <SemesterColumn key={semester.index} semester={semester} prereqs={prereqs} />;
+            if (semester) return <SemesterColumn key={semester.index} semester={semester} issues={issues} />;
             return <AddSemesterSlot key={season} term={termOf(group.startYear, season)} />;
           })}
         </div>
@@ -105,7 +105,7 @@ function YearRow({ group, plan, seasons, prereqs, columns }: { group: YearGroup;
 }
 
 /** Transposed layout: one row per season, academic years across (A30, 2025 "transpose"). */
-function SeasonGrid({ plan, years, seasons, prereqs }: { plan: Plan; years: YearGroup[]; seasons: Season[]; prereqs: Map<string, PrereqCheck> }) {
+function SeasonGrid({ plan, years, seasons, issues }: { plan: Plan; years: YearGroup[]; seasons: Season[]; issues: Map<string, HealthIssue[]> }) {
   return (
     <div className="overflow-x-auto pb-2">
       <div className="grid gap-3" style={{ gridTemplateColumns: `5rem repeat(${years.length}, minmax(13rem, 1fr))` }}>
@@ -122,7 +122,7 @@ function SeasonGrid({ plan, years, seasons, prereqs }: { plan: Plan; years: Year
             {years.map((g) => {
               const semester = g.semesters.find((s) => seasonOf(s.index) === season);
               return semester ? (
-                <SemesterColumn key={semester.index} semester={semester} prereqs={prereqs} />
+                <SemesterColumn key={semester.index} semester={semester} issues={issues} />
               ) : (
                 <AddSemesterSlot key={`${g.startYear}-${season}`} term={termOf(g.startYear, season)} />
               );
@@ -140,7 +140,7 @@ export function Schedule({ plan }: { plan: Plan }) {
   const mobile = useIsMobile();
   const seasons = SEASONS.filter((s) => !hidden.includes(s));
   const years = groupByYear(plan.semesters);
-  const prereqs = usePrereqStatus(plan);
+  const issues = useHealth(plan).byCourse;
 
   return (
     <div className="flex flex-col gap-6">
@@ -148,9 +148,9 @@ export function Schedule({ plan }: { plan: Plan }) {
         <PlusIcon size={12} /> Add earlier year
       </button>
       {layout === "seasons" && !mobile ? (
-        <SeasonGrid plan={plan} years={years} seasons={seasons} prereqs={prereqs} />
+        <SeasonGrid plan={plan} years={years} seasons={seasons} issues={issues} />
       ) : (
-        years.map((g) => <YearRow key={g.startYear} group={g} plan={plan} seasons={seasons} prereqs={prereqs} columns={mobile ? 1 : seasons.length} />)
+        years.map((g) => <YearRow key={g.startYear} group={g} plan={plan} seasons={seasons} issues={issues} columns={mobile ? 1 : seasons.length} />)
       )}
       <div className="flex flex-wrap gap-4">
         <button type="button" onClick={planActions.addYearAtEnd} className="flex items-center gap-1 text-body text-text-secondary hover:text-accent">

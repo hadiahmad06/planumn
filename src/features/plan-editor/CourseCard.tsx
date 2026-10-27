@@ -11,7 +11,7 @@ import { ActionMenu } from "@/components/ui/Menu";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { courseActions } from "./courseActions";
 import { AlertIcon, CloseIcon, LockIcon } from "@/components/ui/icons";
-import type { PrereqCheck } from "@/domain/prereqs";
+import type { HealthIssue } from "@/domain/health";
 import { useCourseInfo } from "@/features/catalog/courseCache";
 import { usePreviewStore } from "@/features/preview/store";
 import { stripeColor } from "./courseColor";
@@ -24,11 +24,8 @@ export function cardHeight(course: CourseSummary | undefined) {
   return Math.max(44, (course?.credits.max ?? 3) * 12 + 8);
 }
 
-function prereqMessage(p: PrereqCheck) {
-  return `Prerequisites not planned in an earlier semester: ${p.missing}${p.hasOtherPaths ? " (or instructor consent / other ways to qualify)" : ""}`;
-}
 
-export function CourseCardFace({ course, lock, dragging, prereq }: { course: CourseSummary | undefined; lock?: PlannedCourse["lock"]; dragging?: boolean; prereq?: PrereqCheck }) {
+export function CourseCardFace({ course, lock, dragging, issues }: { course: CourseSummary | undefined; lock?: PlannedCourse["lock"]; dragging?: boolean; issues?: HealthIssue[] }) {
   const colorKey = useDisplaySettings((s) => s.colorKey);
   return (
     <div
@@ -43,10 +40,13 @@ export function CourseCardFace({ course, lock, dragging, prereq }: { course: Cou
         <div className="flex items-center gap-1.5">
           <span className="shrink-0 font-semibold whitespace-nowrap">{course ? courseCode(course) : "…"}</span>
           {lock === "locked" && <LockIcon className="shrink-0 text-text-tertiary" size={12} aria-label="Locked" />}
-          {prereq && !prereq.met && (
-            <span title={prereqMessage(prereq)} className={cn("shrink-0", prereq.hasOtherPaths ? "text-text-tertiary" : "text-warning")}>
+          {issues && issues.length > 0 && (
+            <span
+              title={issues.map((i) => i.message).join("\n")}
+              className={cn("shrink-0", issues.some((i) => i.severity === "warning") ? "text-warning" : "text-text-tertiary")}
+            >
               <AlertIcon size={12} aria-hidden />
-              <span className="sr-only">{prereqMessage(prereq)}</span>
+              <span className="sr-only">{issues.map((i) => i.message).join(" ")}</span>
             </span>
           )}
           <span className="ml-auto min-w-0 truncate text-micro text-text-secondary">{course ? `${formatCredits(course.credits)} cr` : ""}</span>
@@ -57,7 +57,7 @@ export function CourseCardFace({ course, lock, dragging, prereq }: { course: Cou
   );
 }
 
-export function CourseCard({ term, index, planned, prereq }: { term: TermCode; index: number; planned: PlannedCourse; prereq?: PrereqCheck }) {
+export function CourseCard({ term, index, planned, issues }: { term: TermCode; index: number; planned: PlannedCourse; issues?: HealthIssue[] }) {
   const course = useCourseInfo(planned.id);
   const openPreview = usePreviewStore((s) => s.openPreview);
   const mobile = useIsMobile();
@@ -72,7 +72,7 @@ export function CourseCard({ term, index, planned, prereq }: { term: TermCode; i
   const hiddenSeasons = useDisplaySettings((s) => s.hiddenSeasons);
   const actions = courseActions(term, planned, course, hiddenSeasons);
   const label = course ? `${courseCode(course)}, ${course.title}` : "Course";
-  const face = <CourseCardFace course={course} lock={planned.lock} prereq={prereq} />;
+  const face = <CourseCardFace course={course} lock={planned.lock} issues={issues} />;
 
   if (mobile) {
     return (
