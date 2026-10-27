@@ -8,9 +8,12 @@ import { encodeSnapshot } from "./snapshot";
 export function SharePlanButton({
   plan,
   disabled = false,
+  compact = false,
 }: {
   plan: Plan;
   disabled?: boolean;
+  /** Ishaan's Claude (B15 editor action): small variant for the plan header, next to Export PDF. */
+  compact?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [url, setUrl] = useState("");
@@ -46,7 +49,11 @@ export function SharePlanButton({
         type="button"
         disabled={disabled}
         onClick={prepare}
-        className="rounded-row border border-border-strong px-3 py-1.5 text-sm hover:bg-sunken disabled:opacity-50"
+        className={
+          compact
+            ? "rounded-row border border-border-strong bg-surface px-2.5 py-1 text-xs text-text-secondary hover:border-accent hover:text-accent disabled:opacity-50"
+            : "rounded-row border border-border-strong px-3 py-1.5 text-sm hover:bg-sunken disabled:opacity-50"
+        }
       >
         Share snapshot
       </button>
@@ -57,7 +64,8 @@ export function SharePlanButton({
         description="Anyone with this link can view and forward this snapshot. Existing links cannot be revoked. Later edits to your plan will not appear here."
       >
         <p className="mb-4 text-sm text-text-secondary">
-          The link includes the plan title, programs and scheduled courses. It
+          The link includes the plan title, programs, scheduled courses,
+          placeholders and special-semester labels. It
           leaves out your account details and cloud plan ID. Check the title
           before sending.
         </p>

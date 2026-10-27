@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { plannedCourseIds, type Plan } from "@/domain/plan";
+import { plannedCourseIds, SEMESTER_KINDS, type Plan } from "@/domain/plan";
 import { termLabel } from "@/domain/terms";
 import { courseCode, formatCredits } from "@/domain/course";
 import { useAuth } from "@/features/auth/useAuth";
@@ -211,8 +211,11 @@ export function SharedPlan() {
                 >
                   <h2 className="mb-3 font-semibold">
                     {termLabel(semester.index)}
+                    {/* B19 (Ishaan's Claude): special-semester label carried in the link. */}
+                    {semester.kind &&
+                      ` · ${SEMESTER_KINDS.find((k) => k.kind === semester.kind)?.label ?? ""}`}
                   </h2>
-                  {semester.courses.length ? (
+                  {semester.courses.length || semester.placeholders?.length ? (
                     <ul className="space-y-3">
                       {semester.courses.map((entry, index) => {
                         const course = courses[entry.id];
@@ -232,6 +235,15 @@ export function SharedPlan() {
                           </li>
                         );
                       })}
+                      {/* B2 (Ishaan's Claude): placeholder slots carried in the link. */}
+                      {semester.placeholders?.map((slot) => (
+                        <li key={slot.key} className="text-sm">
+                          <p className="font-medium">{slot.label}</p>
+                          <p className="text-text-secondary">
+                            Placeholder · {slot.credits} cr
+                          </p>
+                        </li>
+                      ))}
                     </ul>
                   ) : (
                     <p className="text-sm text-text-tertiary">
