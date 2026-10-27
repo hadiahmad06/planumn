@@ -1,12 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { formatCredits } from "@/domain/course";
 import type { Plan } from "@/domain/plan";
-import { useCreditTotal } from "@/features/catalog/courseCache";
 import { SaveStatus } from "@/features/plans/SaveStatus";
 import { ProgressWidget } from "@/features/requirements/ProgressWidget";
 import { planActions } from "./store";
+import { HealthPanel } from "./HealthPanel";
 import { ViewOptions } from "./ViewOptions";
 
 /** Inline-editable plan title (A7). Commits on blur or Enter; Escape reverts. */
@@ -38,7 +37,6 @@ function EditableTitle({ title }: { title: string }) {
 }
 
 export function PlanHeader({ plan }: { plan: Plan }) {
-  const total = useCreditTotal(plan.semesters.flatMap((sem) => sem.courses.map((c) => c.id)));
   const courseCount = plan.semesters.reduce((n, s) => n + s.courses.length, 0);
 
   return (
@@ -46,10 +44,11 @@ export function PlanHeader({ plan }: { plan: Plan }) {
       <EditableTitle title={plan.title} />
       <div className="flex items-center gap-3 text-text-secondary">
         <span>
-          {courseCount} {courseCount === 1 ? "course" : "courses"} · <strong className="text-text-primary">{formatCredits(total)}</strong> credits
+          {courseCount} {courseCount === 1 ? "course" : "courses"}
         </span>
         <SaveStatus />
         <ProgressWidget plan={plan} />
+        <HealthPanel plan={plan} />
         <ViewOptions />
       </div>
     </div>
