@@ -77,8 +77,10 @@ export function searchCourses(raw: string, limit = 50, filters: SearchFilters = 
   if (!filtered) return rows.map(toSummary);
 
   const facts = courseFacts();
+  const only = filters.courseIds ? new Set(filters.courseIds) : null;
   const out: CourseSummary[] = [];
   for (const r of rows) {
+    if (only && !only.has(r.id)) continue;
     if (filters.libEd && !(r.courseGroupId && libEdGroups?.has(r.courseGroupId))) continue;
     const f = facts.get(r.id);
     if (!f || !matchesFilters(f, filters)) continue;

@@ -22,7 +22,15 @@ export interface SearchFilters {
   minGpa?: number;
   /** Only courses whose catalog description lists no prerequisites. */
   noPrereqs?: boolean;
+  /**
+   * Only these catalog courses: "satisfies requirement X", resolved on the client from the
+   * requirement's listed courses. An empty list matches nothing.
+   */
+  courseIds?: number[];
 }
+
+/** Most course ids one search takes (`ids=`); program requirements list far fewer. */
+export const MAX_FILTER_IDS = 1000;
 
 export const LEVELS = [1000, 2000, 3000, 4000, 5000] as const;
 export const SEASONS: Season[] = ["fall", "spring", "summer"];
@@ -67,6 +75,7 @@ export function filtersToParams(f: SearchFilters): URLSearchParams {
   if (f.credits !== undefined) p.set("credits", String(f.credits));
   if (f.minGpa !== undefined) p.set("minGpa", String(f.minGpa));
   if (f.noPrereqs) p.set("noPrereqs", "1");
+  if (f.courseIds) p.set("ids", [...f.courseIds].sort((a, b) => a - b).join(","));
   return p;
 }
 
@@ -101,5 +110,12 @@ export function parseFilters(p: URLSearchParams): SearchFilters | { error: strin
   }
   const noPrereqs = p.get("noPrereqs");
   if (noPrereqs === "1" || noPrereqs === "true") f.noPrereqs = true;
+  const ids = p.get("ids");
+  if (ids !== null) {
+    const list = ids.split(",").filter(Boolean);
+    if (list.some((x) => !/^\d{1,9}$/.test(x) || Number(x) === 0)) return { error: "ids must be course ids, e.g. ids=77,1473" };
+    if (list.length > MAX_FILTER_IDS) return { error: `At most ${MAX_FILTER_IDS} ids per search` };
+    f.courseIds = [...new Set(list.map(Number))];
+  }
   return f;
 }

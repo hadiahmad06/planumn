@@ -5,6 +5,7 @@ import { TWIN_CITIES_LIBED } from "@/domain/libed";
 import { hasFilters, LEVELS, MIN_GPAS, SEASONS, type SearchFilters } from "@/domain/searchFilters";
 import type { Season } from "@/domain/terms";
 import { cn } from "@/components/ui/cn";
+import type { RequirementOption } from "@/features/requirements/requirementOptions";
 
 const SEASON_LABEL: Record<Season, string> = { fall: "Fall", spring: "Spring", summer: "Summer" };
 const CREDITS = [1, 2, 3, 4, 5, 6];
@@ -37,9 +38,22 @@ function FilterSelect({
 
 /**
  * B8 smart search filters, shown at the top of the search dropdown. Offering season and average GPA
- * come from past grades (through Fall 2024); Lib Ed comes from the UMN catalog.
+ * come from past grades (through Fall 2024); Lib Ed comes from the UMN catalog. "Requirement" lists the
+ * plan's program requirements and keeps only the courses that requirement lists.
  */
-export function SearchFilterBar({ filters, onChange }: { filters: SearchFilters; onChange: (f: SearchFilters) => void }) {
+export function SearchFilterBar({
+  filters,
+  onChange,
+  requirements,
+  requirement,
+  onRequirement,
+}: {
+  filters: SearchFilters;
+  onChange: (f: SearchFilters) => void;
+  requirements: RequirementOption[];
+  requirement: string | null;
+  onRequirement: (key: string | null) => void;
+}) {
   const set = <K extends keyof SearchFilters>(key: K, value: SearchFilters[K] | undefined) => {
     const next = { ...filters };
     if (value === undefined || value === false) delete next[key];
@@ -47,9 +61,27 @@ export function SearchFilterBar({ filters, onChange }: { filters: SearchFilters;
     onChange(next);
   };
   const num = (v: string) => (v ? Number(v) : undefined);
+  const programs = [...new Set(requirements.map((r) => r.programName))];
 
   return (
     <div role="group" aria-label="Search filters" data-search-filters className="flex flex-wrap items-center gap-1.5 border-b border-border px-2 pt-1 pb-2">
+      {requirements.length > 0 && (
+        <FilterSelect label="Satisfies requirement" value={requirement ?? ""} onChange={(v) => onRequirement(v || null)}>
+          <option value="">Requirement: any</option>
+          {programs.map((name) => (
+            <optgroup key={name} label={name}>
+              {requirements
+                .filter((r) => r.programName === name)
+                .map((r) => (
+                  <option key={r.key} value={r.key}>
+                    {r.name}
+                    {r.satisfied ? " (done)" : ""}
+                  </option>
+                ))}
+            </optgroup>
+          ))}
+        </FilterSelect>
+      )}
       <FilterSelect label="Lib Ed designation" value={filters.libEd ?? ""} onChange={(v) => set("libEd", v || undefined)}>
         <option value="">Lib Ed: any</option>
         {TWIN_CITIES_LIBED.map((d) => (
@@ -99,8 +131,13 @@ export function SearchFilterBar({ filters, onChange }: { filters: SearchFilters;
         <input type="checkbox" checked={Boolean(filters.noPrereqs)} onChange={(e) => set("noPrereqs", e.target.checked)} className="accent-current" />
         No prerequisites
       </label>
-      {hasFilters(filters) && (
-        <button type="button" onClick={() => onChange({})} className="px-1.5 text-micro text-text-tertiary hover:text-accent">
+      {(hasFilters(filters) || requirement) && (
+        <button
+          type="button"
+          onClick={() => {
+            onChange({});
+            onRequirement(null);
+          }} className="px-1.5 text-micro text-text-tertiary hover:text-accent">
           Clear
         </button>
       )}

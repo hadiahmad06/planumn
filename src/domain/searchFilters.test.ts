@@ -13,8 +13,15 @@ describe("search filters (B8)", () => {
     expect(hasFilters({ level: 1000 })).toBe(true);
   });
 
+  it("round-trips course ids, including an empty list", () => {
+    expect(parseFilters(filtersToParams({ courseIds: [1473, 77] }))).toEqual({ courseIds: [77, 1473] });
+    expect(parseFilters(filtersToParams({ courseIds: [] }))).toEqual({ courseIds: [] });
+    expect(hasFilters({ courseIds: [] })).toBe(true);
+    expect(parseFilters(new URLSearchParams("ids=77,77,1473"))).toEqual({ courseIds: [77, 1473] });
+  });
+
   it("rejects invalid values", () => {
-    for (const q of ["libed=XYZ", "season=winter", "level=2500", "credits=-1", "credits=x", "minGpa=5"])
+    for (const q of ["libed=XYZ", "season=winter", "level=2500", "credits=-1", "credits=x", "minGpa=5", "ids=1,abc", "ids=0", `ids=${Array.from({ length: 1001 }, (_, i) => i + 1).join(",")}`])
       expect(parseFilters(new URLSearchParams(q))).toHaveProperty("error");
   });
 
