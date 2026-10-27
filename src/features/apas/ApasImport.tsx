@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useApasImport } from "./useApasImport";
+import { ParsedAudit } from "./ParsedAudit";
 
 const kb = (s: string) => `${Math.max(1, Math.round(new Blob([s]).size / 1024))} KB`;
 
@@ -70,6 +71,7 @@ export function ApasImport() {
           </div>
         )}
       </section>
+      {state.phase === "received" && <ParsedAudit html={state.report.html} />}
     </main>
   );
 }
