@@ -16,6 +16,7 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import { addCourseActions } from "@/features/plan-editor/courseActions";
 import { useDisplaySettings } from "@/features/plan-editor/displaySettings";
 import { hoverCourse, planActions, useEditorUi, usePlanStore } from "@/features/plan-editor/store";
+import { AddToSemesterButton } from "@/features/plan-editor/AddToSemesterButton";
 
 /**
  * Mobile tap-to-add (A32): tapping a result expands an inline "Add to which semester?" picker.
@@ -80,6 +81,9 @@ function ResultRow({ course, active, id }: { course: CourseSummary; active: bool
       <span className="w-24 shrink-0 font-semibold">{courseCode(course)}</span>
       <span className="min-w-0 flex-1 truncate text-text-secondary">{course.title}</span>
       <span className="shrink-0 text-micro text-text-tertiary">{formatCredits(course.credits)} cr</span>
+      <span onClick={(e) => e.stopPropagation()} className="self-center">
+        <AddToSemesterButton courseId={course.id} code={courseCode(course)} />
+      </span>
     </li>
   );
 }
@@ -225,8 +229,8 @@ export function SearchBox() {
               {mobile
                 ? "Tap a course, then a semester to add it"
                 : selectedTerm
-                  ? `Enter adds to ${termLabel(selectedTerm)} · drag into any semester`
-                  : "Drag a course into a semester · click for details"}
+                  ? `Enter or + adds to ${termLabel(selectedTerm)} · drag into any semester`
+                  : "Drag a course into a semester, or + to add it · click for details"}
             </p>
           )}
         </div>

@@ -58,7 +58,8 @@ export function SemesterColumn({ semester, issues }: { semester: Semester; issue
             type="button"
             onClick={() => selectTerm(selected ? null : semester.index)}
             aria-pressed={selected}
-            title={selected ? "Deselect" : "Select: Enter in search adds courses here"}
+            aria-label={selected ? `${label}, selected: + and Enter add courses here` : `Select ${label}: + and Enter add courses here`}
+            title={selected ? "Deselect" : "Select: + and Enter add courses here"}
             className={cn(
               "rounded-row text-micro font-semibold tracking-wide uppercase hover:text-accent",
               selected ? "text-accent" : "text-text-secondary",
