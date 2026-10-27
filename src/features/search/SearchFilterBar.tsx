@@ -133,13 +133,14 @@ export function SearchFilterBar({
         ))}
       </FilterSelect>
       <label
+        title="Read from the catalog description, which can be incomplete: check the catalog before registering."
         className={cn(
           "flex cursor-pointer items-center gap-1.5 rounded-full border bg-surface px-2.5 py-1 text-micro",
           filters.noPrereqs ? "border-accent text-accent" : "border-border text-text-secondary",
         )}
       >
         <input type="checkbox" checked={Boolean(filters.noPrereqs)} onChange={(e) => set("noPrereqs", e.target.checked)} className="accent-current" />
-        No prerequisites
+        No prerequisites <span className="text-text-tertiary">(per catalog text)</span>
       </label>
       {(hasFilters(filters) || requirement) && (
         <button

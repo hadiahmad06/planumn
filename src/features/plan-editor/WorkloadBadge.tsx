@@ -41,7 +41,7 @@ export function WorkloadBadge({ semester }: { semester: Semester }) {
   const w = result.workload;
   const title = `${w.level[0].toUpperCase()}${w.level.slice(1)} semester: ${w.credits} credits${
     w.gpa !== null ? `, average historical GPA ${w.gpa.toFixed(2)}` : ""
-  }. A rough signal from past grades (through Fall 2024), not a measure of effort.`;
+  }. A rough signal from past grades (through Fall 2024), not a measure of effort. How: each course weighs its credits × (1 + how far its average GPA is below 3.3, ÷ 1.3); the total is heavy at 20+, light at 13 or less.`;
   return (
     <span title={title} className={cn(PILL, STYLE[w.level])}>
       {w.level}
