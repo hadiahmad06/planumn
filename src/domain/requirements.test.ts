@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { evaluateProgram, evaluateRule, type CoursesRule, type Program, type Rule } from "./requirements";
+import { evaluateProgram, evaluateRule, programCourseIds, type CoursesRule, type Program, type Rule } from "./requirements";
 
 const opt = (courseId: number | null, groupId = String(courseId)) => ({ groupId, courseId, code: null, title: null, credits: null });
 const courses = (id: string, choices: (number | null)[][], minCourses: number, minCredits = 0): CoursesRule => ({
@@ -83,6 +83,17 @@ describe("programs", () => {
     expect(r.requirements.map((x) => x.satisfied)).toEqual([true, true]);
     expect(r).toMatchObject({ units: 2, filled: 2 });
     expect(r.requirements[1].courseIds).toEqual([2]);
+  });
+
+  it("lists every course any requirement names, matched or not (B11 electives)", () => {
+    const withGroup: Program = {
+      ...program,
+      requirements: [
+        ...program.requirements,
+        { id: "r4", name: "Pick one", notes: null, rules: [{ kind: "anyOf", id: "g", name: "g", notes: null, children: [courses("a", [[7, null]], 1)] }] },
+      ],
+    };
+    expect([...programCourseIds(withGroup)].sort()).toEqual([1, 2, 3, 7]);
   });
 
   it("ignores options that aren't in the catalog", () => {

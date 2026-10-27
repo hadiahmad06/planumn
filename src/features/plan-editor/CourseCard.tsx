@@ -13,11 +13,12 @@ import { courseActions } from "./courseActions";
 import { AlertIcon, CloseIcon, LockIcon } from "@/components/ui/icons";
 import type { HealthIssue } from "@/domain/health";
 import { useCourseInfo } from "@/features/catalog/courseCache";
+import { useIsElective } from "@/features/requirements/useElective";
 import { usePreviewStore } from "@/features/preview/store";
 import { stripeColor } from "./courseColor";
 import { plannedId, type DragData } from "./dnd";
 import { useDisplaySettings } from "./displaySettings";
-import { hoverCourse, planActions } from "./store";
+import { hoverCourse, planActions, usePlanStore } from "./store";
 
 /** Card height grows with credits so a semester's load is visible at a glance (2026 redesign). */
 export function cardHeight(course: CourseSummary | undefined) {
@@ -25,7 +26,22 @@ export function cardHeight(course: CourseSummary | undefined) {
 }
 
 
-export function CourseCardFace({ course, lock, dragging, issues }: { course: CourseSummary | undefined; lock?: PlannedCourse["lock"]; dragging?: boolean; issues?: HealthIssue[] }) {
+const NO_PROGRAMS: string[] = [];
+
+export function CourseCardFace({
+  course,
+  lock,
+  dragging,
+  issues,
+  elective,
+}: {
+  course: CourseSummary | undefined;
+  lock?: PlannedCourse["lock"];
+  dragging?: boolean;
+  issues?: HealthIssue[];
+  /** B11: counts toward none of the plan's program requirements. */
+  elective?: boolean;
+}) {
   const colorKey = useDisplaySettings((s) => s.colorKey);
   return (
     <div
@@ -49,6 +65,14 @@ export function CourseCardFace({ course, lock, dragging, issues }: { course: Cou
               <span className="sr-only">{issues.map((i) => i.message).join(" ")}</span>
             </span>
           )}
+          {elective && (
+            <span
+              title="Elective: counts toward none of your programs' requirements"
+              className="shrink-0 rounded-full border border-border px-1.5 text-[10px] leading-4 text-text-tertiary"
+            >
+              Elective
+            </span>
+          )}
           <span className="ml-auto min-w-0 truncate text-micro text-text-secondary">{course ? `${formatCredits(course.credits)} cr` : ""}</span>
         </div>
         {course && cardHeight(course) >= 52 && <span className="truncate text-micro text-text-secondary">{course.title}</span>}
@@ -59,6 +83,8 @@ export function CourseCardFace({ course, lock, dragging, issues }: { course: Cou
 
 export function CourseCard({ term, index, planned, issues }: { term: TermCode; index: number; planned: PlannedCourse; issues?: HealthIssue[] }) {
   const course = useCourseInfo(planned.id);
+  const programs = usePlanStore((s) => s.plan?.programs ?? NO_PROGRAMS);
+  const elective = useIsElective(planned.id, programs);
   const openPreview = usePreviewStore((s) => s.openPreview);
   const mobile = useIsMobile();
   const locked = planned.lock === "locked";
@@ -72,7 +98,7 @@ export function CourseCard({ term, index, planned, issues }: { term: TermCode; i
   const hiddenSeasons = useDisplaySettings((s) => s.hiddenSeasons);
   const actions = courseActions(term, planned, course, hiddenSeasons);
   const label = course ? `${courseCode(course)}, ${course.title}` : "Course";
-  const face = <CourseCardFace course={course} lock={planned.lock} issues={issues} />;
+  const face = <CourseCardFace course={course} lock={planned.lock} issues={issues} elective={elective} />;
 
   if (mobile) {
     return (

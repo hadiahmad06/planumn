@@ -218,3 +218,12 @@ export function listedCourseIds(rule: Rule): CourseId[] {
   if (rule.kind === "text") return [];
   return rule.children.flatMap(listedCourseIds);
 }
+
+/**
+ * Every catalog course any of a program's requirements lists (B11). A planned course outside this set
+ * for all of a plan's programs is an **elective**: it counts toward no program requirement. Listed,
+ * not matched, so a surplus course from a requirement's list (a 4th "pick 3") isn't called an elective.
+ */
+export function programCourseIds(program: Program): Set<CourseId> {
+  return new Set(program.requirements.flatMap((r) => r.rules.flatMap(listedCourseIds)));
+}
