@@ -1,0 +1,79 @@
+# Heuristics and data workarounds
+
+> Written by **Hadi's Claude**, 2026-10-27, at Hadi's request: "heuristics and quick fixes are dangerous … document them all and don't overly rely on them. Some UMN courses may not have accurate attributes such as prerequisites in CourseDog, but that's no excuse to not document what methodologies you use to work around them."
+>
+> **Rule for every agent:** any new threshold, inference or data workaround gets a row here **in the same PR**. Where it changes what a student sees, the UI must say so (label it "historical", "estimate" or "can't check", or give the reason). Rows marked *open PR* describe code not yet on `v2/main`.
+
+Columns: **Rule** (what the code assumes) · **Why** · **How it fails** · **Shown to the student?** · **Where**.
+
+## 1. Data sources and known quality problems
+
+| Source | Used for | Known problems | Workaround |
+|---|---|---|---|
+| `data/catalog.db` (2025 GopherGrades build) | course ids, titles, credits, descriptions, grade counts, offered terms, SRT | Grade data **ends Fall 2024**. Lib Ed tags (`libed` tables) are **wrong**: other campuses' tags and wrong designations (ECON 1101 tagged Historical Perspectives, per #46). Prerequisites exist only as free text inside the description. | Lib Ed comes from CourseDog instead (below). Every grade- or term-based number says "historical" or "through Fall 2024". |
+| CourseDog public API (UMN catalog) | program requirements, Lib Ed (`attributes` "CLE - XX"), course versions | One designation has **several spellings** ("CLE - DSJ (Race, Power, and Justice US)" vs "(Diversity and Soc Justice US)"). **Old versions** of a course keep designations the current one dropped. **Prerequisite and attribute data can be missing or wrong** for some courses. Requirements reference courses our catalog may not have (`courseId: null`). | Parse codes, not labels (`libEdCodes`). Pick the **version in effect today**, else the earliest future one (`fetchLibEdCodes`, `currentVersions`). Show courses missing from our data as "isn't in planu.mn's course data yet". |
+| Prerequisite text | prerequisite warnings, autofill order, "no prerequisites" filter | Free text, inconsistent: "Calc I (Math 1271 or …) as a corequisite", "CS upper div, CS grad, or dept. permission", "MATH [1271 OR 1371]". | See section 3. Anything that isn't a course code ("consent", "standing", "corequisite") is kept as "other" and **never blocks**. Warnings say "or other ways to qualify" when such text exists. |
+
+## 2. Offering and grade inferences
+
+| Rule | Why | How it fails | Shown? | Where |
+|---|---|---|---|---|
+| A course's offering pattern is "known" only with **≥ 3 recorded terms**. The seasons it ran in are its offered seasons. | Grade records are the only term history we have. | Records stop at Fall 2024. New or rotating courses look "never offered" in a season they now run in. Low enrollment can hide terms. | Yes: "Historically offered: …", "Not enough history to tell". | `offeringHistory` in `src/domain/health.ts` (B4) |
+| Average GPA needs **≥ 20 letter grades**, using A=4 … F=0 (A-=3.667 etc.). S/N/P/W are ignored. | Small samples are noise. | Courses graded mostly S/N have no GPA. Old grading eras are mixed in. | GPA hidden under 20 grades. "No letter grades recorded" in charts. | `averageGpa` in `src/domain/workload.ts`. Same rule in `src/features/preview/instructor.ts` (B9, Michael's Codex) |
+| A W share above **7.5%** shows the W bar in red. | 2025 card's rule. | It's a fixed threshold, not field-specific. | Only by color. | `GradeCharts.tsx` (#55) |
+| **Workload meter:** effort = Σ credits × (1 + max(0, 3.3 − avg GPA)/1.3); **≥ 20 heavy, ≤ 13 light**. Courses without a GPA count at weight 1. | A rough signal from credits + grades (B7). | Grades don't measure effort. Constants are hand-picked. | Yes: the UI calls it a rough signal from historical grades. **Gap:** the formula itself isn't shown. | `semesterWorkload` in `src/domain/workload.ts` |
+| Credit loads: **> 18** heavy ("usually need approval"); **< 12** in fall/spring is part-time; **120** credits is the graduation baseline. | Common UMN policy numbers. | College-specific caps differ, and some programs need more than 120. | Yes, as health messages. | `HEAVY_LOAD`, `FULL_TIME`, `GRADUATION_CREDITS` in `src/domain/health.ts` |
+| Planned credits use a course's **minimum** credits. | Variable-credit courses have no single value. | 1–4 credit courses undercount. | Ranges shown on cards ("1–4 cr"). | audit, pacing, autofill |
+
+## 3. Prerequisite parsing
+
+| Rule | Why | How it fails | Shown? | Where |
+|---|---|---|---|---|
+| Codes are parsed into an and/or tree. A bare number inherits the last department ("CSCI 1913 or 1933"). A department written **before a bracket** applies inside it ("MATH [1271 OR 1371]"; fixed in #62). | Catalog text style. | Unusual punctuation can still misattribute departments. | No. **Gap:** we don't show the parsed tree. | `src/domain/prereqs.ts` |
+| Non-course clauses ("consent", "standing", "corequisite", "or equivalent") never block. | We can't check them. | A real requirement (upper-division standing) is ignored. | Yes: "or other ways to qualify". | `checkPrereqs` |
+| **Suffix equivalence:** `…H` / `…V` (honors) and `…W` (writing intensive) satisfy the base number ("PHYS 1301W" counts for "PHYS 1301"). (H: #57; V/W: #62, open PR.) | Prerequisites list base numbers. | A suffixed course that is genuinely different would wrongly count. | No. | `equivalentCodes` in `src/domain/course.ts` |
+| A course is planned "before" only if it's in an **earlier semester** (not the same one). | Simple and conservative. | Corequisites taken together show a warning. | Yes, as a warning (not a block). | `usePrereqStatus` |
+
+## 4. Requirements, electives, double-dips, minors
+
+| Rule | Why | How it fails | Shown? | Where |
+|---|---|---|---|---|
+| Requirements that count **0 units** (e.g. CS "Technical Electives (up to 22 credits)") don't count toward progress and are skipped by the double-dip finder and autofill. | Hadi hasn't decided yet: **Phase Y**. | Students may need those credits. | Rail shows them, and progress excludes them. **Gap:** not explained in the UI. | `evaluateRule`, `findDoubleDips`, `pickCourses` |
+| **Elective badge** = no plan program *lists* the course (not "matched"). Suffix-equivalent codes count as listed. | A surplus "pick N" course isn't an elective. | A course counting via a text rule or a petition still shows "Elective". | Tooltip explains. | `useIsElective` (B11) |
+| Lib Ed **"covered"** = at least one planned course or slot carries it. Credit minimums, theme counts and the WI upper-division rule are not checked. | Those depend on admit term; APAS decides. | "Covered" ≠ "complete". | Yes: "This isn't an audit". | `libEdCoverage` (B3, Ishaan's Claude) |
+| Double-dip candidates are only courses the plan's programs list. Lib Ed-only double-dips aren't searched. | Bounded candidate set. | Misses Lib Ed + Lib Ed courses outside programs. | Yes: "Check with your advisor that a course may count twice". | `src/domain/doubleDip.ts` (B12) |
+| Minor ranking: most matched planned courses, then share of requirements, then name. | B14 (Ishaan's Claude). | Counts courses, not credits or rules. | Shown as counts. | `rankMinors` in `src/domain/minors.ts` |
+
+## 5. Search
+
+| Rule | Why | How it fails | Shown? | Where |
+|---|---|---|---|---|
+| **"No prerequisites"** = the catalog description has no "prereq:" clause. | Only source. | Courses whose prerequisites are missing from the text (CourseDog gaps) pass the filter. | **Gap:** the filter label doesn't say "per the catalog text". | `courseFacts` in `src/server/catalog/facts.ts` (B8) |
+| **"Offered in"** filter uses the ≥ 3-term rule. Unknown patterns are **excluded**. | Avoid false positives. | Hides new courses. | Partly ("Offered: any term"). | `matchesFilters` |
+| Lib Ed filter uses the CourseDog index, read once (≤ 6 pages × 10,000 rows) and cached for days. Logs a warning if truncated. | One designation, several spellings. | Index can be stale for up to the cache lifetime. | No. | `fetchLibEdIndex` |
+| **Natural-language search** (#61, open PR): phrase rules map to filters. **"easy" = avg GPA ≥ 3.50, "easiest" ≥ 3.75**, "intro" = 1xxx, "graduate" = 5xxx+. A department name or a ≥ 3-letter code word sets the department. Generic words ("global", "environment") alone stay title words. | Rule-based, no LLM. | "Easy" is a grade proxy, not difficulty. Odd phrasing is misread. | Yes: every reading is shown under the input ("Understood: …") and can be edited. | `src/domain/naturalQuery.ts` |
+
+## 6. Moves and autofill
+
+| Rule | Why | How it fails | Shown? | Where |
+|---|---|---|---|---|
+| **‹ › arrows** (#59, open PR) snap to the nearest term in the course's offered seasons. With an **unknown pattern, any season**. They stay inside the plan's first and last semester and skip hidden seasons, leave semesters and terms already holding the course. | Hadi's spec (fall-only stays fall). | Same limits as the offering rule. | Yes: "(offering pattern unknown)", "No later offered term in your plan". | `snapMove` in `src/domain/moveSnap.ts` |
+| **Autofill** (#62, open PR) is a suggestion only; nothing changes until the student ticks and adds. The rules below apply. | Hardest item; must stay reviewable. | See each rule. | See "Shown?" per rule (UI disclosure being added). | `src/domain/autofill.ts` |
+| · Picks per unmet requirement, preferring courses already picked for another one. "Any of" takes the **first workable branch**. Unknown credits count as **3**. | Fewer courses overall. | First branch isn't necessarily best for the student. | Reasons listed per course. | `pickCourses` |
+| · Only terms **after the one in progress**. Regular, abroad and co-op semesters only. Summers **only if ticked**. Default cap **15** credits. | Realistic default loads. | Some students take heavy loads or summers. | Cap and summer are user options. | `placeCourses` |
+| · **3xxx+ courses aren't placed in the plan's first academic year.** | Many state "upper-division standing" as uncheckable text (CSCI 3081W). | Wrong for students with transfer or AP credit, or advanced first-years. | **Gap until the #62 follow-up:** must be shown in the dialog. | `placeCourses` |
+| · In an "or" prerequisite that includes a planned or picked option, outside options are ignored. Prerequisites outside the plan **don't block**; they're noted ("Needs MATH 1272"). | Wait for the course the student is actually taking; don't hide suggestions. | A real missing prerequisite still lets a course be placed. | Yes: the "Needs …" note. | `prune`, `placeCourses` |
+| · Greedy: earliest term that fits, prerequisite depth first, then course code. | Simple, explainable. | Not optimal balancing across terms. | No. | `placeCourses` |
+
+## 7. Registration handoff
+
+| Rule | Why | How it fails | Shown? | Where |
+|---|---|---|---|---|
+| "Hasn't historically run in this season" uses the offering rule. Only known-good URLs are linked (catalog URL from our data, `schedulebuilder.umn.edu`). | No guessed Class Search query formats. | Same as the offering rule. | Yes ("Check Class Search"). | `RegistrationDialog.tsx` (#63, open PR) |
+
+## Open gaps to close
+
+1. Autofill must list its rules in the dialog (year-one rule, summer, cap, greedy order, outside prerequisites). Owner: Hadi's Claude, as a #62 follow-up.
+2. Explain 0-unit requirements in the rail (waits on Hadi's Phase Y decision).
+3. Label the "No prerequisites" filter as "per catalog text".
+4. Show the workload formula behind the meter.
