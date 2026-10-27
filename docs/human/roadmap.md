@@ -43,3 +43,7 @@ Hadi, 2026-10-26:
   - Privacy page wording (`/info/privacy`)
   - Whether optional requirements such as CS B.S. "Technical Electives (up to 22 credits)" count toward progress (they count 0 today)
 - **Phase X**: "eh, if we have the time to think about it." Nothing assigned yet.
+
+## Phase B go-ahead
+
+Hadi, 2026-10-27: **"phase B go-ahead. phase y will be dealt with at the end."** Who builds what: `docs/agent/phase-b-split.md`.
