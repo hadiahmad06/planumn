@@ -5,6 +5,7 @@ import { useSaveState } from "./saveState";
 import { connectAutosave } from "./autosaveController";
 import { AUTOSAVE_KEY, LocalPlanRepository } from "./localRepository";
 import { isPlan } from "./validation";
+import { savedPlanPath } from "./savedPlanPath";
 
 let disconnect: (() => void) | undefined;
 beforeEach(() => {
@@ -29,6 +30,14 @@ function storage() {
   } as Storage;
 }
 describe("browser persistence", () => {
+  it("assigns a reloadable URL only on a first cloud insert", () => {
+    const fresh = createEmptyPlan();
+    const saved = { ...fresh, id: "saved-id", user_id: "owner" };
+    expect(savedPlanPath(fresh, saved, "/plan/new")).toBe("/plan/saved-id");
+    expect(savedPlanPath(fresh, saved, "/plan/import")).toBe("/plan/saved-id");
+    expect(savedPlanPath(saved, saved, "/plan/new")).toBeNull();
+    expect(savedPlanPath(fresh, fresh, "/plan/new")).toBeNull();
+  });
   it("loads 2025 browser autosaves and strips cloud ownership", async () => {
     const store = storage();
     store.setItem(

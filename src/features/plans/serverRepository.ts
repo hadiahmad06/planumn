@@ -2,7 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { PlanRepository } from "@/contracts/plan-repository";
 import type { Plan } from "@/domain/plan";
-import { isPlan } from "./validation";
+import { isPlan, normalizePlan } from "./validation";
 export class RepositoryError extends Error {
   constructor(
     message: string,
@@ -28,7 +28,7 @@ export class SupabasePlanRepository implements PlanRepository {
         .range(start, start + 999);
       if (error)
         throw new RepositoryError("Your plans could not be loaded.", 500);
-      plans.push(...(data as Plan[]));
+      plans.push(...(data as Plan[]).map(normalizePlan));
       if (data.length < 1000) return plans;
     }
   }
@@ -40,7 +40,7 @@ export class SupabasePlanRepository implements PlanRepository {
       .eq("user_id", this.owner)
       .maybeSingle();
     if (error) throw new RepositoryError("This plan could not be loaded.", 500);
-    return data as Plan | null;
+    return data ? normalizePlan(data as Plan) : null;
   }
   async save(plan: Plan): Promise<Plan> {
     if (!isPlan(plan)) throw new RepositoryError("The plan is invalid.", 400);
@@ -71,7 +71,7 @@ export class SupabasePlanRepository implements PlanRepository {
         "This plan is unavailable or in the recycle bin.",
         404,
       );
-    return data as Plan;
+    return normalizePlan(data as Plan);
   }
   async softDelete(id: string) {
     const { data, error } = await this.client.rpc("now_plus_30_days");

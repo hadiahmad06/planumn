@@ -5,6 +5,8 @@ import type { Plan } from "@/domain/plan";
 import { PlanEditor } from "@/features/plan-editor/PlanEditor";
 import { CloudPlanRepository, PlanRequestError } from "./clientRepository";
 import { LocalPlanRepository } from "./localRepository";
+import { usePlanStore } from "@/features/plan-editor/store";
+import { useAuthStore } from "@/features/auth/useAuth";
 /** Written by Michael's Codex. Stale requests cannot replace a newer route's plan. */
 export function PlanLoader({
   id,
@@ -21,11 +23,22 @@ export function PlanLoader({
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     let active = true;
-    const repo = local
-      ? new LocalPlanRepository(window.localStorage)
-      : new CloudPlanRepository();
-    repo
-      .get(id)
+    const current = usePlanStore.getState().plan;
+    const cached =
+      !local &&
+      current?.id === id &&
+      current.user_id === useAuthStore.getState().user?.id
+        ? current
+        : null;
+    Promise.resolve()
+      .then(
+        () =>
+          cached ??
+          (local
+            ? new LocalPlanRepository(window.localStorage)
+            : new CloudPlanRepository()
+          ).get(id),
+      )
       .then((plan) => {
         if (!active) return;
         if (!plan)

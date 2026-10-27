@@ -12,12 +12,10 @@ function setup() {
     insert: vi.fn(),
     update: vi.fn(),
     delete: vi.fn(),
-    maybeSingle: vi
-      .fn()
-      .mockResolvedValue({
-        data: { ...createEmptyPlan(), id: "stored", user_id: "owner" },
-        error: null,
-      }),
+    maybeSingle: vi.fn().mockResolvedValue({
+      data: { ...createEmptyPlan(), id: "stored", user_id: "owner" },
+      error: null,
+    }),
   };
   for (const method of [
     query.select,
@@ -60,6 +58,22 @@ describe("cloud plan ownership", () => {
     expect(query.insert.mock.calls[0][0]).not.toHaveProperty(
       "deletion_scheduled_at",
     );
+  });
+  it("normalizes nullable 2025 arrays before an old plan is edited", async () => {
+    const { repo, query } = setup();
+    query.maybeSingle.mockResolvedValueOnce({
+      data: {
+        ...createEmptyPlan(),
+        id: "old",
+        user_id: "owner",
+        programs: null,
+        can_view: null,
+      },
+      error: null,
+    });
+    const plan = await repo.get("old");
+    expect(plan).toMatchObject({ programs: [], can_view: [] });
+    await expect(repo.save(plan!)).resolves.toBeDefined();
   });
   it("scopes updates by id and owner, without changing sharing or timestamps owned by the database", async () => {
     const { repo, query } = setup();
