@@ -97,15 +97,40 @@ export interface RequirementResult {
   courseIds: CourseId[];
 }
 
+/**
+ * Assign planned courses to choices so as many choices as possible are filled (bipartite matching,
+ * Kuhn's algorithm), each course used at most once. Candidates are tried highest-credit first, so
+ * when several assignments fill the same number of choices the credit total tends to be higher.
+ */
+function matchChoices(choices: CourseChoice[], planned: PlannedForAudit[]): (CourseId | null)[] {
+  const byId = new Map(planned.map((p) => [p.courseId, p]));
+  const candidates = choices.map((choice) =>
+    [...new Set(choice.options.map((o) => o.courseId).filter((id): id is CourseId => id != null && byId.has(id)))].sort(
+      (a, b) => byId.get(b)!.credits - byId.get(a)!.credits,
+    ),
+  );
+  const owner = new Map<CourseId, number>(); // course → choice index
+  const tryAssign = (choice: number, seen: Set<CourseId>): boolean => {
+    for (const id of candidates[choice]) {
+      if (seen.has(id)) continue;
+      seen.add(id);
+      const current = owner.get(id);
+      if (current === undefined || tryAssign(current, seen)) {
+        owner.set(id, choice);
+        return true;
+      }
+    }
+    return false;
+  };
+  choices.forEach((_, i) => tryAssign(i, new Set()));
+  const matches: (CourseId | null)[] = choices.map(() => null);
+  for (const [id, choice] of owner) matches[choice] = id;
+  return matches;
+}
+
 function evaluateCourses(rule: CoursesRule, planned: PlannedForAudit[]): RuleResult {
-  const used = new Set<CourseId>();
-  const choiceMatches = rule.choices.map((choice) => {
-    const ids = new Set(choice.options.map((o) => o.courseId).filter((id): id is CourseId => id != null));
-    const hit = planned.find((p) => ids.has(p.courseId) && !used.has(p.courseId));
-    if (!hit) return null;
-    used.add(hit.courseId);
-    return hit.courseId;
-  });
+  const choiceMatches = matchChoices(rule.choices, planned);
+  const used = new Set(choiceMatches.filter((id): id is CourseId => id != null));
   const matched = planned.filter((p) => used.has(p.courseId));
   const coursesCount = matched.length;
   const credits = matched.reduce((sum, p) => sum + p.credits, 0);

@@ -21,6 +21,17 @@ describe("course rules", () => {
     expect(evaluateRule(rule, [p(2), p(3)])).toMatchObject({ satisfied: true, filled: 1 });
   });
 
+  it("reassigns overlapping alternatives instead of taking the first match (review of #21)", () => {
+    const rule = courses("overlap", [[1, 2], [1]], 2);
+    expect(evaluateRule(rule, [p(1), p(2)])).toMatchObject({ satisfied: true, choiceMatches: [2, 1] });
+    expect(evaluateRule(rule, [p(2), p(1)])).toMatchObject({ satisfied: true, choiceMatches: [2, 1] });
+  });
+
+  it("prefers the higher-credit alternative for credit minimums, regardless of plan order", () => {
+    const rule = courses("calc", [[1, 2]], 0, 4);
+    expect(evaluateRule(rule, [p(1, 2), p(2, 4)])).toMatchObject({ satisfied: true, credits: 4, choiceMatches: [2] });
+  });
+
   it("checks credit minimums", () => {
     const rule = courses("cal", [[1], [2]], 0, 8);
     expect(evaluateRule(rule, [p(1, 4)]).satisfied).toBe(false);
