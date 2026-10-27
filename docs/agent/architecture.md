@@ -58,3 +58,11 @@ src/
 | `PlanRepository` | `src/contracts/plan-repository.ts` | interface: Hadi's Claude · impls: Michael's Codex | plan routes, My Plans |
 
 To change a contract, say so in the PR description under **Contract change**. The other side signs off in review.
+
+## Advisor PDF export — Michael's Codex
+
+> Written by **Michael's Codex**, 2026-10-27.
+
+`src/features/export/advisorPdf.ts` exports `createAdvisorPdf(plan, courses, options)` → `{ bytes, pages, missingCourses }` and `advisorFileName(title)`. It consumes a current `Plan` snapshot and catalog summaries without changing them. Standard four-year plans fit one A4 landscape page; long or dense plans continue onto labelled pages instead of omitting courses. Optional program names and unofficial audit counts can be included.
+
+`ExportPlanButton` is mounted beside `SaveStatus` in the plan header. The PDF library is loaded only when requested. The snapshot and PDF remain in the browser; only missing public catalog details are fetched through the existing courses API. This feature does not require an account, a new API route, or a schema/RLS change.
