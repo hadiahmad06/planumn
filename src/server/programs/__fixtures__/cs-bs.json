@@ -1,0 +1,557 @@
+{
+ "019627107-2025-01-21": {
+  "_id": "019627107-2025-01-21",
+  "name": "Computer Science B.S. Comp.Sc.",
+  "catalogDisplayName": "Computer Science B.S. Comp.Sc.",
+  "type": "Major",
+  "career": "Undergraduate",
+  "programGroupId": "019627107",
+  "effectiveStartDate": "2025-01-21",
+  "status": "Active",
+  "campus": "Twin Cities",
+  "requisites": {
+   "requisitesSimple": [
+    {
+     "id": "90036",
+     "name": "Integrated Computer Science B.S./M.S. Program",
+     "notes": "<p>The Department of Computer Science &amp; Engineering offers an integrated Bachelor's and Master's Degree program. Students accepted to the integrated program will be guaranteed admission to the Computer Science MS as long as they complete their undergraduate program. <br><br>Applicants must be enrolled University of Minnesota Twin Cities students admitted to a Computer Science or Computer Engineering undergraduate program. Applicants must meet a Technical GPA minimum of 3.5 (as defined by the College of Science &amp; Engineering), or they must have a strong recommendation from a Computer Science and Engineering faculty member or instructor (not an ECE Faculty member). Applicants must have at least 75 credits completed at the time of their application. Applicants must have passed with a C- or better all of the following courses: CSCI 1933/1933H or 1913, CSCI 2011, CSCI 2021 (CSCI students) or EE 2361 (CompE students) CSCI 2033 or a math course containing linear algebra content, CSCI 2041 (CSCI students only), CSCI 3081W (CSCI students only), CSCI 4041, and CSCI 4061 (applicants can have one of these courses in progress at the time of application)  <br><a href=\"http://cse.umn.edu/cs/integrated-program-bachelorsmasters\" class=\"open_in_new_tab\" rel=\"noopener noreferrer nofollow\">Complete application instructions link</a></p><p><br>Students can transfer a maximum of 16 credits taken during their integrated senior undergraduate year to the graduate program. Students must spend a minimum of two semesters as a graduate student after completing their undergraduate degree. Coursework applied to the graduate degree must be taken at the graduate level (i.e., 5xxx or above). Credits being applied to the Computer Science Master's taken while the student is an undergraduate for use in the integrated program can also be applied later to a Computer Science Ph.D. within our department if a student applies and is admitted. Credits cannot be applied to the undergraduate degree (i.e., no \"double dipping\"). <br><br>Students should consider taking the following courses/requirements to apply toward their graduate degree as an undergraduate integrated program student (16 credits max): CSCI 8970 - Computer Science Colloquium (1 credit) Course to meet the Theory and Algorithms Breadth requirement (3 credits)* Course to meet the Architecture, Systems, &amp; Software Breadth requirement (3 credits)* Course to meet the Applications Breadth requirement (3 credits)* CSCI 5XXX level course that fits your interests and background (3 credits) or an approved graduate-level elective or graduate minor course. We recommend waiting to take CSCI 8XXX level courses for your graduate year, but this level of coursework is still available to you if you have the appropriate prerequisites. CSCI 5XXX level course that fits your interests and background (3 credits) or an approved graduate-level elective or graduate minor course. We recommend waiting to take CSCI 8XXX level courses for your graduate year, but this level of coursework is still available to you if you have the appropriate prerequisites. <br><br>Students admitted to this integrated degree program will complete and be awarded the undergraduate degree within 4 years (8 semesters) for NHS and 3 years (6 semesters) for NAS students. Admission will be revoked if the awarding of the undergraduate degree exceeds 8 semesters for NHS students and 6 semesters for NAS students.</p><p>The bachelor\u2019s and master\u2019s degrees cannot be awarded simultaneously.</p><p>Credits cannot be double counted (used for both the undergraduate and graduate degree requirements). This includes credits used for other undergraduate degrees, majors, or minors.</p><p>Credits used for undergraduate degrees, majors, or minors cannot be split between the undergraduate and graduate degree programs.</p><p>Courses that will be used to fulfill the master\u2019s degree requirements must appear in the undergraduate degree sub-plan by the tenth day of the semester in which the student is enrolled in the courses. Any final edits or updates to this sub-plan must be reflected on the APAS no later than the last day of instruction in the semester in which the undergraduate degree will be awarded.&nbsp; Courses not in this sub-plan by that time cannot be updated later and, therefore, will not be eligible for use towards the master\u2019s degree.</p><p><a href=\"https://docs.google.com/spreadsheets/d/1hns1adtJEjj_wc-_1g9L7lF2tvSWKKP5BxiTdS7Uo6A/edit#gid=0\" class=\"open_in_new_tab\" rel=\"noopener noreferrer nofollow\">Integrated Program Sample Plan</a></p><p><br><em>*Please refer to the Department of Computer Science &amp; Engineering webpage for more details on which courses count for specific breadth requirements.</em></p>",
+     "type": "Completion Requirements",
+     "requirementLevel": "programSubPlanRequirements",
+     "showInCatalog": true,
+     "rules": [],
+     "sisId": ""
+    },
+    {
+     "id": "tCtklxmu",
+     "name": "Mathematics Core",
+     "type": "Completion Requirement",
+     "showInCatalog": true,
+     "requirementLevel": "programAdmissionRequirements",
+     "rules": [
+      {
+       "id": "ArKeYamS",
+       "condition": "minimumCredits",
+       "value": {
+        "condition": "courses",
+        "values": [
+         {
+          "value": [
+           "0036921",
+           "0001201",
+           "0036961",
+           "0148561"
+          ],
+          "logic": "or"
+         }
+        ],
+        "id": "ebc1Orip",
+        "subSelections": []
+       },
+       "minCourses": 1,
+       "maxCourses": 1,
+       "name": "Calculus I",
+       "minCredits": 4,
+       "maxCredits": 4,
+       "notes": "<p>MATH1471 is a 2-credit course. Students who completed this course will need to work with a CSE advisor to discuss any credit discrepancies.</p>",
+       "credits": 4
+      },
+      {
+       "id": "1XxUr9eE",
+       "condition": "minimumCredits",
+       "value": {
+        "condition": "courses",
+        "values": [
+         {
+          "value": [
+           "0036931",
+           "0001211",
+           "0036971",
+           "0148611"
+          ],
+          "logic": "or"
+         }
+        ],
+        "id": "AdXwvFTl",
+        "subSelections": []
+       },
+       "name": "Calculus II",
+       "minCourses": 1,
+       "maxCourses": 1,
+       "minCredits": 4,
+       "maxCredits": 4,
+       "notes": "<p>MATH1472 is a 2-credit course. Students who completed this course will need to work with a CSE advisor to discuss any credit discrepancies.</p>",
+       "credits": 4
+      },
+      {
+       "id": "Qdsy1uWH",
+       "condition": "anyOf",
+       "subRules": [
+        {
+         "condition": "completeVariableCoursesAndVariableCredits",
+         "value": {
+          "condition": "courses",
+          "values": [
+           {
+            "value": [
+             "0036721",
+             "8094491"
+            ],
+            "logic": "or"
+           }
+          ],
+          "id": "MFORGqt5",
+          "subSelections": []
+         },
+         "id": "O4Pc9YTN",
+         "minCourses": 1,
+         "maxCourses": 1,
+         "name": "Discrete Structures of Computer Science",
+         "minCredits": 4,
+         "maxCredits": 4
+        },
+        {
+         "condition": "completeVariableCoursesAndVariableCredits",
+         "value": {
+          "condition": "courses",
+          "values": [
+           {
+            "value": [
+             "0163401"
+            ],
+            "logic": "or"
+           },
+           {
+            "value": [
+             "7905871"
+            ],
+            "logic": "and"
+           }
+          ],
+          "id": "WaR7Ml6Y",
+          "subSelections": []
+         },
+         "id": "8gCeXIfT",
+         "minCourses": 2,
+         "maxCourses": 2,
+         "name": "Acceptable Substitution Combination",
+         "description": "<p>Students who use the Acceptable Substitution course pair to complete the Discrete Structures requirement will have four credits waived in the Technical Electives and will have fulfilled the Upper Division Math-Oriented Requirement.</p>",
+         "minCredits": 8,
+         "maxCredits": 8
+        }
+       ],
+       "name": "Discrete Structures"
+      }
+     ],
+     "sisId": ""
+    },
+    {
+     "id": "NmjYQCLR",
+     "name": "Computer Science Introductory Core",
+     "type": "Completion Requirement",
+     "showInCatalog": true,
+     "requirementLevel": "programAdmissionRequirements",
+     "rules": [
+      {
+       "id": "L4UkoKja",
+       "condition": "anyOf",
+       "subRules": [
+        {
+         "condition": "completeVariableCoursesAndVariableCredits",
+         "value": {
+          "condition": "courses",
+          "values": [
+           {
+            "value": [
+             "8096661",
+             "8110721"
+            ],
+            "logic": "or"
+           },
+           {
+            "value": [
+             "8103461",
+             "8166631"
+            ],
+            "logic": "or"
+           }
+          ],
+          "id": "3MINF4n6",
+          "subSelections": []
+         },
+         "id": "ITTzZaO0",
+         "minCourses": 2,
+         "maxCourses": 2,
+         "name": "Option 1 (Preferred)",
+         "minCredits": 8,
+         "maxCredits": 8
+        },
+        {
+         "condition": "completeVariableCoursesAndVariableCredits",
+         "value": {
+          "condition": "courses",
+          "values": [
+           {
+            "value": [
+             "0036671",
+             "0036691"
+            ],
+            "logic": "or"
+           },
+           {
+            "value": [
+             "8096671"
+            ],
+            "logic": "and"
+           }
+          ],
+          "id": "YoZrwtU2",
+          "subSelections": []
+         },
+         "id": "Xo9ZEiBe",
+         "minCourses": 2,
+         "maxCourses": 2,
+         "name": "Option 2",
+         "minCredits": 8,
+         "maxCredits": 8
+        },
+        {
+         "condition": "completeVariableCoursesAndVariableCredits",
+         "value": {
+          "condition": "courses",
+          "values": [
+           {
+            "value": [
+             "0036671",
+             "0036691"
+            ],
+            "logic": "or"
+           },
+           {
+            "value": [
+             "8103461",
+             "8166631"
+            ],
+            "logic": "or"
+           },
+           {
+            "value": [
+             "8257521"
+            ],
+            "logic": "and"
+           }
+          ],
+          "id": "hRlrIjOV",
+          "subSelections": []
+         },
+         "id": "AJ1VKLL4",
+         "name": "Option 3",
+         "minCourses": 3,
+         "maxCourses": 3,
+         "minCredits": 9,
+         "maxCredits": 9
+        }
+       ],
+       "name": "Computer Science Introductory Core"
+      }
+     ],
+     "sisId": ""
+    },
+    {
+     "id": "PIFZnPCL",
+     "name": "Science Requirements",
+     "type": "Completion Requirement",
+     "showInCatalog": true,
+     "requirementLevel": "programRequirements",
+     "rules": [
+      {
+       "id": "U8gP8e2V",
+       "condition": "allOf",
+       "minCourses": 1,
+       "maxCourses": 1,
+       "name": "Science Requirements",
+       "minCredits": 4,
+       "maxCredits": 4,
+       "subRules": [
+        {
+         "condition": "minimumCredits",
+         "value": {
+          "condition": "courses",
+          "values": [
+           {
+            "value": [
+             "0020701"
+            ],
+            "logic": "and"
+           },
+           {
+            "value": [
+             "0020731"
+            ],
+            "logic": "and"
+           },
+           {
+            "value": [
+             "8179641"
+            ],
+            "logic": "and"
+           }
+          ],
+          "id": "VF9QLFQf",
+          "subSelections": []
+         },
+         "id": "08sDy4yR",
+         "minCourses": 1,
+         "maxCourses": 1,
+         "minCredits": 4,
+         "maxCredits": 4,
+         "name": "Physics I",
+         "description": "<p>To ensure an understanding of key concepts, PHYS1301W or PHYS1401V are preferred.</p>",
+         "credits": 4
+        },
+        {
+         "condition": "anyOf",
+         "subRules": [
+          {
+           "condition": "minimumCredits",
+           "value": {
+            "condition": "courses",
+            "values": [
+             {
+              "value": [
+               "0020711"
+              ],
+              "logic": "and"
+             },
+             {
+              "value": [
+               "0020741"
+              ],
+              "logic": "and"
+             },
+             {
+              "value": [
+               "8179651"
+              ],
+              "logic": "and"
+             }
+            ],
+            "id": "LT4tMxL1",
+            "subSelections": []
+           },
+           "id": "xk17L7jk",
+           "minCourses": 1,
+           "maxCourses": 1,
+           "minCredits": 4,
+           "maxCredits": 4,
+           "name": "Physics II",
+           "description": "<p>To ensure an understanding of key concepts, PHYS1302W or PHYS1402V are preferred.</p>",
+           "credits": 4
+          },
+          {
+           "condition": "minimumCredits",
+           "value": {
+            "condition": "courses",
+            "values": [
+             {
+              "value": [
+               "nVzH5vryuHXiotc1enDx",
+               "8077581",
+               "8077531",
+               "8152521"
+              ],
+              "logic": "or"
+             },
+             {
+              "value": [
+               "8077521"
+              ],
+              "logic": "or"
+             }
+            ],
+            "id": "tvzBcmlD",
+            "subSelections": []
+           },
+           "id": "5d370mND",
+           "minCourses": 2,
+           "maxCourses": 2,
+           "minCredits": 4,
+           "maxCredits": 4,
+           "name": "Chemistry I",
+           "credits": 4,
+           "description": "<p>To ensure an understanding of key concepts, CHEM1071 or CHEM1071H are preferred.</p>"
+          },
+          {
+           "condition": "minimumCredits",
+           "value": {
+            "condition": "courses",
+            "values": [
+             {
+              "value": [
+               "jZfjCssdnISZ6GeLW2wZ",
+               "8077551",
+               "8077561"
+              ],
+              "logic": "or"
+             },
+             {
+              "value": [
+               "8077541"
+              ],
+              "logic": "or"
+             }
+            ],
+            "id": "S546ySeV",
+            "subSelections": []
+           },
+           "id": "JgSaIiMF",
+           "name": "Chemistry II",
+           "minCourses": 2,
+           "maxCourses": 2,
+           "minCredits": 4,
+           "maxCredits": 4,
+           "credits": 4,
+           "description": "<p>To ensure an understanding of key concepts, CHEM1072 or CHEM1072H are preferred.</p>"
+          },
+          {
+           "condition": "minimumCredits",
+           "value": {
+            "condition": "courses",
+            "values": [
+             {
+              "value": [
+               "8152841"
+              ],
+              "logic": "and"
+             },
+             {
+              "value": [
+               "8152831"
+              ],
+              "logic": "and"
+             }
+            ],
+            "id": "omcJGL03",
+            "subSelections": []
+           },
+           "id": "mabLXNVH",
+           "minCourses": 2,
+           "maxCourses": 2,
+           "minCredits": 4,
+           "maxCredits": 4,
+           "name": "Chemistry II (Life Sciences Series)",
+           "credits": 4
+          },
+          {
+           "condition": "minimumCredits",
+           "value": {
+            "condition": "courses",
+            "values": [
+             {
+              "value": [
+               "8205401"
+              ],
+              "logic": "and"
+             },
+             {
+              "value": [
+               "0039521"
+              ],
+              "logic": "and"
+             },
+             {
+              "value": [
+               "0062711"
+              ],
+              "logic": "and"
+             },
+             {
+              "value": [
+               "0062641"
+              ],
+              "logic": "and"
+             }
+            ],
+            "id": "n2Vg5BSY",
+            "subSelections": []
+           },
+           "id": "eBO4xumf",
+           "minCourses": 1,
+           "maxCourses": 1,
+           "minCredits": 3,
+           "maxCredits": 4,
+           "name": "Other Approved Science Options",
+           "credits": 3
+          }
+         ],
+         "id": "OIWxZMJC",
+         "name": "Second Science"
+        }
+       ]
+      }
+     ],
+     "sisId": ""
+    },
+    {
+     "id": "8S6ARctZ",
+     "name": "Upper Division Writing Intensive within the major",
+     "type": "Completion Requirement",
+     "showInCatalog": true,
+     "requirementLevel": "programRequirements",
+     "rules": [
+      {
+       "id": "MLS0AQtu",
+       "condition": "completeVariableCoursesAndVariableCredits",
+       "value": {
+        "condition": "courses",
+        "values": [
+         {
+          "value": [
+           "7930761"
+          ],
+          "logic": "and"
+         },
+         {
+          "value": [
+           "0135611"
+          ],
+          "logic": "and"
+         },
+         {
+          "value": [
+           "8188141"
+          ],
+          "logic": "and"
+         },
+         {
+          "value": [
+           "8039561"
+          ],
+          "logic": "and"
+         },
+         {
+          "value": [
+           "0091941"
+          ],
+          "logic": "and"
+         },
+         {
+          "value": [
+           "8162951"
+          ],
+          "logic": "and"
+         }
+        ],
+        "id": "PJUdtZof",
+        "subSelections": []
+       },
+       "maxCourses": 1,
+       "name": "Upper Division Writing Intensive within the major",
+       "description": "<p>Students are required to take one upper division writing intensive course within the major. If that requirement has not been satisfied within the core major requirements, students must choose one course from the following list. Some of these courses may also fulfill other major requirements.</p>"
+      }
+     ],
+     "sisId": ""
+    }
+   ]
+  }
+ }
+}

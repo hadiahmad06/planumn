@@ -8,12 +8,14 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { DotsIcon, PlusIcon } from "@/components/ui/icons";
 import { Menu, MenuItem } from "@/components/ui/Menu";
 import { useDisplaySettings } from "./displaySettings";
+import { usePrereqStatus } from "./prereqStatus";
+import type { PrereqCheck } from "@/domain/prereqs";
 import { SemesterColumn } from "./SemesterColumn";
 import { planActions } from "./store";
 
 const SEASONS: Season[] = ["fall", "spring", "summer"];
 
-function YearRow({ group, plan, seasons }: { group: YearGroup; plan: Plan; seasons: Season[] }) {
+function YearRow({ group, plan, seasons, prereqs }: { group: YearGroup; plan: Plan; seasons: Season[]; prereqs: Map<string, PrereqCheck> }) {
   const [confirming, setConfirming] = useState(false);
   const missing = missingTermsInYear(plan, group.startYear).filter((t) => seasons.includes(seasonOf(t)));
   const courseCount = group.semesters.reduce((n, s) => n + s.courses.length, 0);
@@ -42,7 +44,7 @@ function YearRow({ group, plan, seasons }: { group: YearGroup; plan: Plan; seaso
       <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${seasons.length}, minmax(0, 1fr))` }}>
         {seasons.map((season) => {
           const semester = group.semesters.find((s) => seasonOf(s.index) === season);
-          if (semester) return <SemesterColumn key={semester.index} semester={semester} />;
+          if (semester) return <SemesterColumn key={semester.index} semester={semester} prereqs={prereqs} />;
           const term = missing.find((t) => seasonOf(t) === season);
           return (
             <button
@@ -72,6 +74,7 @@ export function Schedule({ plan }: { plan: Plan }) {
   const hidden = useDisplaySettings((s) => s.hiddenSeasons);
   const seasons = SEASONS.filter((s) => !hidden.includes(s));
   const years = groupByYear(plan.semesters);
+  const prereqs = usePrereqStatus(plan);
 
   return (
     <div className="flex flex-col gap-6">
@@ -83,7 +86,7 @@ export function Schedule({ plan }: { plan: Plan }) {
         <PlusIcon size={12} /> Add earlier year
       </button>
       {years.map((g) => (
-        <YearRow key={g.startYear} group={g} plan={plan} seasons={seasons} />
+        <YearRow key={g.startYear} group={g} plan={plan} seasons={seasons} prereqs={prereqs} />
       ))}
       <div className="flex gap-4">
         <button type="button" onClick={planActions.addYearAtEnd} className="flex items-center gap-1 text-body text-text-secondary hover:text-accent">

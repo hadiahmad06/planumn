@@ -36,6 +36,8 @@ export interface CourseDetails extends CourseSummary {
   libEds: string[];
   /** Term codes that have recorded grades, oldest first. A hint at when the course is offered. */
   termsOffered: string[];
+  /** Prerequisite clause from the catalog description, e.g. "(CSci 1913 or CSci 1933) and CSci 2011". */
+  prereqText: string | null;
 }
 
 export function courseCode(c: Pick<CourseSummary, "dept" | "number">): string {

@@ -31,6 +31,7 @@ describe("catalog (data/catalog.db)", () => {
     expect(Object.keys(c.grades)).toContain("A");
     expect(c.termsOffered[0]).toBe("1175");
     expect(c.srt.DEEP_UND.respondents).toBeGreaterThan(0);
+    expect(getCourses([1004])[0].prereqText).toBeTruthy(); // CSCI 2021
   });
 
   it("skips unknown ids and maps codes to ids", () => {

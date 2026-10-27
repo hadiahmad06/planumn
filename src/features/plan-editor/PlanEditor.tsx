@@ -81,7 +81,7 @@ export function PlanEditor({ initialPlan }: { initialPlan: Plan }) {
         {plan && (
           <div className="grid min-h-0 flex-1 grid-cols-1 md:grid-cols-[300px_minmax(0,1fr)]">
             <aside className="hidden min-h-0 overflow-y-auto border-r border-border p-4 md:block">
-              <RequirementsRail />
+              <RequirementsRail plan={plan} />
             </aside>
             <main className="min-h-0 overflow-y-auto p-4 md:p-6">
               <div className="mx-auto flex max-w-6xl flex-col gap-6">

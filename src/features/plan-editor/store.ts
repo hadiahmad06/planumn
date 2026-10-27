@@ -37,6 +37,8 @@ export const planActions = {
   moveCourse: (from: ops.CourseSlot, to: ops.CourseSlot) => edit((p) => ops.moveCourse(p, from, to)),
   setLock: (term: TermCode, id: CourseId, lock: LockState) => edit((p) => ops.setLock(p, term, id, lock)),
   setTitle: (title: string) => edit((p) => ops.setTitle(p, title)),
+  addProgram: (id: string) => edit((p) => ops.setPrograms(p, [...p.programs, id])),
+  removeProgram: (id: string) => edit((p) => ops.setPrograms(p, p.programs.filter((x) => x !== id))),
   addNextSemester: () => edit(ops.addNextSemester),
   addSemester: (term: TermCode) => edit((p) => ops.addSemester(p, term)),
   addYearAtEnd: () => edit(ops.addYearAtEnd),

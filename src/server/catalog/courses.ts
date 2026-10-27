@@ -1,5 +1,6 @@
 import "server-only";
-import type { CourseDetails, CourseId, SrtMetric } from "@/domain/course";
+import type { CourseDetails, CourseId, CourseSummary, SrtMetric } from "@/domain/course";
+import { extractPrereqText } from "@/domain/prereqs";
 import { catalog } from "./db";
 import { parseJson, toSummary, type CourseRow } from "./rows";
 
@@ -70,6 +71,7 @@ export function getCourses(ids: CourseId[]): CourseDetails[] {
         srt,
         libEds: libEds.get(id) ?? [],
         termsOffered: terms.get(id) ?? [],
+        prereqText: extractPrereqText(r.onestop_desc),
       },
     ];
   });
@@ -84,6 +86,23 @@ export function findCourseIdsByCode(codes: { dept: string; number: string }[]): 
   for (const { dept, number } of codes) {
     const row = stmt.get(dept.toUpperCase(), number.toUpperCase()) as { id: number } | undefined;
     if (row) out.set(`${dept.toUpperCase()} ${number.toUpperCase()}`, row.id);
+  }
+  return out;
+}
+
+/** Twin Cities catalog courses keyed by CourseDog course group id (for program requirements). */
+export function findCoursesByGroupIds(groupIds: string[]): Map<string, CourseSummary> {
+  const out = new Map<string, CourseSummary>();
+  const unique = [...new Set(groupIds)];
+  for (let i = 0; i < unique.length; i += 500) {
+    const chunk = unique.slice(i, i + 500);
+    const rows = catalog()
+      .prepare(
+        `SELECT id, dept_abbr, course_num, class_desc, cred_min, cred_max, courseGroupId FROM classdistribution
+         WHERE campus = 'UMNTC' AND courseGroupId IN (${placeholders(chunk.length)}) ORDER BY id`,
+      )
+      .all(...chunk) as unknown as (CourseRow & { courseGroupId: string })[];
+    for (const r of rows) if (!out.has(r.courseGroupId)) out.set(r.courseGroupId, toSummary(r));
   }
   return out;
 }

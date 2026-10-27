@@ -5,6 +5,7 @@ import { formatCredits } from "@/domain/course";
 import type { Plan } from "@/domain/plan";
 import { useCreditTotal } from "@/features/catalog/courseCache";
 import { SaveStatus } from "@/features/plans/SaveStatus";
+import { ProgressWidget } from "@/features/requirements/ProgressWidget";
 import { planActions } from "./store";
 import { ViewOptions } from "./ViewOptions";
 
@@ -31,7 +32,7 @@ function EditableTitle({ title }: { title: string }) {
       placeholder="Untitled plan"
       aria-label="Plan title"
       maxLength={120}
-      className="min-w-0 flex-1 rounded-row bg-transparent text-[24px] leading-tight font-semibold outline-none placeholder:text-text-tertiary hover:bg-surface/60 focus:bg-surface"
+      className="min-w-56 flex-1 rounded-row bg-transparent text-[24px] leading-tight font-semibold outline-none placeholder:text-text-tertiary hover:bg-surface/60 focus:bg-surface"
     />
   );
 }
@@ -48,6 +49,7 @@ export function PlanHeader({ plan }: { plan: Plan }) {
           {courseCount} courses · <strong className="text-text-primary">{formatCredits(total)}</strong> credits
         </span>
         <SaveStatus />
+        <ProgressWidget plan={plan} />
         <ViewOptions />
       </div>
     </div>
