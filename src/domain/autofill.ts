@@ -96,6 +96,8 @@ export interface Placement {
   reasons: string[];
   /** Prerequisites that aren't anywhere in the plan, e.g. "MATH 1271". */
   note?: string;
+  /** The year-one rule moved it later than it could otherwise go. */
+  heldUpperDivision?: boolean;
 }
 
 export interface PlaceResult {
@@ -111,6 +113,8 @@ export interface PlaceInput {
   maxCredits?: number;
   /** Summer terms are skipped unless asked for (few students take a full load in summer). */
   useSummer?: boolean;
+  /** Heuristic (docs/agent/heuristics.md): keep 3xxx+ courses out of the plan's first year. Default on. */
+  holdUpperDivision?: boolean;
   now?: Date;
 }
 
@@ -126,7 +130,7 @@ function prune(n: PrereqNode, relevant: (code: string) => boolean): PrereqNode {
   return { kind: n.kind, children };
 }
 
-export function placeCourses({ plan, picks, course, hiddenSeasons = [], maxCredits = 15, useSummer = false, now = new Date() }: PlaceInput): PlaceResult {
+export function placeCourses({ plan, picks, course, hiddenSeasons = [], maxCredits = 15, useSummer = false, holdUpperDivision = true, now = new Date() }: PlaceInput): PlaceResult {
   const from = currentTerm(now);
   const semesters = [...plan.semesters].sort((a, b) => compareTerms(a.index, b.index));
   const load = new Map(semesters.map((s) => [s.index, s.courses.reduce((n, c) => n + (course(c.id)?.credits ?? 3), 0) + (s.placeholders ?? []).reduce((n, p) => n + p.credits, 0)]));
@@ -174,9 +178,13 @@ export function placeCourses({ plan, picks, course, hiddenSeasons = [], maxCredi
     const node = parsed && prune(parsed, (code) => codeTerm.has(code) || pickedCodes.has(code));
     let blocked = "No room under the credit limit in the remaining terms";
     let placed = false;
-    const upper = courseLevel(c.code.split(" ")[1] ?? "") >= 3000;
+    const upper = holdUpperDivision && courseLevel(c.code.split(" ")[1] ?? "") >= 3000;
+    let held = false;
     for (const t of terms) {
-      if (upper && semesters.length && academicYear(t) === academicYear(semesters[0].index)) continue;
+      if (upper && semesters.length && academicYear(t) === academicYear(semesters[0].index)) {
+        held = true;
+        continue;
+      }
       if (offering.known && !offering.seasons.includes(seasonOf(t))) {
         blocked = "Not historically offered in the remaining terms";
         continue;
@@ -194,7 +202,12 @@ export function placeCourses({ plan, picks, course, hiddenSeasons = [], maxCredi
       load.set(t, (load.get(t) ?? 0) + c.credits);
       for (const code of equivalentCodes(c.code)) codeTerm.set(code, t);
       const strict = node ? checkPrereqs(node, (code) => (codeTerm.get(code) !== undefined ? compareTerms(codeTerm.get(code)!, t) < 0 : false)) : null;
-      placements.push({ ...pick, term: t, ...(strict && !strict.met && !strict.hasOtherPaths ? { note: `Needs ${strict.missing}` } : {}) });
+      placements.push({
+        ...pick,
+        term: t,
+        ...(strict && !strict.met && !strict.hasOtherPaths ? { note: `Needs ${strict.missing}` } : {}),
+        ...(held ? { heldUpperDivision: true } : {}),
+      });
       placed = true;
       break;
     }

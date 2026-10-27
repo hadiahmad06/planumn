@@ -113,7 +113,10 @@ describe("autofill (B24)", () => {
 
   it("keeps upper-division courses out of the plan's first year", () => {
     const plan = createEmptyPlan(NOW);
-    expect(placeCourses({ plan, picks: [{ courseId: 5, reasons: [] }], course, now: NOW }).placements[0].term).toBe("1279"); // WRIT 3029
+    const held = placeCourses({ plan, picks: [{ courseId: 5, reasons: [] }], course, now: NOW }).placements[0];
+    expect(held).toMatchObject({ term: "1279", heldUpperDivision: true }); // WRIT 3029
+    // The rule is optional.
+    expect(placeCourses({ plan, picks: [{ courseId: 5, reasons: [] }], course, now: NOW, holdUpperDivision: false }).placements[0].term).toBe("1269");
   });
 
   it("reports courses with no offered term left", () => {
