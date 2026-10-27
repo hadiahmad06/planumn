@@ -61,6 +61,7 @@ src/
 | `useCourse(id)`, `useCourses(ids)`, `fetchCourses(ids)` | `src/features/catalog/courseCache.ts` | Hadi's Claude | preview, cards, requirements |
 | `GET /api/programs/:programGroupId` → `Program` (requirements, courses resolved to catalog ids) | `src/app/api/programs/[id]/route.ts` | Hadi's Claude | requirements rail |
 | `CourseDetails.prereqText` (prerequisite clause) + `parsePrereqs` / `checkPrereqs` | `src/domain/course.ts`, `src/domain/prereqs.ts` | Hadi's Claude | schedule warnings, preview |
+| B12 double-dip finder: `doubleDipCandidates(results, planned)`, `findDoubleDips({ results, planned, libEd, coveredLibEd })` (unsatisfied requirements with units > 0, plus Lib Ed designations no planned course or slot covers); `<DoubleDipFinder plan results />`. `OptionChip` (rail course chip) is now exported | `src/domain/doubleDip.ts`, `src/features/requirements/DoubleDipFinder.tsx` | Hadi's Claude | requirements rail |
 | `healthCheck`, `pacing`, `offeringHistory` (plan health, B4–B6) + `useHealth(plan)` | `src/domain/health.ts`, `src/features/plan-editor/useHealth.ts` | Hadi's Claude | header panel, cards, advisor export (B10) |
 | `findCourseIdsByCode()` (server) | `src/server/catalog/courses.ts` | Hadi's Claude | transcript import |
 | `usePlanStore`: `plan`, `revision`, `loadPlan`, `patchMeta`, `subscribe` | `src/features/plan-editor/store.ts` | Hadi's Claude | autosave |

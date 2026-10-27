@@ -15,8 +15,8 @@ import { hoverCourse, usePlanStore } from "@/features/plan-editor/store";
 
 const MAX_CHOICES = 8;
 
-/** A listed course: draggable into the schedule, click for its preview (A27). */
-function OptionChip({ option, primary, planned }: { option: CourseOption; primary?: boolean; planned?: boolean }) {
+/** A listed course: draggable into the schedule, click for its preview (A27). Also used by the B12 finder. */
+export function OptionChip({ option, primary, planned }: { option: CourseOption; primary?: boolean; planned?: boolean }) {
   const mobile = useIsMobile();
   const plan = usePlanStore((s) => s.plan);
   const hidden = useDisplaySettings((s) => s.hiddenSeasons);
