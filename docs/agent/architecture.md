@@ -65,6 +65,7 @@ src/
 | `healthCheck`, `pacing`, `offeringHistory` (plan health, B4–B6) + `useHealth(plan)` | `src/domain/health.ts`, `src/features/plan-editor/useHealth.ts` | Hadi's Claude | header panel, cards, advisor export (B10) |
 | ‹ › move arrows: `snapMove(plan, from, courseId, "earlier" \| "later", termsOffered, hiddenSeasons)` → nearest offered term within the plan (skips hidden seasons, leave semesters, duplicates); `moveTargets` / `moveTo` / `announce` (focus follows the card) | `src/domain/moveSnap.ts`, `src/features/plan-editor/moveCourse.ts` | Hadi's Claude | course cards, card menus |
 | `findCourseIdsByCode()` (server) | `src/server/catalog/courses.ts` | Hadi's Claude | transcript import |
+| B27 natural-language search: `parseNaturalQuery(q, departments)` → `{ text, filters, understood }` or null for plain searches; `GET /api/departments` → `{ code, name }[]`; search filter `dept=CSCI` (additive) | `src/domain/naturalQuery.ts`, `src/app/api/departments/route.ts`, `src/features/search/` | Hadi's Claude | top-bar search |
 | `usePlanStore`: `plan`, `revision`, `loadPlan`, `patchMeta`, `subscribe` | `src/features/plan-editor/store.ts` | Hadi's Claude | autosave |
 | `planActions` (`addCourse`, `removeCourse`, `moveCourse`, `setLock`, …) | `src/features/plan-editor/store.ts` | Hadi's Claude | preview (lock toggle), transcript import |
 | `useCourseInfo(id)`, `useCreditTotal(ids)` | `src/features/catalog/courseCache.ts` | Hadi's Claude | anywhere a course or credit sum is shown |

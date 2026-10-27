@@ -65,6 +65,16 @@ export function SearchFilterBar({
 
   return (
     <div role="group" aria-label="Search filters" data-search-filters className="flex flex-wrap items-center gap-1.5 border-b border-border px-2 pt-1 pb-2">
+      {filters.dept && (
+        <button
+          type="button"
+          onClick={() => set("dept", undefined)}
+          aria-label={`Remove department filter ${filters.dept}`}
+          className="flex items-center gap-1 rounded-full border border-accent bg-surface px-2.5 py-1 text-micro text-accent"
+        >
+          {filters.dept} <span aria-hidden>×</span>
+        </button>
+      )}
       {requirements.length > 0 && (
         <FilterSelect label="Satisfies requirement" value={requirement ?? ""} onChange={(v) => onRequirement(v || null)}>
           <option value="">Requirement: any</option>

@@ -27,6 +27,8 @@ export interface SearchFilters {
    * requirement's listed courses. An empty list matches nothing.
    */
   courseIds?: number[];
+  /** Department code, e.g. "CSCI" (B27: "computer science classes"). */
+  dept?: string;
 }
 
 /** Most course ids one search takes (`ids=`); program requirements list far fewer. */
@@ -75,6 +77,7 @@ export function filtersToParams(f: SearchFilters): URLSearchParams {
   if (f.credits !== undefined) p.set("credits", String(f.credits));
   if (f.minGpa !== undefined) p.set("minGpa", String(f.minGpa));
   if (f.noPrereqs) p.set("noPrereqs", "1");
+  if (f.dept) p.set("dept", f.dept);
   if (f.courseIds) p.set("ids", [...f.courseIds].sort((a, b) => a - b).join(","));
   return p;
 }
@@ -110,6 +113,11 @@ export function parseFilters(p: URLSearchParams): SearchFilters | { error: strin
   }
   const noPrereqs = p.get("noPrereqs");
   if (noPrereqs === "1" || noPrereqs === "true") f.noPrereqs = true;
+  const dept = p.get("dept");
+  if (dept) {
+    if (!/^[A-Z]{2,4}$/.test(dept)) return { error: "dept must be a department code, e.g. CSCI" };
+    f.dept = dept;
+  }
   const ids = p.get("ids");
   if (ids !== null) {
     const list = ids.split(",").filter(Boolean);

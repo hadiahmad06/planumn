@@ -107,3 +107,13 @@ export function findCoursesByGroupIds(groupIds: string[]): Map<string, CourseSum
   }
   return out;
 }
+
+let departments: { code: string; name: string }[] | null = null;
+
+/** Twin Cities departments (code + name), e.g. { code: "CSCI", name: "Computer Science" } (B27). */
+export function listDepartments(): { code: string; name: string }[] {
+  departments ??= catalog()
+    .prepare(`SELECT dept_abbr AS code, dept_name AS name FROM departmentdistribution WHERE campus = 'UMNTC' ORDER BY dept_abbr`)
+    .all() as unknown as { code: string; name: string }[];
+  return departments;
+}
