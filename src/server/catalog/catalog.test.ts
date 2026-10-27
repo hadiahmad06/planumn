@@ -34,6 +34,11 @@ describe("catalog (data/catalog.db)", () => {
     expect(getCourses([1004])[0].prereqText).toBeTruthy(); // CSCI 2021
   });
 
+  it("maps Lib Ed designations to the right course (left_id = libed, right_id = course)", () => {
+    const [wi] = getCourses([findCourseIdsByCode([{ dept: "CSCI", number: "3081W" }]).get("CSCI 3081W")!]);
+    expect(wi.libEds).toContain("Writing Intensive");
+  });
+
   it("skips unknown ids and maps codes to ids", () => {
     expect(getCourses([999999999])).toEqual([]);
     expect(findCourseIdsByCode([{ dept: "csci", number: "1133" }]).get("CSCI 1133")).toBe(87);
