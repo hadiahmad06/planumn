@@ -8,6 +8,7 @@ import { LibEdCoverage } from "@/features/libed/LibEdCoverage";
 import { planActions } from "@/features/plan-editor/store";
 import { loadProgram, usePrograms } from "./programStore";
 import { programName } from "./programOptions";
+import { DoubleDipFinder } from "./DoubleDipFinder";
 import { ProgramPicker } from "./ProgramPicker";
 import { RequirementItem } from "./RequirementItem";
 import { useAudit } from "./useAudit";
@@ -105,6 +106,8 @@ export function RequirementsRail({ plan }: { plan: Plan }) {
           </section>
         );
       })}
+
+      <DoubleDipFinder plan={plan} results={results} />
 
       {/* B3, Ishaan's Claude: Twin Cities Lib Ed designation coverage. */}
       <LibEdCoverage plan={plan} />

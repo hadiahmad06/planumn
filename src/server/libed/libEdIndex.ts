@@ -58,6 +58,9 @@ export async function fetchLibEdIndex(): Promise<Record<string, string[]>> {
   "use cache";
   cacheLife("days");
   const first = await page(0);
+  // Review note on #48: make it visible if the catalog ever outgrows the page cap.
+  if (first.total > PAGE * MAX_PAGES)
+    console.warn(`Lib Ed index: CourseDog lists ${first.total} course versions; only the first ${PAGE * MAX_PAGES} are read.`);
   const rest = await Promise.all(
     Array.from({ length: Math.min(Math.ceil(first.total / PAGE), MAX_PAGES) - 1 }, (_, i) => page((i + 1) * PAGE)),
   );
