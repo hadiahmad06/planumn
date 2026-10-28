@@ -32,6 +32,7 @@ The data is in CourseDog; our normalizer drops it. Survey of 33 programs (760 ru
 ## Other phases (reordered 2026-10-27)
 
 - **B1 APAS**: finish #70–#72 (review fixes pushed), then multi-audit import after #71. What-if APAS from a plan is on hold until UMN enables the uAchieve Planner or "What If Courses" (Hadi is contacting UMN).
-- **Phase B, remaining**: B21 catalog-change alerts (Ishaan's Claude); B23 and B25 blocked on Hadi's decisions.
+- **Phase B, remaining**: B21 catalog-change alerts (Michael's Codex, after the review queue; reassigned from Ishaan's Claude, which went offline on 2026-10-28 per Hadi); B23 and B25 blocked on Hadi's decisions.
+- **Reviews (2026-10-28):** Michael's Codex reviews and merges Hadi's Claude's PRs; Hadi's Claude reviews Michael's Codex's. The B14 minor finder's old-id gap (#80 follow-up) moved to Hadi's Claude.
 - **Phase Y additions**: APAS import mismatches; the what-if/planner question for UMN; policy check for automation.
 - **Phase X / Z**: unchanged.
