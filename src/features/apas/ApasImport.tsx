@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { captureChecks, downloadReport } from "./capture";
 import { useApasImport } from "./useApasImport";
 
 const kb = (s: string) => `${Math.max(1, Math.round(new Blob([s]).size / 1024))} KB`;
@@ -55,9 +56,22 @@ export function ApasImport() {
               {state.report.capturedAt && ` · ${new Date(state.report.capturedAt).toLocaleString()}`}. Turning it into a
               plan is coming next. Nothing has been saved or uploaded.
             </p>
-            <button type="button" onClick={discard} className="rounded-row border border-border-strong px-4 py-2">
-              Discard report
-            </button>
+            <CaptureSummary html={state.report.html} />
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => downloadReport(state.report)}
+                className="rounded-row bg-accent px-4 py-2 font-medium text-surface hover:bg-accent-hover"
+              >
+                Save a copy (.html)
+              </button>
+              <button type="button" onClick={discard} className="rounded-row border border-border-strong px-4 py-2">
+                Discard report
+              </button>
+            </div>
+            <p className="text-sm text-text-secondary">
+              The copy goes to your Downloads folder only. It contains your academic record, so keep it private.
+            </p>
           </div>
         )}
 
@@ -71,5 +85,25 @@ export function ApasImport() {
         )}
       </section>
     </main>
+  );
+}
+
+/** Quick signals that the capture holds the report (B1, Hadi's Claude). Not a parse. */
+function CaptureSummary({ html }: { html: string }) {
+  const c = captureChecks(html);
+  return (
+    <ul className="space-y-1 text-sm">
+      <li className={c.courseCodes > 0 ? "text-text-secondary" : "text-danger"}>
+        {c.courseCodes > 0
+          ? `${c.courseCodes} course codes found (e.g. "CSCI 2041" counted once).`
+          : "No course codes found. This may not be an audit report: open the report itself and send again."}
+      </li>
+      {c.frames > 0 && (
+        <li className="text-danger">
+          This page has {c.frames} embedded frame{c.frames === 1 ? "" : "s"}, whose content isn&apos;t captured. Part of the
+          report may be missing.
+        </li>
+      )}
+    </ul>
   );
 }
