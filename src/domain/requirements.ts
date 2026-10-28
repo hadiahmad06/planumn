@@ -1,4 +1,5 @@
 import { equivalentCodes, type CourseId, type CreditRange } from "./course";
+import { matchesPattern, type CoursePattern } from "./coursePatterns";
 import { constraintProgress, type ConstraintPart, type ConstraintProgress, type CreditConstraint, type ListedCourse } from "./creditConstraints";
 
 /**
@@ -38,6 +39,11 @@ interface RuleBase {
    * **Shown, never counted** toward progress (Hadi, 2026-10-28: "show first").
    */
   constraints?: CreditConstraint[];
+  /**
+   * C3 (Phase C): for a rule that lists no courses, the course pattern its catalog text describes
+   * ("APEC 3xxx", "4xxx/5xxx EE"). **Shown, never counted** (Hadi, 2026-10-28: "show first").
+   */
+  pattern?: CoursePattern;
 }
 
 export interface CoursesRule extends RuleBase {
@@ -106,6 +112,8 @@ export interface PlannedForAudit {
   courseId: CourseId;
   /** Credits counted toward credit minimums (the course's minimum credits). */
   credits: number;
+  /** "APEC 3011". Only C3 pattern matching reads it; absent = can't match a pattern. */
+  code?: string | null;
 }
 
 export interface RuleResult {
@@ -124,6 +132,8 @@ export interface RuleResult {
   children?: RuleResult[];
   /** C2: planned credits against `rule.constraints`. Display only; never affects `satisfied`/`filled`. */
   constraints?: ConstraintProgress[];
+  /** C3: planned courses matching `rule.pattern`. Display only; never affects `satisfied`/`filled`. */
+  patternMatches?: PlannedForAudit[];
 }
 
 export interface RequirementResult {
@@ -191,7 +201,9 @@ function evaluateCourses(rule: CoursesRule, planned: PlannedForAudit[]): RuleRes
 }
 
 export function evaluateRule(rule: Rule, planned: PlannedForAudit[]): RuleResult {
-  const result = evaluateRuleKind(rule, planned);
+  const evaluated = evaluateRuleKind(rule, planned);
+  const { pattern } = rule;
+  const result = pattern ? { ...evaluated, patternMatches: planned.filter((p) => p.code && matchesPattern(pattern, p.code)) } : evaluated;
   if (!rule.constraints?.length) return result;
   const children = rule.kind === "anyOf" || rule.kind === "allOf" || rule.kind === "numberOf" ? rule.children : [];
   return { ...result, constraints: progressOf(rule.constraints, [rule], children, planned) };

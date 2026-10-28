@@ -2,8 +2,11 @@
 
 import { useDraggable } from "@dnd-kit/core";
 import { useId, useState } from "react";
+import { describePattern, type CoursePattern } from "@/domain/coursePatterns";
 import { describeConstraint, type ConstraintProgress } from "@/domain/creditConstraints";
-import type { CourseChoice, CourseOption, RequirementResult, RuleResult } from "@/domain/requirements";
+import type { CourseChoice, CourseOption, PlannedForAudit, RequirementResult, RuleResult } from "@/domain/requirements";
+import { LEVELS, type SearchFilters } from "@/domain/searchFilters";
+import { useSearchRequest } from "@/features/search/searchRequest";
 import { cn } from "@/components/ui/cn";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { externalId, type DragData } from "@/features/plan-editor/dnd";
@@ -187,6 +190,58 @@ function CreditConstraints({ items }: { items: ConstraintProgress[] }) {
   );
 }
 
+/** C3: search filters for one subject of a pattern: the department, plus the level when it's a single one. */
+function patternFilters(subject: string, levels: number[]): SearchFilters {
+  const buckets = new Set(levels.map((l) => Math.min(l, 5) * 1000));
+  const level = buckets.size === 1 ? [...buckets][0] : undefined;
+  return {
+    ...(subject === "*" ? {} : { dept: subject }),
+    ...(level !== undefined && (LEVELS as readonly number[]).includes(level) ? { level } : {}),
+  };
+}
+
+/**
+ * C3: a rule the catalog describes as a course pattern ("APEC 3xxx") instead of a list. Hadi, 2026-10-28:
+ * show first; matching planned courses are listed but don't count toward progress until C4.
+ */
+function CoursePatternBox({ pattern, matches }: { pattern: CoursePattern; matches: PlannedForAudit[] }) {
+  const openSearch = useSearchRequest((s) => s.openSearch);
+  return (
+    <div className="rounded-row border border-dashed border-border px-2 py-1.5 text-micro">
+      <p
+        className="text-text-tertiary"
+        title="planu.mn read this course pattern from the catalog's wording, so it may be off. Matching courses aren't counted in your progress yet; APAS or your advisor has the final word."
+      >
+        Read from catalog text · not counted in progress
+      </p>
+      <p title={pattern.sentence} className="text-text-secondary">
+        Any {describePattern(pattern)} course
+        {pattern.included.length ? `, plus ${pattern.included.join(", ")}` : ""}
+        {pattern.exceptSubjects.length ? `, not ${pattern.exceptSubjects.join(" or ")}` : ""}
+        {pattern.excluded.length ? `, except ${pattern.excluded.join(", ")}` : ""}
+      </p>
+      <p className="text-text-tertiary">
+        {matches.length
+          ? `Planned: ${matches.map((m) => `${m.code} (${m.credits} cr)`).join(", ")}`
+          : "No planned course matches yet"}
+      </p>
+      <div className="flex flex-wrap gap-x-2">
+        {pattern.subjects.map((s) => (
+          <button
+            key={s.subject}
+            type="button"
+            onClick={() => openSearch(patternFilters(s.subject, s.levels))}
+            className="text-accent hover:underline"
+          >
+            Find {s.subject === "*" ? "" : `${s.subject} `}
+            {s.levels.map((l) => `${l}xxx`).join("/")} courses
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function ruleStatus(r: RuleResult): string | null {
   if (r.rule.kind === "courses") {
     const { minCourses, minCredits } = r.rule;
@@ -221,6 +276,7 @@ function RuleView({ result, depth, hideTitle }: { result: RuleResult; depth: num
       )}
       {rule.description && <RuleDescription text={rule.description} />}
       {result.constraints?.length ? <CreditConstraints items={result.constraints} /> : null}
+      {rule.pattern && <CoursePatternBox pattern={rule.pattern} matches={result.patternMatches ?? []} />}
       {rule.notes && <Notes text={rule.notes} />}
       {rule.kind === "numberOf" && (
         <p className="text-micro text-text-secondary">

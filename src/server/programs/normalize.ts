@@ -1,5 +1,6 @@
 // Relative with extensions: scripts/requirement-coverage.ts runs this file in plain Node (C0).
 import { readCreditConstraints, type CreditConstraint } from "../../domain/creditConstraints.ts";
+import { readCoursePattern } from "../../domain/coursePatterns.ts";
 import type { CourseOption, Program, Requirement, RequirementLevel, Rule } from "@/domain/requirements";
 import { CREDIT_OVERRIDES, type CreditOverride } from "./creditOverrides.ts";
 
@@ -127,6 +128,10 @@ function normalizeRule(r: RawRule, resolve: ResolveOption, path: string, overrid
     ...(description ? { description } : {}),
     ...(constraints.length ? { constraints } : {}),
   };
+  // C3: a rule that lists no courses may describe them as a pattern instead ("APEC 3xxx"). Shown only.
+  const listsNothing = !r.subRules?.length && !(r.value && typeof r.value === "object" && r.value.values?.length);
+  const pattern = listsNothing ? readCoursePattern([r.name, notes, description, typeof r.value === "string" ? htmlToText(r.value) : null].filter(Boolean).join("\n")) : null;
+  if (pattern) Object.assign(base, { pattern });
   const children = () => (r.subRules ?? []).map((s, i) => normalizeRule(s, resolve, `${path}.${i}`, overrides));
   if (r.condition === "anyOf" || r.condition === "allOf") return { ...base, kind: r.condition, children: children() };
   if (r.condition === "numberOf") {

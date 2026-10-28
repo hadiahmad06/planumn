@@ -20,7 +20,8 @@ export function useAudit(plan: Plan | null): { results: ProgramResult[]; met: nu
       for (const c of sem.courses) {
         if (seen.has(c.id)) continue;
         seen.add(c.id);
-        planned.push({ courseId: c.id, credits: (courses[c.id] ?? summaries[c.id])?.credits.min ?? 0 });
+        const info = courses[c.id] ?? summaries[c.id];
+        planned.push({ courseId: c.id, credits: info?.credits.min ?? 0, code: info ? `${info.dept} ${info.number}` : null });
       }
     const results = plan.programs.flatMap((id) => {
       const e = entries[id];

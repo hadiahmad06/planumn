@@ -1,7 +1,7 @@
 "use client";
 
 import { useDndMonitor, useDraggable, useDroppable } from "@dnd-kit/core";
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { courseCode, formatCredits, type CourseSummary } from "@/domain/course";
 import { cn } from "@/components/ui/cn";
 import { useSearchShortcut } from "@/features/theme/useSearchShortcut";
@@ -20,6 +20,7 @@ import { addCourseActions } from "@/features/plan-editor/courseActions";
 import { useDisplaySettings } from "@/features/plan-editor/displaySettings";
 import { hoverCourse, planActions, useEditorUi, usePlanStore } from "@/features/plan-editor/store";
 import { AddToSemesterButton } from "@/features/plan-editor/AddToSemesterButton";
+import { useSearchRequest } from "./searchRequest";
 
 /**
  * Mobile tap-to-add (A32): tapping a result expands an inline "Add to which semester?" picker.
@@ -109,6 +110,17 @@ export function SearchBox() {
   const inputRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   useSearchShortcut(inputRef);
+  // C3: the rail's "Find courses" opens search with its filters set.
+  const request = useSearchRequest((s) => s.request);
+  const [appliedRequest, setAppliedRequest] = useState(0);
+  if (request && request.id !== appliedRequest) {
+    setAppliedRequest(request.id);
+    setFilters(request.filters);
+    setShowFilters(true);
+  }
+  useEffect(() => {
+    if (request) inputRef.current?.focus();
+  }, [request]);
   const listId = useId();
   const requirements = useRequirementOptions(usePlanStore((s) => s.plan));
   // A requirement whose program was removed from the plan simply stops filtering.
