@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useRef, useState, type PointerEvent } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from "react";
 import { fetchCourses, useCourseCache } from "@/features/catalog/courseCache";
 import { courseCode } from "@/domain/course";
 import { cn } from "@/components/ui/cn";
 import { CloseIcon, GripIcon } from "@/components/ui/icons";
 import { CourseDetails, PreviewHeading } from "./CourseDetails";
 import { AddToSemesterButton } from "@/features/plan-editor/AddToSemesterButton";
-import { clampPanel } from "./geometry";
+import { previewAnchor, trackPreviewAnchor } from "./anchor";
+import { clampPanel, farthestCorner } from "./geometry";
 import { usePreviewStore } from "./store";
 
 /** Written by Michael's Codex; 2025-style chrome by Hadi's Claude. Nonmodal panels keep the plan usable while comparing. */
@@ -27,10 +28,11 @@ function PreviewPanel({
   const hover = usePreviewStore((s) => s.hoverPreview);
   const [error, setError] = useState(false);
   const [retry, setRetry] = useState(0);
-  const [position, setPosition] = useState({
-    x: 24 + index * 28,
-    y: 88 + index * 24,
-  });
+  const [position, setPosition] = useState({ x: 8, y: 8 });
+  // Hidden until placed, so it never flashes on top of the course it describes.
+  const [placed, setPlaced] = useState(false);
+  const [width, setWidth] = useState<number | null>(null);
+  const anchor = useRef<ReturnType<typeof previewAnchor> | null>(null);
   const panel = useRef<HTMLElement>(null);
   const drag = useRef<{ x: number; y: number; px: number; py: number } | null>(
     null,
@@ -45,6 +47,29 @@ function PreviewPanel({
       active = false;
     };
   }, [id, retry]);
+
+  // Open in the corner farthest from the course that opened it (Hadi, 2026-10-27). Runs once per
+  // panel; after that the student can drag a pinned panel anywhere.
+  useLayoutEffect(() => {
+    const element = panel.current;
+    if (!element || placed) return;
+    anchor.current ??= previewAnchor();
+    const box = anchor.current;
+    // A hover preview that can't fit beside the course at full width narrows to the space beside it
+    // (down to 360px) instead of covering it. Measured again after the width applies.
+    if (temporary && width === null && !("x" in box)) {
+      const beside = Math.max(box.left, window.innerWidth - box.right) - 16;
+      const full = element.getBoundingClientRect().width;
+      if (beside < full && beside >= 360) {
+        setWidth(Math.floor(beside));
+        return;
+      }
+    }
+    const rect = element.getBoundingClientRect();
+    setPosition(farthestCorner(box, rect.width, rect.height, window.innerWidth, window.innerHeight, temporary ? 0 : index));
+    setPlaced(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- placement is decided once, when the panel opens
+  }, [width]);
 
   useEffect(() => {
     const element = panel.current;
@@ -140,6 +165,8 @@ function PreviewPanel({
         top: position.y,
         zIndex: 100 + index,
         maxHeight: "calc(100dvh - 16px)",
+        visibility: placed ? undefined : "hidden",
+        ...(width !== null ? { width } : {}),
       }}
       onPointerDown={() => {
         if (!temporary) open(id);
@@ -235,6 +262,7 @@ function PreviewPanel({
 }
 
 export function PreviewLayer() {
+  useEffect(trackPreviewAnchor, []);
   const pinned = usePreviewStore((s) => s.pinned);
   const hovered = usePreviewStore((s) => s.hovered);
   const [temporary, setTemporary] = useState<number | null>(null);

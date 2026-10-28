@@ -15,8 +15,9 @@ import { InstructorInsights } from "./InstructorInsights";
 
 /**
  * Course preview card, redesigned by Hadi's Claude after the 2025 card (Hadi, 2026-10-27). First
- * version by Michael's Codex. Heading, compact grade charts, a description that opens on hover and
- * stays open on click, then the v2 extras (lock, Lib Ed, offering, instructors) kept small.
+ * version by Michael's Codex. Heading, compact grade charts, the v2 extras (Lib Ed, offering, lock),
+ * prerequisites in plain view, and the description **last** (Hadi, 2026-10-27: prerequisites were too
+ * hard to reach on hover).
  */
 export function PreviewHeading({ course, className }: { course: Details; className?: string }) {
   return (
@@ -65,6 +66,17 @@ function Description({ text, alwaysOpen }: { text: string; alwaysOpen: boolean }
           {text || "No description in the catalog."}
         </p>
       </div>
+    </section>
+  );
+}
+
+/** The catalog's prerequisite text, always visible (it used to sit in a collapsed section). */
+function Prerequisites({ text }: { text: string | null }) {
+  if (!text) return null;
+  return (
+    <section>
+      <h4 className="text-micro font-semibold tracking-wide text-text-secondary uppercase">Prerequisites</h4>
+      <p className="pt-1 text-micro leading-relaxed text-text-secondary">{text}</p>
     </section>
   );
 }
@@ -121,12 +133,6 @@ function More({ course }: { course: Details }) {
   const summary = "cursor-pointer rounded-row py-1 text-micro font-semibold tracking-wide text-text-secondary uppercase hover:text-accent";
   return (
     <div className="flex flex-col border-t border-border pt-1">
-      {course.prereqText && (
-        <details>
-          <summary className={summary}>Prerequisites</summary>
-          <p className="pb-2 text-micro leading-relaxed text-text-secondary">{course.prereqText}</p>
-        </details>
-      )}
       <details>
         <summary className={summary}>Grades by instructor</summary>
         <div className="pb-2 text-body">
@@ -167,10 +173,13 @@ export function CourseDetails({ course, variant = "pinned" }: { course: Details;
           <PreviewHeading course={course} className="w-2/5 shrink-0" />
           <div className="min-w-0 flex-1">{charts}</div>
         </div>
-        <div className="h-px bg-border" />
+        <div className="flex items-center gap-2">
+          <div className="h-px flex-1 bg-border" />
+          <p className="text-micro text-text-tertiary">Click the course to keep this open.</p>
+        </div>
         <Facts course={course} />
+        <Prerequisites text={course.prereqText} />
         <Description text={course.description} alwaysOpen />
-        <p className="text-micro text-text-tertiary">Click the course to keep this open.</p>
       </div>
     );
   return (
@@ -178,8 +187,9 @@ export function CourseDetails({ course, variant = "pinned" }: { course: Details;
       {charts}
       <Facts course={course} />
       <PlanStatus course={course} />
-      <Description text={course.description} alwaysOpen={false} />
+      <Prerequisites text={course.prereqText} />
       <More course={course} />
+      <Description text={course.description} alwaysOpen={false} />
     </div>
   );
 }
