@@ -21,6 +21,7 @@ const raw = {
             subRules: [{ id: "list", name: "Upper division CSCI", condition: "minimumCredits", minCredits: 0, value: ids("1", "2", "3") }],
           },
           { id: "dup", name: "Electives", condition: "minimumCredits", minCredits: 9, description: "Take 9 or more credits from the following:", value: ids("1") },
+          { id: "cap", name: "Capped", condition: "minimumCredits", minCredits: 6, maxCredits: 12, description: "Students may take up to 12 credits total from this list.", value: ids("2") },
           { id: "all", name: "Required Courses", condition: "completedAllOf", value: ids("1", "2") },
           { id: "any", name: "Cognitive Science", condition: "completedAnyOf", credits: 2, value: ids("3") },
           { id: "atleast", name: "Fluids Technical Electives", condition: "completedAtLeastXOf", restriction: 0, minCourses: 0, value: ids("2") },
@@ -46,6 +47,11 @@ describe("credit constraints in the normalizer (C2)", () => {
 
   it("drops a reading that only repeats the structured minCredits", () => {
     expect(rule("dup").constraints).toBeUndefined();
+  });
+
+  it("keeps a prose cap even when the raw rule has maxCredits, since the normalized rule has no maximum", () => {
+    expect(rule("cap").constraints?.map((c) => [c.kind, c.credits, c.source])).toEqual([["max", 12, "text"]]);
+    expect(rule("cap")).not.toHaveProperty("maxCredits");
   });
 
   it("reads CourseDog's completed* conditions as course lists", () => {

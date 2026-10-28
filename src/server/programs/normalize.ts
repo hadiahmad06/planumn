@@ -106,15 +106,14 @@ export function collectGroupIds(program: RawProgram): string[] {
 
 /**
  * C2: credit constraints for one rule, read from its catalog text unless the program has an override.
- * Readings that only repeat a structured field (`minCredits`, `maxCredits`) are dropped: those already count.
+ * A reading that only repeats the structured `minCredits` is dropped: that already counts. A prose cap is kept even
+ * when the raw rule has `maxCredits`, because the normalized rule doesn't carry or enforce a maximum.
  */
 function ruleConstraints(r: RawRule, text: string, overrides: Record<string, CreditOverride[]> | undefined): CreditConstraint[] {
   const override = r.id ? overrides?.[r.id] : undefined;
   if (override) return override.map((c) => ({ ...c, source: "override" }));
   const structuredMin = r.minCredits ?? r.credits;
-  return readCreditConstraints(text, r.name).filter(
-    (c) => !(c.kind === "total" && c.credits === structuredMin && !c.maxCredits) && !(c.kind === "max" && !c.scope && c.credits === r.maxCredits),
-  );
+  return readCreditConstraints(text, r.name).filter((c) => !(c.kind === "total" && c.credits === structuredMin && !c.maxCredits));
 }
 
 function normalizeRule(r: RawRule, resolve: ResolveOption, path: string, overrides?: Record<string, CreditOverride[]>): Rule {

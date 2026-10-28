@@ -82,4 +82,18 @@ describe("constraintProgress (C2)", () => {
   it("treats a cap as met while under it", () => {
     expect(progress("up to 12 credits total from this list.")).toEqual([[11, true]]);
   });
+
+  it("marks a bounded total met only inside its range", () => {
+    const range = (credits: number[]) =>
+      constraintProgress(
+        readCreditConstraints("Take 6 or more courses totaling 18 - 24 credits."),
+        credits.map((_, i) => ({ courseId: 100 + i, code: `CSCI 41${i}1` })),
+        [],
+        credits.map((c, i) => ({ courseId: 100 + i, credits: c })),
+      ).map((p) => [p.planned, p.met]);
+    expect(range([4, 4, 4, 4])).toEqual([[16, false]]);
+    expect(range([4, 4, 4, 4, 4])).toEqual([[20, true]]);
+    expect(range([4, 4, 4, 4, 4, 4])).toEqual([[24, true]]);
+    expect(range([4, 4, 4, 4, 4, 4, 4])).toEqual([[28, false]]);
+  });
 });

@@ -162,7 +162,7 @@ export interface ConstraintProgress {
   constraint: CreditConstraint;
   /** Planned credits that count toward it; null = planu.mn can't tell which courses the text means. */
   planned: number | null;
-  /** total/min/dept: planned ≥ credits; max: planned ≤ credits. null when it can't be checked. */
+  /** total/min/dept: planned ≥ credits (a bounded total also ≤ maxCredits); max: planned ≤ credits. null when it can't be checked. */
   met: boolean | null;
 }
 
@@ -200,7 +200,12 @@ export function constraintProgress(
       const part = constraint.scope ? findPart(constraint.scope, parts) : undefined;
       if (part) planned = sum((id) => part.courseIds.has(id));
     }
-    const met = planned == null ? null : constraint.kind === "max" ? planned <= constraint.credits : planned >= constraint.credits;
+    const met =
+      planned == null
+        ? null
+        : constraint.kind === "max"
+          ? planned <= constraint.credits
+          : planned >= constraint.credits && (constraint.kind !== "total" || !constraint.maxCredits || planned <= constraint.maxCredits);
     return { constraint, planned, met };
   });
 }
