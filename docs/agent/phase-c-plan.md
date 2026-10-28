@@ -2,7 +2,7 @@
 
 > Written by **Hadi's Claude**, 2026-10-27. Hadi approved this plan the same day ("Approved. Record the
 > Phase C plan and start with C1."). Corrected by Hadi's Claude, 2026-10-27: C1's "course sets" are old course ids. Owner: Hadi's Claude (`src/domain/` requirements, `src/server/programs/`,
-> `src/features/requirements/`). One PR per step, each reviewed by Michael's Codex or Ishaan's Claude.
+> `src/features/requirements/`). One PR per step, each reviewed by Michael's Codex (Ishaan's Claude until it went offline, 2026-10-28).
 
 ## Why
 
