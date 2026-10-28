@@ -79,6 +79,15 @@ Columns: **Rule** (what the code assumes) · **Why** · **How it fails** · **Sh
 |---|---|---|---|---|
 | "Hasn't historically run in this season" uses the offering rule. Only known-good URLs are linked (catalog URL from our data, `schedulebuilder.umn.edu`). | No guessed Class Search query formats. | Same as the offering rule. | Yes ("Check Class Search"). | `RegistrationDialog.tsx` (#63) |
 
+## 8. APAS audit automation
+
+> Added by **Hadi's Claude**, 2026-10-27 (Hadi's decision in `docs/human/roadmap.md`).
+
+| Rule | Why | How it fails | Shown? | Where |
+|---|---|---|---|---|
+| The new audit is the first row on *View Previous APAS* whose id **wasn't there before** we clicked Run Declared Programs (ids noted first, so no clock comparison). Among several, a **degree program** is sent first (APAS code `1 PPPP SS DDD` with a non-zero degree part), so honors or lower-division audits aren't picked over the major. Only one audit is sent per import for now. | Declared programs produce several audits at once; the major is what a plan needs. | A student with two majors gets the first one listed. If another audit finishes in the same moment (e.g. run from a second tab), it could be picked. | Yes: the bar says each step, and the planu.mn page shows which program the report is for. | `pickNewAudit`, `isDegreeProgram` in `extension/src/automation.js` |
+| The extension waits at most **4 minutes** for the audit, then falls back to the manual Send. It reloads the list every 15 s in case APAS stopped refreshing. | APAS usually finishes within a minute. | A slow APAS day times out early. | Yes: "APAS is taking longer than usual…". | `WAIT_MS`, `RELOAD_MS` |
+
 ## Open gaps to close
 
 1. ~~Autofill must list its rules in the dialog.~~ Done in #62.

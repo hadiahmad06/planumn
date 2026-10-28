@@ -81,7 +81,16 @@ async function handle(message, sender) {
   if (isApasUrl(sender.url)) {
     if (message?.kind === "isImportTab") {
       const pending = await getPending();
-      return { ok: true, importing: Boolean(pending && pending.apasTabId === sender.tab.id) };
+      const importing = Boolean(pending && pending.apasTabId === sender.tab.id);
+      return { ok: true, importing, auto: importing ? (pending.auto ?? null) : null };
+    }
+    // Audit automation progress (Hadi's Claude): which step the import tab is on. Ids and a time only,
+    // never report content. null = the student chose to pick a report themselves (or pressed Stop).
+    if (message?.kind === "autoState") {
+      const pending = await getPending();
+      if (!pending || pending.apasTabId !== sender.tab.id) return { ok: false, error: "no-import" };
+      await setPending({ ...pending, auto: message.auto ?? null });
+      return { ok: true };
     }
     if (message?.kind === "report") return deliver(message.report, sender);
   }
