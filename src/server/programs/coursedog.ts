@@ -18,6 +18,8 @@ const HEADERS = {
 
 export interface CourseDogCourse {
   courseGroupId: string;
+  /** The course's older id, which some programs still use (Phase C/C1c). */
+  deprecatedCourseGroupId?: string | null;
   code: string;
   name: string;
   subjectCode: string;
@@ -46,7 +48,7 @@ export async function fetchCourseDogCourses(groupIds: string[]): Promise<CourseD
   if (groupIds.length === 0) return [];
   const url =
     `${BASE}/courses/search/%24filters?courseGroupIds=${groupIds.map(encodeURIComponent).join(",")}` +
-    `&limit=${groupIds.length + 20}&columns=code,name,courseGroupId,credits,subjectCode,courseNumber`;
+    `&limit=${groupIds.length + 20}&columns=code,name,courseGroupId,deprecatedCourseGroupId,credits,subjectCode,courseNumber`;
   const res = await fetch(url, { headers: HEADERS, signal: AbortSignal.timeout(TIMEOUT_MS) });
   if (!res.ok) throw new Error(`CourseDog courses: ${res.status}`);
   const body = (await res.json()) as { data?: CourseDogCourse[] };
