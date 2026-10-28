@@ -8,6 +8,7 @@ import { useAuth } from "@/features/auth/useAuth";
 import { UserMenu } from "@/features/auth/UserMenu";
 import { Modal } from "@/components/ui/Modal";
 import { SharePlanButton } from "@/features/sharing/SharePlanButton";
+import { planListSummary } from "./summary";
 import { CloudPlanRepository } from "./clientRepository";
 
 const repo = new CloudPlanRepository();
@@ -27,14 +28,8 @@ function PlanRow({
   const [renaming, setRenaming] = useState(false);
   const [title, setTitle] = useState(plan.title);
   const courses = useCourses(plannedCourseIds(plan));
-  const count = plan.semesters.reduce((n, s) => n + s.courses.length, 0);
-  const credits = plan.semesters.reduce(
-    (n, s) =>
-      n +
-      s.courses.reduce((sum, c) => sum + (courses[c.id]?.credits.min ?? 0), 0),
-    0,
-  );
-  const creditsReady = plannedCourseIds(plan).every((id) => courses[id]);
+  const { courseEntries, placeholderSlots, minimumCredits, creditsReady } =
+    planListSummary(plan, courses);
   function rename(event: FormEvent) {
     event.preventDefault();
     onSave({ ...plan, title: title.trim() });
@@ -81,8 +76,13 @@ function PlanRow({
             </Link>
           )}
           <p className="mt-1 text-sm text-text-secondary">
-            {count} courses ·{" "}
-            {creditsReady ? `${credits} minimum credits` : "Loading credits…"}
+            {courseEntries} course {courseEntries === 1 ? "entry" : "entries"}
+            {placeholderSlots > 0 &&
+              ` · ${placeholderSlots} placeholder ${placeholderSlots === 1 ? "slot" : "slots"}`}
+            {" · "}
+            {creditsReady
+              ? `${minimumCredits} scheduled minimum credits`
+              : "Loading credits…"}
           </p>
           <p className="mt-1 text-xs text-text-secondary">
             {plan.deletion_scheduled_at
