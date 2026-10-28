@@ -9,10 +9,11 @@
 
 | What | Rules | Programs |
 |---|---|---|
-| Conditions the normalizer has no case for | 45 | 32 |
+| Conditions the normalizer has no case for | 0 | 0 |
 | `freeformText` rules (prose only, nothing checkable) | 103 | 65 |
 | Credit counts only in `description`/notes (no `minCredits`/`maxCredits`/`credits`) | 235 | 119 |
-| Course rules that normalize to **no options** | 30 | 27 |
+| Rules and requirements where C2 reads a credit constraint from text (shown, not counted) | 148 | 108 |
+| Course rules that normalize to **no options** | 9 | 7 |
 | Programs with an unresolved course id | — | 15 |
 
 ### Course ids (per program mention)
@@ -33,10 +34,10 @@
 | `allOf` | 379 | 171 | handled |
 | `anyOf` | 200 | 117 | handled |
 | `freeformText` | 103 | 65 | handled |
-| `numberOf` | 21 | 20 | generic default on `v2/main`; handled by #79 (C1) |
-| `completedAllOf` | 11 | 8 | **generic default** |
-| `completedAnyOf` | 8 | 3 | **generic default** |
-| `completedAtLeastXOf` | 5 | 1 | **generic default** |
+| `numberOf` | 21 | 20 | handled |
+| `completedAllOf` | 11 | 8 | handled |
+| `completedAnyOf` | 8 | 3 | handled |
+| `completedAtLeastXOf` | 5 | 1 | handled |
 
 The generic default reads a rule as "`minCourses` courses and/or `minCredits` credits" from its course list. `completed*` rules carry an ordinary course list plus `restriction`/`credits`, which it ignores, so they show their options but usually require 0. `numberOf` has no course list of its own, so on `v2/main` it shows as an empty rule.
 
@@ -47,21 +48,21 @@ Only programs with at least one finding. Columns: unhandled conditions · `freef
 | Program | Rules | Unhandled | Freeform | Prose credits | Empty | Old ids | Unresolved |
 |---|---|---|---|---|---|---|---|
 | Accounting B.S.B. (`000420502`) | 11 |  | 1 | 1 |  |  |  |
-| Aerospace Engineering and Mechanics B.A.E.M. (`000821107`) | 22 | 5 |  | 1 |  |  |  |
+| Aerospace Engineering and Mechanics B.A.E.M. (`000821107`) | 22 |  |  | 1 |  |  |  |
 | Agricultural and Food Business Management B.S. (`009420130`) | 18 |  |  | 3 | 1 |  |  |
 | American Indian Studies B.A. (`005420217`) | 16 |  |  | 3 |  |  |  |
 | American Studies B.A. (`005620217`) | 8 |  |  | 1 |  |  |  |
 | Animal Science B.S. (`210420130`) | 24 |  |  |  |  | 1 |  |
 | Animal Science Minor (`2104MIN30`) | 3 |  | 1 |  |  |  |  |
-| Anthropology B.A. (`008020217`) | 14 | 1 |  | 1 | 1 |  |  |
-| Anthropology B.S. (`008020117`) | 33 | 1 |  | 2 | 1 |  |  |
+| Anthropology B.A. (`008020217`) | 14 |  |  | 1 |  |  |  |
+| Anthropology B.S. (`008020117`) | 33 |  |  | 2 |  |  |  |
 | Applied Economics B.S. (`008320130`) | 19 |  | 1 | 3 |  | 2 |  |
 | Applied Economics Minor (`0083MIN30`) | 3 |  |  |  |  | 2 |  |
 | Architecture B.D.A. (`214623122`) | 8 |  |  | 1 | 1 |  |  |
 | Architecture B.S. (`008820122`) | 10 |  |  |  | 1 |  |  |
 | Architecture Minor (`0088MIN22`) | 2 |  |  |  | 1 |  |  |
-| Art B.A. (`009620217`) | 13 | 1 |  | 2 | 1 | 1 |  |
-| Art B.F.A. (`009620917`) | 17 | 1 |  | 2 | 1 | 2 |  |
+| Art B.A. (`009620217`) | 13 |  |  | 2 |  | 1 |  |
+| Art B.F.A. (`009620917`) | 17 |  |  | 2 |  | 2 |  |
 | Art History B.A. (`010420217`) | 17 |  |  | 4 |  |  |  |
 | Art History Minor (`0104MIN17`) | 13 |  |  | 1 |  |  |  |
 | Art Minor (`0096MING17`) | 2 |  | 1 |  |  |  |  |
@@ -73,8 +74,8 @@ Only programs with at least one finding. Columns: unhandled conditions · `freef
 | Austrian and Central European Studies Minor (`2116MIN17`) | 5 |  |  | 1 |  |  |  |
 | Bachelor of Individualized Studies B.I.S. (`012326017`) | 5 |  | 4 |  |  |  |  |
 | Behavioral Biology Minor (`2337MIN10`) | 7 |  |  |  |  | 1 |  |
-| Biblical Studies Minor (`0122MIN17`) | 9 | 1 |  | 2 | 1 |  |  |
-| Biochemistry B.S. (`012420110`) | 30 | 1 |  |  | 1 | 1 |  |
+| Biblical Studies Minor (`0122MIN17`) | 9 |  |  | 2 |  |  |  |
+| Biochemistry B.S. (`012420110`) | 30 |  |  |  |  | 1 |  |
 | Biochemistry, Molecular Biology and Biophysics Minor (`0135MING08`) | 3 |  | 2 |  |  |  |  |
 | Bioinformatics and Computational Biology Minor (`2193MING07`) | 5 |  |  | 2 |  |  |  |
 | Biological Sciences M.B.S. (`011837918`) | 9 |  | 2 |  |  |  |  |
@@ -82,12 +83,12 @@ Only programs with at least one finding. Columns: unhandled conditions · `freef
 | Biology Minor (`0132MIN10`) | 13 |  |  |  |  | 1 |  |
 | Biology, Society, and Environment B.A. (`205820217`) | 40 |  |  | 3 |  | 1 |  |
 | Biomedical Engineering B.Bm.E. (`013428907`) | 79 |  | 1 | 12 |  | 3 |  |
-| Bioproducts and Biosystems Engineering B.B.B.E. (`216629107`) | 44 | 1 |  | 1 |  |  |  |
+| Bioproducts and Biosystems Engineering B.B.B.E. (`216629107`) | 44 |  |  | 1 |  |  |  |
 | Bioproducts and Biosystems Science, Engineering and Management Minor (`2194MING30`) | 2 |  | 2 |  |  |  |  |
-| Business Administration M.B.A. (`015230602`) | 49 | 1 | 3 |  | 1 |  |  |
+| Business Administration M.B.A. (`015230602`) | 49 |  | 3 |  |  |  |  |
 | Business Administration Minor (`0152MING02`) | 7 |  |  |  |  | 2 |  |
-| Business Analytics Minor (`2361MIN02`) | 2 | 1 |  |  |  | 1 |  |
-| Cellular and Organismal Physiology B.S. (`238520110`) | 26 | 1 |  |  | 1 | 1 |  |
+| Business Analytics Minor (`2361MIN02`) | 2 |  |  |  |  | 1 |  |
+| Cellular and Organismal Physiology B.S. (`238520110`) | 26 |  |  |  |  | 1 |  |
 | Chemical Engineering B.Ch.E. (`016021407`) | 21 |  | 1 | 1 |  |  |  |
 | Chemistry Minor (`0168MIN17`) | 4 |  |  | 1 |  |  |  |
 | Chicano-Latino Studies B.A. (`017020217`) | 11 |  |  | 1 |  |  |  |
@@ -95,11 +96,11 @@ Only programs with at least one finding. Columns: unhandled conditions · `freef
 | Civil Engineering Minor (`0180MING07`) | 1 |  |  |  |  | 2 |  |
 | Classical and Near Eastern Religions and Cultures B.A. (`230720217`) | 24 |  |  | 3 |  |  |  |
 | Classical and Near Eastern Religions and Cultures Minor (`1184MING17`) | 1 |  |  | 2 |  |  |  |
-| Cognitive Science Minor (`0247MING17`) | 9 | 6 | 1 |  |  |  |  |
+| Cognitive Science Minor (`0247MING17`) | 9 |  | 1 |  |  |  |  |
 | Communication Studies B.A. (`088420217`) | 10 |  |  | 2 |  |  |  |
 | Communication Studies Minor (`0884MIN17`) | 7 |  |  | 1 |  |  |  |
 | Computational Biology Minor (`2402MIN10`) | 4 |  |  |  |  | 1 |  |
-| Computer Engineering B.Comp.E. (`018326107`) | 33 | 1 | 6 | 9 | 1 | 1 |  |
+| Computer Engineering B.Comp.E. (`018326107`) | 33 |  | 6 | 9 |  | 1 |  |
 | Computer Science B.A. (`019620217`) | 28 |  |  | 1 |  | 2 | 1 |
 | Computer Science B.S. Comp.Sc. (`019627107`) | 41 |  |  | 3 |  | 3 | 1 |
 | Computer Science Minor (`0196MIN17`) | 7 |  |  | 1 |  | 2 |  |
@@ -115,14 +116,14 @@ Only programs with at least one finding. Columns: unhandled conditions · `freef
 | Early Childhood B.S. (`201820106`) | 28 |  | 1 |  |  |  |  |
 | Earth Sciences B.S. Earth Sciences (`224429307`) | 17 |  |  |  |  |  | 1 |
 | Ecology, Evolution and Behavior Minor (`1244MING10`) | 1 |  | 1 |  |  |  |  |
-| Ecology, Evolution, and Behavior B.S. (`025120110`) | 26 | 1 | 1 |  | 1 | 1 |  |
+| Ecology, Evolution, and Behavior B.S. (`025120110`) | 26 |  | 1 |  |  | 1 |  |
 | Economics - Business Economics B.A. (`o0EGWnYJgWhWNtZt51jS`) | 28 |  | 1 |  |  | 1 |  |
 | Economics - Quantitative B.A. (`024520217`) | 7 |  |  | 1 |  | 1 |  |
 | Economics B.A. (`024820217`) | 7 |  |  | 1 |  | 1 |  |
 | Economics B.S. (`024820117`) | 12 |  |  | 1 |  |  |  |
-| Education, Curriculum, and Instruction Minor (`2073MING06`) | 3 | 1 | 1 | 1 |  |  |  |
+| Education, Curriculum, and Instruction Minor (`2073MING06`) | 3 |  | 1 | 1 |  |  |  |
 | Educational Psychology Minor (`0260MING06`) | 1 |  | 1 |  |  |  |  |
-| Electrical Engineering B.E.E. (`026421707`) | 39 | 1 | 6 | 6 | 1 | 1 | 1 |
+| Electrical Engineering B.E.E. (`026421707`) | 39 |  | 6 | 6 |  | 1 | 1 |
 | English B.A. (`027620217`) | 16 |  |  | 2 |  |  |  |
 | Entrepreneurial Management B.S.B. (`210620502`) | 10 |  |  | 1 |  |  |  |
 | Environmental Engineering B.Env.E (`101929707`) | 30 |  |  | 6 |  | 2 |  |
@@ -136,9 +137,9 @@ Only programs with at least one finding. Columns: unhandled conditions · `freef
 | French Studies B.A. (`033620217`) | 7 |  |  | 1 |  |  |  |
 | French Studies Minor (`0336MIN17`) | 5 |  |  | 1 |  |  |  |
 | Gender, Women and Sexuality Studies B.A. (`097020217`) | 9 |  |  | 1 |  |  |  |
-| Genetics, Cell Biology, and Development B.S. (`034520110`) | 27 | 2 |  |  | 2 | 1 |  |
+| Genetics, Cell Biology, and Development B.S. (`034520110`) | 27 |  |  |  |  | 1 |  |
 | Geoengineering B.GeoE. (`035221807`) | 30 |  | 1 | 5 |  | 2 | 1 |
-| Geographic Information Science Minor (`0349MIN17`) | 10 | 1 |  | 1 | 1 |  |  |
+| Geographic Information Science Minor (`0349MIN17`) | 10 |  |  | 1 |  |  |  |
 | Geography B.S. (`034820117`) | 35 |  | 1 | 3 |  |  |  |
 | German Minor (`0364MIN17`) | 5 |  |  | 1 |  |  |  |
 | German, Scandinavian, Dutch B.A. (`228220217`) | 19 |  | 3 | 1 |  | 1 |  |
@@ -147,7 +148,7 @@ Only programs with at least one finding. Columns: unhandled conditions · `freef
 | Global Studies B.A. (`136820217`) | 25 |  |  | 1 |  | 3 |  |
 | Global Studies Minor (`1368MIN17`) | 8 |  |  |  |  | 1 |  |
 | Health and Wellbeing Sciences B.S. (`241320118`) | 26 |  | 1 |  |  |  |  |
-| Health Informatics Minor (`0383MING08`) | 8 | 4 | 2 |  |  |  |  |
+| Health Informatics Minor (`0383MING08`) | 8 |  | 2 |  |  |  |  |
 | Heritage Studies and Public History Minor (`2362MING22`) | 2 |  | 1 |  |  |  |  |
 | Hispanic and Lusophone Literatures, Cultures, and Linguistics Minor (`2169MING17`) | 1 |  | 1 |  |  |  |  |
 | History B.A. (`038020217`) | 8 |  |  | 1 |  |  |  |
@@ -155,11 +156,9 @@ Only programs with at least one finding. Columns: unhandled conditions · `freef
 | Horticulture Minor (`0400MIN30`) | 4 |  |  | 1 | 2 |  |  |
 | Human Factors and Ergonomics Minor (`1419MING22`) | 1 |  | 1 |  |  |  |  |
 | Human Resources and Industrial Relations B.S.B. (`039720502`) | 10 |  |  | 1 |  |  |  |
-| Human Resources and Industrial Relations Minor (`0397MIN02`) | 4 | 1 |  |  |  |  |  |
 | Individually Designed Interdepartmental B.A. (`045920217`) | 12 |  | 7 |  | 1 |  |  |
 | Industrial and Systems Engineering B.I.Sy.E. (`214929607`) | 21 |  | 1 |  |  |  | 1 |
 | Information Technology Infrastructure B.A.Sc. (`206724618`) | 12 |  |  |  |  |  | 1 |
-| Information Technology Infrastructure Minor (`2067MIN18`) | 9 | 1 |  |  |  |  |  |
 | Integrated Degree Program B.S. (`228520106`) | 26 |  | 1 | 1 |  |  |  |
 | Integrative Biology and Physiology Minor (`2214MING11`) | 1 |  | 1 | 1 |  |  |  |
 | Inter-College Program B.A. (`203720218`) | 7 |  | 4 |  |  |  |  |
@@ -188,33 +187,30 @@ Only programs with at least one finding. Columns: unhandled conditions · `freef
 | Mechanical Engineering B.M.E. (`052822207`) | 17 |  |  |  |  | 1 | 1 |
 | Media and Information Minor (`0516MIN17`) | 4 |  |  | 1 |  |  |  |
 | Medieval Studies Minor (`0550MING17`) | 5 |  |  | 1 |  |  |  |
-| Microbiology B.S. (`056020110`) | 24 | 1 |  |  | 1 | 1 |  |
+| Microbiology B.S. (`056020110`) | 24 |  |  |  |  | 1 |  |
 | Multidisciplinary Studies B.A. (`226320218`) | 4 |  | 1 |  |  |  |  |
-| Multidisciplinary Studies B.S. (`226320118`) | 4 | 1 |  |  |  |  |  |
 | Museum & Curatorial Studies Minor (`2459MIN17`) | 5 |  |  | 1 |  |  |  |
 | Music B.A. (`058020217`) | 22 |  |  | 3 |  |  |  |
 | Native American Environmental Knowledge Minor (`2252MIN30`) | 7 |  | 1 |  | 2 |  |  |
 | Natural Resources Science and Management Minor (`2072MING30`) | 1 |  | 1 |  |  |  |  |
-| Neuroscience B.S. (`059020110`) | 26 | 1 |  |  | 1 |  |  |
 | Norwegian Minor (`0589MIN17`) | 5 |  |  | 1 |  |  |  |
 | Nursing B.S.N. (`059620714`) | 55 |  |  |  |  | 3 |  |
 | Nutrition B.S. (`059820130`) | 23 |  | 1 |  |  |  |  |
-| Oral Biology Minor (`0614MING04`) | 3 | 1 | 2 | 3 |  |  |  |
+| Oral Biology Minor (`0614MING04`) | 3 |  | 2 | 3 |  |  |  |
 | Park and Protected Area Management Minor (`0756MIN30`) | 5 |  | 1 |  |  |  |  |
 | Pharmaceutics Minor (`0636MING15`) | 1 |  | 1 |  |  |  |  |
 | Philosophy B.A. (`065220217`) | 15 |  | 1 | 3 |  |  |  |
 | Philosophy Minor (`0652MING17`) | 1 |  | 1 |  |  |  |  |
 | Physics B.S. Phys. (`067627307`) | 51 |  |  | 6 |  |  |  |
-| Plant and Microbial Biology B.S. (`069720110`) | 27 | 1 | 1 |  | 1 | 1 |  |
+| Plant and Microbial Biology B.S. (`069720110`) | 27 |  | 1 |  |  | 1 |  |
 | Plant and Microbial Biology Minor (`0697MING10`) | 0 |  |  | 1 |  |  |  |
 | Plant Science B.S. (`228820130`) | 26 |  |  |  |  | 2 |  |
-| Political Science B.A. (`071220217`) | 13 | 1 |  |  | 1 |  |  |
-| Political Science Minor (`0712MIN17`) | 9 | 1 |  | 2 | 1 |  |  |
-| Population Studies Minor (`2132MIN17`) | 7 | 1 |  | 1 | 1 |  |  |
+| Political Science Minor (`0712MIN17`) | 9 |  |  | 2 |  |  |  |
+| Population Studies Minor (`2132MIN17`) | 7 |  |  | 1 |  |  |  |
 | Prevention Science Minor (`2203MING06`) | 4 |  | 1 |  |  |  |  |
 | Product Design B.S. (`224020122`) | 18 |  |  | 1 |  |  |  |
 | Psychology B.A. (`081220217`) | 13 |  | 1 | 3 |  | 1 |  |
-| Psychology B.S. (`081220117`) | 19 | 1 | 1 | 2 | 1 | 1 |  |
+| Psychology B.S. (`081220117`) | 19 |  | 1 | 2 |  | 1 |  |
 | Psychology Minor (`0812MIN17`) | 5 |  |  | 1 |  | 1 |  |
 | Psychology Minor (`0812MING17`) | 1 |  | 1 |  |  |  |  |
 | Public Health Minor (`0820MING20`) | 4 |  | 1 |  |  |  |  |
@@ -235,12 +231,11 @@ Only programs with at least one finding. Columns: unhandled conditions · `freef
 | Statistical Practice B.A. (`234320217`) | 30 |  |  | 1 |  |  |  |
 | Statistical Science B.S. (`234420117`) | 16 |  |  | 1 |  | 1 | 1 |
 | Strategic Communication: Advertising and Public Relations B.A. (`212520217`) | 11 |  |  | 1 |  |  |  |
-| Studies in Africa and African Diaspora Minor (`0893MING17`) | 3 | 1 |  |  |  |  |  |
 | Studies in Cinema and Media Culture B.A. (`202720217`) | 13 |  |  | 1 |  |  | 1 |
 | Studies in Cinema and Media Culture Minor (`2027MIN17`) | 6 |  |  | 1 |  |  | 1 |
 | Supply Chain & Operations Management B.S.B. (`219620502`) | 10 |  |  | 1 |  |  |  |
 | Sustainability Studies Minor (`2163MIN30`) | 6 |  | 1 |  |  |  |  |
-| Sustainable Agriculture and Food Systems B.S. (`228920130`) | 18 | 1 | 1 |  |  |  |  |
+| Sustainable Agriculture and Food Systems B.S. (`228920130`) | 18 |  | 1 |  |  |  |  |
 | Technical Writing and Communication B.S. (`091320117`) | 19 |  |  |  |  | 1 |  |
 | Technical Writing and Communication Minor (`0913MIN17`) | 2 |  |  |  |  | 1 |  |
 | Theatre Arts B.A. (`092020217`) | 31 |  |  | 4 |  |  |  |
@@ -260,11 +255,6 @@ Rule-level findings, grouped by program. Text is clipped catalog prose.
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | Technical Electives | Fluids Technical Electives | completedAtLeastXOf |
-| unhandled | Technical Electives | Aerospace Systems Technical Electives | completedAtLeastXOf |
-| unhandled | Technical Electives | Structures and Solids Technical Electives | completedAtLeastXOf |
-| unhandled | Technical Electives | Honors Thesis Technical Elective | completedAtLeastXOf |
-| unhandled | Technical Electives | Other Possible Technical Electives | completedAtLeastXOf |
 | prose credits | Integrated  Bachelor of Science in Aerospace Engineering & Mechanics and Master of Science in Aerospace Engineering & Mechanics (BAEM/MSAEM) | (requirement notes) | 10 credits; 20 credits; 8 credits; 3 cr; 1 cr; 1-4 cr; 1-3 cr |
 
 ### Agricultural and Food Business Management B.S.
@@ -300,18 +290,14 @@ Rule-level findings, grouped by program. Text is clipped catalog prose.
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | Subfield Core Courses | Subfield Core Courses | numberOf |
 | prose credits | Capstone | Capstone | 4 credits |
-| empty | Subfield Core Courses | Subfield Core Courses | 0 courses / 0 credits |
 
 ### Anthropology B.S.
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | Subfield Foundation Courses | Archaeology, Sociocultural Anthropology, and Linguistic Anthropology | numberOf |
 | prose credits | Quantitative and Natural Science Courses | Quantitative and Natural Science Courses | 18 - 24 credits; 6 credits |
 | prose credits | Capstone | Capstone | 4 credits |
-| empty | Subfield Foundation Courses | Archaeology, Sociocultural Anthropology, and Linguistic Anthropology | 0 courses / 0 credits |
 
 ### Applied Economics B.S.
 
@@ -345,19 +331,15 @@ Rule-level findings, grouped by program. Text is clipped catalog prose.
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | Preparatory Courses | Preparatory Courses | numberOf |
 | prose credits | Preparatory Courses | Preparatory Courses | 11-12 credits |
 | prose credits | Arts Electives | Art Electives | 18 credits |
-| empty | Preparatory Courses | Preparatory Courses | 0 courses / 0 credits |
 
 ### Art B.F.A.
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | Preparatory Courses | Preparatory Courses | numberOf |
 | prose credits | Preparatory Courses | Preparatory Courses | 11-12 credits |
 | prose credits | Art Electives | Art Electives | 34 credits |
-| empty | Preparatory Courses | Preparatory Courses | 0 courses / 0 credits |
 
 ### Art History B.A.
 
@@ -441,17 +423,8 @@ Rule-level findings, grouped by program. Text is clipped catalog prose.
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | Electives | Electives | numberOf |
 | prose credits | Required Prerequisites | Preparatory Greek or Hebrew | 10 credits |
 | prose credits | Electives | Electives | 15 credits |
-| empty | Electives | Electives | 0 courses / 0 credits |
-
-### Biochemistry B.S.
-
-| Finding | Requirement | Rule | Detail |
-|---|---|---|---|
-| unhandled | Content Areas | Content Areas | numberOf |
-| empty | Content Areas | Content Areas | 0 courses / 0 credits |
 
 ### Biochemistry, Molecular Biology and Biophysics Minor
 
@@ -511,7 +484,6 @@ Rule-level findings, grouped by program. Text is clipped catalog prose.
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | Integrated B.S. Bioproducts & Biosystems Eng/M.S. Bioproducts & Biosystems Sci, Eng & Mgmt | Required Courses | completedAllOf |
 | prose credits | Integrated B.S. Bioproducts & Biosystems Eng/M.S. Bioproducts & Biosystems Sci, Eng & Mgmt | (requirement notes) | 32 credits; 14 credit |
 
 ### Bioproducts and Biosystems Science, Engineering and Management Minor
@@ -525,24 +497,9 @@ Rule-level findings, grouped by program. Text is clipped catalog prose.
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | Online Master of Business Administration | Online MBA In-Person Residency Requirement | numberOf |
 | freeform | Online Master of Business Administration | Residency Program | Student completes an on-campus residency program. |
 | freeform | Online Master of Business Administration | In-Person Class | Student completes an on-campus class. |
 | freeform | Online Master of Business Administration | Study Abroad Course | Student completes a study abroad course offered by Carlson Global Institute. |
-| empty | Online Master of Business Administration | Online MBA In-Person Residency Requirement | 0 courses / 0 credits |
-
-### Business Analytics Minor
-
-| Finding | Requirement | Rule | Detail |
-|---|---|---|---|
-| unhandled | Program Requirements | Required Courses | completedAllOf |
-
-### Cellular and Organismal Physiology B.S.
-
-| Finding | Requirement | Rule | Detail |
-|---|---|---|---|
-| unhandled | Content Areas | Content Areas | numberOf |
-| empty | Content Areas | Content Areas | 0 courses / 0 credits |
 
 ### Chemical Engineering B.Ch.E.
 
@@ -597,12 +554,6 @@ Unresolved ids: `nVzH5vryuHXiotc1enDx`
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | Electives | Cognitive Science | completedAnyOf |
-| unhandled | Electives | Cognitive Psychology | completedAnyOf |
-| unhandled | Electives | Computer Science | completedAnyOf |
-| unhandled | Electives | Linguistics | completedAnyOf |
-| unhandled | Electives | Neuoroscience | completedAnyOf |
-| unhandled | Electives | Philosophy | completedAnyOf |
 | freeform | Electives | (unnamed rule) | Master's students select at least 6 credits, and doctoral students select at least 9 credits from at least 2-3 different categories below t… |
 
 ### Communication Studies B.A.
@@ -622,7 +573,6 @@ Unresolved ids: `nVzH5vryuHXiotc1enDx`
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | Computer Engineering Technical Elective Program | Breadth and Depth Requirements (Technical Specialty Areas) | numberOf |
 | freeform | Computer Engineering Technical Elective Program | Additional 4xxx/5xxx EE/CSCI courses | Complete additional 4xxx/5xxx EE and/or 4xxx/5xxx CSCI courses to meet the minimum 22 credits of required Core Department Electives. |
 | freeform | Integrated Bachelor of Computer Eng/Master of Science in Electrical and Computer Eng. | Students may not exceed a combined 16 credits total of coursework of EE 5000 level graduate coursework and additional coursework. |  |
 | freeform | Integrated Bachelor of Computer Eng/Master of Science in Electrical and Computer Eng. | EE 5000 level graduate coursework | Plan C (coursework only): maximum of 16 credits, of which 6 credits may be used for both the undergraduate and graduate degree programs Pla… |
@@ -638,7 +588,6 @@ Unresolved ids: `nVzH5vryuHXiotc1enDx`
 | prose credits | Integrated Bachelor of Computer Engineering/Master of Science in Computer Science and Eng | (requirement notes) | 75 credits; 16 credits; 1 credit; 3 credits |
 | prose credits | Integrated Bachelor of Computer Engineering/Master of Science in Robotics | Foundational Class Requirements and Approved Electives | 3 cr |
 | prose credits | Integrated Bachelor of Computer Engineering/Master of Science in Robotics | (requirement notes) | 16 credits |
-| empty | Computer Engineering Technical Elective Program | Breadth and Depth Requirements (Technical Specialty Areas) | 0 courses / 0 credits |
 
 ### Computer Science B.A.
 
@@ -738,9 +687,7 @@ Unresolved ids: `nVzH5vryuHXiotc1enDx`
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | CBS Content Areas | CBS Content Areas | numberOf |
 | freeform | EEB Major Electives | EEB Major Electives | Take 16 or more credits from the following list of courses. The 16 credits need to include at least one field/lab experience. A maximum of … |
-| empty | CBS Content Areas | CBS Content Areas | 0 courses / 0 credits |
 
 ### Economics - Business Economics B.A.
 
@@ -770,7 +717,6 @@ Unresolved ids: `nVzH5vryuHXiotc1enDx`
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | Doctoral | (unnamed rule) | completedAllOf |
 | freeform | Doctoral | Electives (6 Credits) | Courses will be selected in consultation with the director of graduate studies. |
 | prose credits | Master's | (requirement notes) | 6 credits |
 
@@ -784,7 +730,6 @@ Unresolved ids: `nVzH5vryuHXiotc1enDx`
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | Electrical Engineering Technical Elective Program | Breadth and Depth Requirements (Technical Specialty Areas) | numberOf |
 | freeform | Electrical Engineering Technical Elective Program | Complete additional 4xxx/5xxx EE courses to meet the minimum 22 credits of required Core Department Electives. |  |
 | freeform | Integrated Bachelor of Electrical Eng/Master of Science in Electrical and Computer Eng. | Students may not exceed a combined 16 credits total of coursework of EE 5000 level graduate coursework and additional coursework. |  |
 | freeform | Integrated Bachelor of Electrical Eng/Master of Science in Electrical and Computer Eng. | EE 5000 level coursework | Plan C (coursework only): maximum of 16 credits, of which 6 credits may be used for both the undergraduate and graduate degree programs Pla… |
@@ -797,7 +742,6 @@ Unresolved ids: `nVzH5vryuHXiotc1enDx`
 | prose credits | Integrated Bachelor of Electrical Eng/Master of Science in Electrical and Computer Eng. | (requirement notes) | 16 credits; 30 credits; 9 credits; 6 credits |
 | prose credits | Integrated Bachelor of Electrical Engineering/Master of Science in Robotics | Foundational Class Requirements and Approved Electives | 3 cr |
 | prose credits | Integrated Bachelor of Electrical Engineering/Master of Science in Robotics | (requirement notes) | 16 credits |
-| empty | Electrical Engineering Technical Elective Program | Breadth and Depth Requirements (Technical Specialty Areas) | 5 courses / 0 credits |
 
 Unresolved ids: `nVzH5vryuHXiotc1enDx`
 
@@ -889,15 +833,6 @@ Unresolved ids: `nVzH5vryuHXiotc1enDx`
 |---|---|---|---|
 | prose credits | Electives | Electives | 24 credits |
 
-### Genetics, Cell Biology, and Development B.S.
-
-| Finding | Requirement | Rule | Detail |
-|---|---|---|---|
-| unhandled | Content Areas | Content Areas | numberOf |
-| unhandled | GCD Major Electives | GCD Major Electives | numberOf |
-| empty | Content Areas | Content Areas | 0 courses / 0 credits |
-| empty | GCD Major Electives | GCD Major Electives | 0 courses / 0 credits |
-
 ### Geoengineering B.GeoE.
 
 | Finding | Requirement | Rule | Detail |
@@ -915,9 +850,7 @@ Unresolved ids: `nVzH5vryuHXiotc1enDx`
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | Electives | Electives | numberOf |
 | prose credits | Electives | Electives | 9 credits |
-| empty | Electives | Electives | 0 courses / 0 credits |
 
 ### Geography B.S.
 
@@ -971,10 +904,6 @@ Unresolved ids: `nVzH5vryuHXiotc1enDx`
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | Program Requirements | Required Coursework | completedAllOf |
-| unhandled | Masters | Required Course | completedAllOf |
-| unhandled | Doctoral | (unnamed rule) | completedAllOf |
-| unhandled | Doctoral | Electives | completedAllOf |
 | freeform | Admission Requirements | Health or Biological Sciences | Applicants must have taken 6 semester-credits or 9 quarter-credits at the undergraduate or graduate level in medical, life, or biological s… |
 | freeform | Admission Requirements | Programming language | Complete ANY of the following: • Documented work or educational experience working with a programming language such as C, C++, Java, Python… |
 
@@ -1022,12 +951,6 @@ Unresolved ids: `nVzH5vryuHXiotc1enDx`
 |---|---|---|---|
 | prose credits | Integrated BS in Business/Master in HRIR | (requirement notes) | 15 credits |
 
-### Human Resources and Industrial Relations Minor
-
-| Finding | Requirement | Rule | Detail |
-|---|---|---|---|
-| unhandled | Admission Requirements | Human Resource Management | completedAnyOf |
-
 ### Individually Designed Interdepartmental B.A.
 
 | Finding | Requirement | Rule | Detail |
@@ -1053,12 +976,6 @@ Unresolved ids: `nVzH5vryuHXiotc1enDx`
 
 
 Unresolved ids: `FRQyQFuAH57mGfCVNqJv`
-
-### Information Technology Infrastructure Minor
-
-| Finding | Requirement | Rule | Detail |
-|---|---|---|---|
-| unhandled | Admission Requirements | Admission Requirements for Applied Data Science and Machine Learning and Artificial Intelligence Subplans | completedAllOf |
 
 ### Integrated Degree Program B.S.
 
@@ -1241,24 +1158,11 @@ Unresolved ids: `nVzH5vryuHXiotc1enDx`
 |---|---|---|---|
 | prose credits | Medieval Studies/Medieval Topics Courses | Medieval Studies/Medieval Topics Courses | 3 credits; 6 credits |
 
-### Microbiology B.S.
-
-| Finding | Requirement | Rule | Detail |
-|---|---|---|---|
-| unhandled | CBS Content Areas | CBS Content Areas | numberOf |
-| empty | CBS Content Areas | CBS Content Areas | 5 courses / 0 credits |
-
 ### Multidisciplinary Studies B.A.
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
 | freeform | Program Requirements | Multidisciplinary Studies Language and Culture Requirement | Earn at least 12 credits from the following: |
-
-### Multidisciplinary Studies B.S.
-
-| Finding | Requirement | Rule | Detail |
-|---|---|---|---|
-| unhandled | Program Requirements | Multidisciplinary Studies Requirements | completedAllOf |
 
 ### Museum & Curatorial Studies Minor
 
@@ -1288,13 +1192,6 @@ Unresolved ids: `nVzH5vryuHXiotc1enDx`
 |---|---|---|---|
 | freeform | Minor Course Requirements | Minor Requirements | The NRSM program does not require specific courses for completion of this minor. The minor requires at least 8 credits of graduate-level co… |
 
-### Neuroscience B.S.
-
-| Finding | Requirement | Rule | Detail |
-|---|---|---|---|
-| unhandled | CBS Content Areas | CBS Content Areas | numberOf |
-| empty | CBS Content Areas | CBS Content Areas | 0 courses / 0 credits |
-
 ### Norwegian Minor
 
 | Finding | Requirement | Rule | Detail |
@@ -1311,7 +1208,6 @@ Unresolved ids: `nVzH5vryuHXiotc1enDx`
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | Program Requirements | Required Coursework (4-8 Credits) | completedAnyOf |
 | freeform | Masters | Electives (2 credits) | Select at least 2 credits, in consultation with the oral biology director of graduate studies, to meet the 6-credit minimum for the master'… |
 | freeform | Doctoral | Electives (4 credits) | Select at least 4 credits, in consultation with the oral biology director of graduate studies, to meet the 12-credit minimum for the doctor… |
 | prose credits | Program Requirements | Required Coursework (4-8 Credits) | 4 credits; 8 credits |
@@ -1360,9 +1256,7 @@ Unresolved ids: `nVzH5vryuHXiotc1enDx`
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | Content Areas | Content Areas | numberOf |
 | freeform | Plant and Microbial Biology Major-Specific Courses | Plant and Microbial Biology Major-Specific Courses | A total of at least 21 elective credits are required. These 21 credits must include at least two courses from the Lab/Field Electives list … |
-| empty | Content Areas | Content Areas | 0 courses / 0 credits |
 
 ### Plant and Microbial Biology Minor
 
@@ -1370,29 +1264,18 @@ Unresolved ids: `nVzH5vryuHXiotc1enDx`
 |---|---|---|---|
 | prose credits | Program Requirements | (requirement notes) | 6 credits; 12 credits |
 
-### Political Science B.A.
-
-| Finding | Requirement | Rule | Detail |
-|---|---|---|---|
-| unhandled | Upper Division | Focus Areas | numberOf |
-| empty | Upper Division | Focus Areas | 0 courses / 0 credits |
-
 ### Political Science Minor
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | Electives | Focus Areas | numberOf |
 | prose credits | Electives | Electives | 15 credits; 6 credits |
 | prose credits | Electives | Additional Courses | 15 credits |
-| empty | Electives | Focus Areas | 0 courses / 0 credits |
 
 ### Population Studies Minor
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | Electives | Electives | numberOf |
 | prose credits | Electives | Electives | 12 credits |
-| empty | Electives | Electives | 0 courses / 0 credits |
 
 ### Prevention Science Minor
 
@@ -1419,11 +1302,9 @@ Unresolved ids: `nVzH5vryuHXiotc1enDx`
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | Outside Psychology Foundation Courses | Outside Psychology Foundation Areas | numberOf |
 | freeform | Major Courses | Major Courses | Take 36 or more total credits including: Foundation Courses, Distribution Area Courses, Capstone, and any Electives needed to reach the min… |
 | prose credits | Distribution Area Courses | Distribution Area Courses | 36 credit |
 | prose credits | Additional Elective Options | Additional Elective Options | 36 credit; 6 credits |
-| empty | Outside Psychology Foundation Courses | Outside Psychology Foundation Areas | 0 courses / 0 credits |
 
 ### Psychology Minor
 
@@ -1529,12 +1410,6 @@ Unresolved ids: `itmAB60bKgSGOWjYTVh8`
 |---|---|---|---|
 | prose credits | Context Courses | Context Courses | 9 credits |
 
-### Studies in Africa and African Diaspora Minor
-
-| Finding | Requirement | Rule | Detail |
-|---|---|---|---|
-| unhandled | Doctoral | Seminar (3 credits) | completedAllOf |
-
 ### Studies in Cinema and Media Culture B.A.
 
 | Finding | Requirement | Rule | Detail |
@@ -1567,7 +1442,6 @@ Unresolved ids: `YUxTENt9NbdPsYyNlMS1`
 
 | Finding | Requirement | Rule | Detail |
 |---|---|---|---|
-| unhandled | Upper Division Writing Intensive within the Major | Upper Division Writing Intensive within the Major | completedAllOf |
 | freeform | Individualized | Track Electives | In consultation and with the approval of a faculty advisor, complete a minimum of 30 credits where at least 16 credits are upper division (… |
 
 ### Theatre Arts B.A.

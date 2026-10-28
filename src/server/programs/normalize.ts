@@ -1,4 +1,7 @@
+// Relative with extensions: scripts/requirement-coverage.ts runs this file in plain Node (C0).
+import { readCreditConstraints, type CreditConstraint } from "../../domain/creditConstraints.ts";
 import type { CourseOption, Program, Requirement, RequirementLevel, Rule } from "@/domain/requirements";
+import { CREDIT_OVERRIDES, type CreditOverride } from "./creditOverrides.ts";
 
 /** Raw CourseDog shapes (only the fields we read). */
 export interface RawValueEntry {
@@ -101,15 +104,30 @@ export function collectGroupIds(program: RawProgram): string[] {
   return [...ids];
 }
 
-function normalizeRule(r: RawRule, resolve: ResolveOption, path: string): Rule {
+/**
+ * C2: credit constraints for one rule, read from its catalog text unless the program has an override.
+ * A reading that only repeats the structured `minCredits` is dropped: that already counts. A prose cap is kept even
+ * when the raw rule has `maxCredits`, because the normalized rule doesn't carry or enforce a maximum.
+ */
+function ruleConstraints(r: RawRule, text: string, overrides: Record<string, CreditOverride[]> | undefined): CreditConstraint[] {
+  const override = r.id ? overrides?.[r.id] : undefined;
+  if (override) return override.map((c) => ({ ...c, source: "override" }));
+  const structuredMin = r.minCredits ?? r.credits;
+  return readCreditConstraints(text, r.name).filter((c) => !(c.kind === "total" && c.credits === structuredMin && !c.maxCredits));
+}
+
+function normalizeRule(r: RawRule, resolve: ResolveOption, path: string, overrides?: Record<string, CreditOverride[]>): Rule {
   const description = htmlToText(r.description);
+  const notes = htmlToText(r.notes);
+  const constraints = ruleConstraints(r, [description, notes].filter(Boolean).join("\n"), overrides);
   const base = {
     id: r.id ?? path,
     name: (r.name ?? "").trim() || "Requirement",
-    notes: htmlToText(r.notes),
+    notes,
     ...(description ? { description } : {}),
+    ...(constraints.length ? { constraints } : {}),
   };
-  const children = () => (r.subRules ?? []).map((s, i) => normalizeRule(s, resolve, `${path}.${i}`));
+  const children = () => (r.subRules ?? []).map((s, i) => normalizeRule(s, resolve, `${path}.${i}`, overrides));
   if (r.condition === "anyOf" || r.condition === "allOf") return { ...base, kind: r.condition, children: children() };
   if (r.condition === "numberOf") {
     // C1: "complete N of these" (EE Breadth and Depth: number 4 areas, restriction 5 courses).
@@ -129,6 +147,19 @@ function normalizeRule(r: RawRule, resolve: ResolveOption, path: string): Rule {
       minCourses = choices.length;
       minCredits = 0;
       break;
+    case "completedAllOf":
+      // C2: CourseDog's "completed" variants carry an ordinary course list (Aerospace, Bioproducts, minors).
+      minCourses = choices.length;
+      minCredits = 0;
+      break;
+    case "completedAnyOf":
+      minCredits = r.minCredits ?? r.credits ?? 0;
+      minCourses = minCredits > 0 ? 0 : 1;
+      break;
+    case "completedAtLeastXOf":
+      minCourses = r.restriction ?? r.minCourses ?? 0;
+      minCredits = r.minCredits ?? r.credits ?? 0;
+      break;
     case "minimumCourses":
       minCourses = r.minCourses ?? r.courses ?? 1;
       minCredits = 0;
@@ -145,13 +176,21 @@ function normalizeRule(r: RawRule, resolve: ResolveOption, path: string): Rule {
   return { ...base, kind: "courses", choices, minCourses, minCredits };
 }
 
-export function normalizeProgram(raw: RawProgram, resolve: ResolveOption): Program {
+/** C2: constraints in a requirement's own notes ("Take 12 credits from the lists below"). Shown only. */
+function requirementConstraints(g: RawGroup): { constraints?: CreditConstraint[] } {
+  const constraints = readCreditConstraints(htmlToText(g.notes), g.name);
+  return constraints.length ? { constraints } : {};
+}
+
+export function normalizeProgram(raw: RawProgram, resolve: ResolveOption, overrides = CREDIT_OVERRIDES): Program {
   const groups = Object.values(raw.requisites ?? {}).flat();
+  const programOverrides = overrides[raw.programGroupId ?? ""];
   const requirements: Requirement[] = groups.map((g, i) => ({
     id: g.id ?? `req-${i}`,
     name: (g.name ?? "").trim() || "Requirement",
     notes: htmlToText(g.notes),
-    rules: (g.rules ?? []).map((r, j) => normalizeRule(r, resolve, `req-${i}.${j}`)),
+    rules: (g.rules ?? []).map((r, j) => normalizeRule(r, resolve, `req-${i}.${j}`, programOverrides)),
+    ...requirementConstraints(g),
     ...(g.requirementLevel && LEVELS[g.requirementLevel] ? { level: LEVELS[g.requirementLevel] } : {}),
   }));
   const admission = raw.requirementLevels?.find((l) => l.key === "programAdmissionRequirements");
