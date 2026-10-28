@@ -17,3 +17,6 @@ export function coursesByRequestedId(found: CourseDogCourse[], requested: string
 
 /** CourseDog course ids: 7 digits, or the older 20-character form. Anything else isn't looked up. */
 export const isCourseDogId = (id: string) => /^(\d{7}|[A-Za-z0-9]{20})$/.test(id);
+
+/** Only the older 20-character form (C1c). The B14 minor finder looks these up; it needs catalog ids only. */
+export const isOldCourseDogId = (id: string) => /^[A-Za-z0-9]{20}$/.test(id) && !/^\d+$/.test(id);

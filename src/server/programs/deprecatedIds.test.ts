@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CourseDogCourse } from "./coursedog";
-import { coursesByRequestedId, isCourseDogId } from "./deprecatedIds";
+import { coursesByRequestedId, isCourseDogId, isOldCourseDogId } from "./deprecatedIds";
 
 // Shapes from CourseDog's course search, 2026-10-27 (CEGE 5218 kept its old id as deprecatedCourseGroupId).
 const cege: CourseDogCourse = { courseGroupId: "8283131", deprecatedCourseGroupId: "aT7UWrjzP4lvMr3krIMi", code: "CEGE5218", name: "Methods for ITS", subjectCode: "CEGE", courseNumber: "5218" };
@@ -23,5 +23,11 @@ describe("old CourseDog course ids (C1c)", () => {
     expect(isCourseDogId("aT7UWrjzP4lvMr3krIMi")).toBe(true);
     expect(isCourseDogId("1CSCI****")).toBe(false);
     expect(isCourseDogId("")).toBe(false);
+  });
+
+  it("tells old 20-character ids from current ones (B14 minor finder)", () => {
+    expect(isOldCourseDogId("aT7UWrjzP4lvMr3krIMi")).toBe(true);
+    expect(isOldCourseDogId("0036921")).toBe(false);
+    expect(isOldCourseDogId("1CSCI****")).toBe(false);
   });
 });
