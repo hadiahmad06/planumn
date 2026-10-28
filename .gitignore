@@ -37,3 +37,6 @@ npm-debug.log*
 .env
 .claude/settings.local.json
 # pipeline:end
+
+# CourseDog responses cached by scripts/ (Phase C)
+/.cache
