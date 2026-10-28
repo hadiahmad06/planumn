@@ -16,6 +16,15 @@ Columns: **Rule** (what the code assumes) · **Why** · **How it fails** · **Sh
 | Prerequisite text | prerequisite warnings, autofill order, "no prerequisites" filter | Free text, inconsistent: "Calc I (Math 1271 or …) as a corequisite", "CS upper div, CS grad, or dept. permission", "MATH [1271 OR 1371]". | See section 3. Anything that isn't a course code ("consent", "standing", "corequisite") is kept as "other" and **never blocks**. Warnings say "or other ways to qualify" when such text exists. |
 | APAS page captured by the extension (B1) | the future APAS parser; quick "is this the report?" signals on `/plan/apas` | Unknown markup until real samples exist. Content inside `<iframe>`/`<frame>` isn't captured. | "N course codes found" counts strings shaped like **2–4 capital letters + 4 digits** in the visible text, including uAchieve's campus-prefixed, padded cells (`1EE  3101`) (false hits like "ABC 2026" possible; 0 if courses render by script later), and frames get a warning. Shown on `/plan/apas`; `captureChecks` in `src/features/apas/capture.ts`. (Hadi's Claude) |
 
+## Catalog observations — Michael's Codex
+
+> Written by **Michael's Codex**, 2026-10-28 (B21).
+
+| Rule | Why | How it fails | Shown? | Where |
+|---|---|---|---|---|
+| Compare selected public course code/title/credit/version fields and raw program name/version/rule/text data against an **explicitly acknowledged browser reference**; first observations are not changes, and missing responses are unknown rather than removals. Object keys are canonicalized; array order/text changes count as differences. | A 2025 bundled title is not proof of a recent catalog change, and a missing network response does not prove retirement. | Cosmetic wording/order/version changes can alert. API responses may be cached, and a public current/future version may not apply to the student's catalog year. Course versions use the newest started date, else nearest future date; program versions use the existing picker. | Yes: “since your last remembered check,” first-reference/unavailable counts, cached-source/admit-year explanation and APAS verification reminder. | `src/server/catalog-changes/`, `src/features/catalog-changes/` |
+| Keep at most **1,000** browser references, most recently observed first; update only after acknowledgement and retain a newer acknowledged observation over an older in-flight result. Re-read history before saving; failed/unavailable items keep their old reference. | Bound browser storage and avoid clearing alerts just because a dialog opened or an API failed. | Clearing storage/eviction loses earlier baselines. This is browser-local, not synchronized or a background notification service. | Yes: explicit Remember action and About check history/Reset controls. | `history.ts`, `CatalogUpdates.tsx` |
+
 ## 2. Offering and grade inferences
 
 | Rule | Why | How it fails | Shown? | Where |
