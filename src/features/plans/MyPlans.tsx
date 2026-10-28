@@ -2,9 +2,15 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import type { Plan } from "@/domain/plan";
+import {
+  updatePlanList,
+  visiblePlanList,
+  type OwnedPlanListView,
+  type PlanListView,
+} from "./ownerState";
 import { plannedCourseIds } from "@/domain/plan";
 import { useCourses } from "@/features/catalog/courseCache";
-import { useAuth } from "@/features/auth/useAuth";
+import { useAuth, useAuthStore } from "@/features/auth/useAuth";
 import { UserMenu } from "@/features/auth/UserMenu";
 import { Modal } from "@/components/ui/Modal";
 import { SharePlanButton } from "@/features/sharing/SharePlanButton";
@@ -138,36 +144,56 @@ function PlanRow({
 /** Written by Michael's Codex. Counts include repeated courses, as saved in semesters. */
 export function MyPlans() {
   const { user, loading, error: authError } = useAuth();
-  const [plans, setPlans] = useState<Plan[] | null>(null);
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
+  const owner = user?.id ?? null;
+  const [state, setState] = useState<OwnedPlanListView | null>(null);
+  const { plans, error, busy, confirm } = visiblePlanList(
+    state,
+    loading ? null : owner,
+  );
   const [deleted, setDeleted] = useState(false);
-  const [confirm, setConfirm] = useState<{
-    title: string;
-    run: () => Promise<void>;
-  } | null>(null);
+  const update = useCallback(
+    (patch: Partial<PlanListView>) => {
+      setState((previous) =>
+        updatePlanList(
+          previous,
+          owner,
+          useAuthStore.getState().user?.id ?? null,
+          patch,
+        ),
+      );
+    },
+    [owner],
+  );
+  const setError = (error: string) => update({ error });
+  const setBusy = (busy: boolean) => update({ busy });
+  const setConfirm = (confirm: PlanListView["confirm"]) => update({ confirm });
   const refresh = useCallback(async () => {
-    setPlans(await repo.list());
-  }, []);
+    if (!owner || useAuthStore.getState().user?.id !== owner) return;
+    update({ plans: await repo.list() });
+  }, [owner, update]);
   useEffect(() => {
-    if (!user) return;
+    if (!owner) return;
     let active = true;
     repo
       .list()
       .then((rows) => {
-        if (active) setPlans(rows);
+        if (active) update({ plans: rows, error: "" });
       })
       .catch((e) => {
         if (active)
-          setError(
-            e instanceof Error ? e.message : "Your plans could not be loaded.",
-          );
+          update({
+            error:
+              e instanceof Error
+                ? e.message
+                : "Your plans could not be loaded.",
+          });
       });
     return () => {
       active = false;
     };
-  }, [user]);
+  }, [owner, update]);
   async function perform(run: () => Promise<unknown>) {
+    if (!owner || useAuthStore.getState().user?.id !== owner) return;
     setBusy(true);
     setError("");
     try {
