@@ -47,6 +47,14 @@ src/
   components/ui/                shared primitives
 ```
 
+## Catalog observations and APAS reminder — Michael's Codex
+
+> Written by **Michael's Codex**, 2026-10-28 (B21 reassignment on #16).
+
+`POST /api/catalog-check` accepts only public `courseIds` (≤200) and `programIds` (≤5), with same-origin validation and private/no-store responses. `src/server/catalog-changes/snapshot.ts` reads Twin Cities identifiers from the bundled catalog, bounded/cached public CourseDog metadata for course code/title/credits/version and selected raw program rule/text/version data, and returns `CatalogCheck` (`items`, `unavailable`, `checkedAt`). Fingerprints canonicalize object keys; arrays retain source order. No plan, account identifier or personal APAS record is accepted or persisted by this feature.
+
+`<CatalogUpdates />` in SaveStatus performs an explicit check, shows differences against the last acknowledged browser reference, and links to APAS import with the each-term reminder. First observations establish references rather than claim changes; missing/failed source data stays unknown. Only **Remember these versions** updates `planumn:catalog-history:v1` (public metadata, bounded to 1,000 recently observed items). It merges against current stored history, preserves newer observations, and requires no plan/repository/schema changes. Browser storage failures are reported; clearing/evicting history loses old comparisons. This does not establish which current/future catalog rules apply to a student's admit year, and does not alter requirement progress.
+
 ## Contracts between features
 
 | Contract | File | Provided by | Used by |

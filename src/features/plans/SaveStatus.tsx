@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSaveState } from "./saveState";
+import { CatalogUpdates } from "@/features/catalog-changes/CatalogUpdates";
 import { ExportPlanButton } from "@/features/export/ExportPlanButton";
 /** Written by Michael's Codex. */
 export function SaveStatus() {
@@ -39,6 +40,7 @@ export function SaveStatus() {
         )}
       </span>
       <ExportPlanButton />
+      <CatalogUpdates />
     </>
   );
 }
