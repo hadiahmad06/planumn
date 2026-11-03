@@ -4,6 +4,7 @@ import { useDraggable } from "@dnd-kit/core";
 import { useId, useState } from "react";
 import { describePattern, patternSearchLinks, type CoursePattern, type PatternMatch } from "@/domain/coursePatterns";
 import { describeConstraint, type ConstraintProgress } from "@/domain/creditConstraints";
+import type { ApasPair } from "@/domain/apasCompare";
 import type { CourseChoice, CourseOption, RequirementResult, RuleResult } from "@/domain/requirements";
 import { cn } from "@/components/ui/cn";
 import { ProgressRing } from "@/components/ui/ProgressRing";
@@ -16,6 +17,7 @@ import { useDisplaySettings } from "@/features/plan-editor/displaySettings";
 import { hoverCourse, usePlanStore } from "@/features/plan-editor/store";
 import { AddToSemesterButton } from "@/features/plan-editor/AddToSemesterButton";
 import { openSearchWith } from "@/features/search/searchRequest";
+import { ApasSaysLine } from "./ApasSays";
 
 const MAX_CHOICES = 8;
 
@@ -251,10 +253,17 @@ function ruleStatus(r: RuleResult): string | null {
   return null;
 }
 
-function RuleView({ result, depth, hideTitle }: { result: RuleResult; depth: number; hideTitle?: boolean }) {
+/** C4: APAS pairs for one requirement: the requirement's own, and its rules' by rule id. */
+export interface RequirementApas {
+  requirement?: ApasPair;
+  rules: Map<string, ApasPair>;
+}
+
+function RuleView({ result, depth, hideTitle, apas }: { result: RuleResult; depth: number; hideTitle?: boolean; apas?: Map<string, ApasPair> }) {
   const [showAll, setShowAll] = useState(false);
   const { rule } = result;
   const status = ruleStatus(result);
+  const apasPair = apas?.get(rule.id);
 
   return (
     <div className={cn("flex flex-col gap-1", depth > 0 && "border-l border-border pl-2.5")}>
@@ -264,6 +273,7 @@ function RuleView({ result, depth, hideTitle }: { result: RuleResult; depth: num
           {status && <span className="ml-auto shrink-0 text-micro text-text-tertiary">{status}</span>}
         </div>
       )}
+      {apasPair && <ApasSaysLine pair={apasPair} />}
       {rule.description && <RuleDescription text={rule.description} />}
       {result.constraints?.length ? <CreditConstraints items={result.constraints} /> : null}
       {rule.pattern && <CoursePatternBox pattern={rule.pattern} matches={result.patternMatches ?? []} />}
@@ -294,7 +304,7 @@ function RuleView({ result, depth, hideTitle }: { result: RuleResult; depth: num
           {result.children.map((c, i) => (
             <div key={c.rule.id} className="flex flex-col gap-1">
               {rule.kind === "anyOf" && i > 0 && <span className="text-micro font-semibold tracking-wide text-text-tertiary uppercase">or</span>}
-              <RuleView result={c} depth={depth + 1} />
+              <RuleView result={c} depth={depth + 1} apas={apas} />
             </div>
           ))}
         </div>
@@ -304,10 +314,12 @@ function RuleView({ result, depth, hideTitle }: { result: RuleResult; depth: num
 }
 
 /** One requirement as an accordion item: progress ring, name, x/y; expands into its rules (A24–A25). */
-export function RequirementItem({ result, defaultOpen }: { result: RequirementResult; defaultOpen?: boolean }) {
+export function RequirementItem({ result, defaultOpen, apas }: { result: RequirementResult; defaultOpen?: boolean; apas?: RequirementApas }) {
   const [open, setOpen] = useState(defaultOpen ?? false);
   const { requirement } = result;
   const single = result.rules.length === 1 && result.rules[0].rule.name.trim() === requirement.name.trim();
+  const inside = apas ? [...apas.rules.values()] : [];
+  const insideDisagree = inside.filter((p) => p.verdict === "disagree").length;
 
   return (
     <li className="rounded-card bg-surface shadow-card">
@@ -318,12 +330,23 @@ export function RequirementItem({ result, defaultOpen }: { result: RequirementRe
           {result.filled}/{result.units}
         </span>
       </button>
+      {apas?.requirement && (
+        <div className="-mt-1 px-3 pb-2">
+          <ApasSaysLine pair={apas.requirement} />
+        </div>
+      )}
+      {!apas?.requirement && inside.length > 0 && !open && (
+        <p className="-mt-1 px-3 pb-2 text-micro text-text-tertiary">
+          APAS compared {inside.length} part{inside.length === 1 ? "" : "s"} inside
+          {insideDisagree > 0 && <span className="font-medium text-warning"> · {insideDisagree} disagree{insideDisagree === 1 ? "s" : ""}</span>}
+        </p>
+      )}
       {open && (
         <div className="flex flex-col gap-3 border-t border-border px-3 py-2.5">
           {requirement.notes && <Notes text={requirement.notes} />}
           {result.constraints?.length ? <CreditConstraints items={result.constraints} /> : null}
           {result.rules.map((r) => (
-            <RuleView key={r.rule.id} result={r} depth={0} hideTitle={single} />
+            <RuleView key={r.rule.id} result={r} depth={0} hideTitle={single} apas={apas?.rules} />
           ))}
         </div>
       )}

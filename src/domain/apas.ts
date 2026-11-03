@@ -1,4 +1,4 @@
-import { toTermCode, type Season, type TermCode } from "./terms";
+import { toTermCode, type Season, type TermCode } from "./terms.ts";
 
 /**
  * A parsed UMN APAS audit (B1 step 2). Written by Hadi's Claude from real uAchieve 5.2 HTML reports

@@ -45,6 +45,22 @@ Result on Firefox 130 (2026-10-27, Ishaan's Claude): **PASS**. The bridge's `pos
 
 Dev-build note: Firefox match patterns can't contain a port (`http://localhost:3000/plan/*` never matches there), so the dev build uses `http://localhost/plan/*`. A port-less pattern matches every port in both browsers. The background still accepts `start` only from the exact `http://localhost:3000` origin.
 
+## Comparing planu.mn with a real APAS report (Phase C/C4)
+
+> Added by **Hadi's Claude**, 2026-11-03.
+
+In the app: import the audit on `/plan/apas`, then open the plan (or any plan with that program) **in the same tab**. The requirements rail shows "APAS says: …" on requirements it could pair by name, and the number of disagreements under the program name. Nothing is stored, so a reload, signing out or in, a new or failed import, or Discard clears it. planu.mn's side uses the plan's courses that are also on the audit, so a course on the audit that the plan lacks shows as a disagreement.
+
+From the command line, for a report saved with **Save a copy (.html)**:
+
+```bash
+npm run dev                                                   # another terminal; the script uses its API
+node scripts/apas-compare.ts ~/Downloads/apas-report-2026-11-03.html 019627107   # CourseDog program id (CS B.S.)
+node scripts/apas-compare.ts apas-report-2026-11-03.html 019627107 --base http://localhost:3220   # dev server on another port
+```
+
+It prints each pair (agree, disagree or unchecked), the APAS requirements with no planu.mn match and the planu.mn requirements with no APAS match. The report is read from disk and parsed locally. Only course codes and catalog ids go to the local dev server, and nothing is written. **Never commit a real report or paste its output into a PR**: summarize mismatches by requirement name instead.
+
 ## Not verified yet
 - The APAS landing URL: we open the `umn.uachieve.com` root, which One Stop links to. Real report URLs and markup are still needed from a human.
 - Not yet tested end to end in a real browser against APAS: that needs a UMN login, which agents don't do. Hadi or Michael need to run it once.

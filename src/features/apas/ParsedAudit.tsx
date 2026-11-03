@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import type {
   ApasAudit,
   ApasCourse,
@@ -11,6 +11,7 @@ import type {
 import { compareTerms, termLabel } from "@/domain/terms";
 import { cn } from "@/components/ui/cn";
 import { ApasPlanStep } from "./ApasPlanStep";
+import { setImportedAudit } from "./importedAudit";
 import { parseApasHtml } from "./parseReport";
 
 const KIND_LABEL: Record<ApasCourseKind, string> = {
@@ -115,6 +116,11 @@ function Requirement({ r }: { r: ApasRequirement }) {
  */
 export function ParsedAudit({ html }: { html: string }) {
   const audit = useMemo(() => parseApasHtml(html), [html]);
+  // C4: keep the parsed audit in this tab's memory so the plan's requirements rail can show "APAS says".
+  // A page that isn't an audit clears the previous one, so it's never shown as current (review fix, #89).
+  useEffect(() => {
+    setImportedAudit(audit);
+  }, [audit]);
   if (!audit) {
     return (
       <section className="my-8 rounded-card border border-border-strong bg-surface p-6">
@@ -147,7 +153,9 @@ export function ParsedAudit({ html }: { html: string }) {
           <p className="text-sm text-text-secondary">
             Check this against your APAS before anything becomes a plan.
             It&apos;s read from the report in this tab and isn&apos;t saved or
-            uploaded.
+            uploaded. Until you close or reload this tab, plans for this
+            program also show what APAS says next to planu.mn&apos;s own
+            requirement estimates.
           </p>
         </div>
         <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
