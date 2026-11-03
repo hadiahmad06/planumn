@@ -15,6 +15,14 @@ export type PrereqNode =
 type Token = { t: "(" | ")" | ";" | "," | "and" | "or" } | { t: "code"; code: string } | { t: "word"; text: string };
 
 const CODE = /^(?:([A-Za-z]{2,5})\s*)?(\d{4}[A-Za-z]{0,2})$/;
+/**
+ * A grade minimum before a course: "grade of at least C- in CSCI 1133", "C- or better in SPAN 1003",
+ * also with the label left on ("Prereq: grade of … in CSCI 1133"). The course after "in" is read; the
+ * grade can't be checked, so it's dropped, like other grade minimums.
+ */
+const GRADE_THEN_CODE = /\b(?:grade|better|higher)\b[\s\S]*?\bin\s+(\S[\s\S]*)$/i;
+/** "C- or better", "C or higher": a grade, not an alternative, so its "or" must not split the text. */
+const GRADE_OR_BETTER = /(\b[A-F][+-]?\s+)or\s+(better|higher|above)\b/g;
 
 function tokenize(text: string, defaultDept: string): Token[] {
   const tokens: Token[] = [];
@@ -22,6 +30,8 @@ function tokenize(text: string, defaultDept: string): Token[] {
   const parts = text
     .replace(/[[{]/g, "(")
     .replace(/[\]}]/g, ")")
+    .replace(GRADE_OR_BETTER, "$1$2")
+    .replace(/\bor\s+better\b/gi, "better")
     .split(/(\(|\)|;|,|\band\b|\bor\b|&)/i)
     .map((s) => s.trim())
     .filter(Boolean);
@@ -37,17 +47,19 @@ function tokenize(text: string, defaultDept: string): Token[] {
     else if (lower === "or") tokens.push({ t: "or" });
     else {
       // A part may hold several codes separated by "/" or spaces ("CSci 1913/1933").
-      const pieces = part.split(/\s*\/\s*/);
-      const codes: string[] = [];
-      for (const piece of pieces) {
-        const m = piece.replace(/\.$/, "").match(CODE);
-        if (!m) {
-          codes.length = 0;
-          break;
+      const readCodes = (text: string): string[] => {
+        const codes: string[] = [];
+        for (const piece of text.split(/\s*\/\s*/)) {
+          const m = piece.replace(/\.$/, "").match(CODE);
+          if (!m) return [];
+          if (m[1]) dept = m[1].toUpperCase();
+          codes.push(`${dept} ${m[2].toUpperCase()}`);
         }
-        if (m[1]) dept = m[1].toUpperCase();
-        codes.push(`${dept} ${m[2].toUpperCase()}`);
-      }
+        return codes;
+      };
+      let codes = readCodes(part);
+      const graded = codes.length ? null : part.match(GRADE_THEN_CODE);
+      if (graded) codes = readCodes(graded[1]);
       if (codes.length === 1) tokens.push({ t: "code", code: codes[0] });
       else if (codes.length > 1) {
         tokens.push({ t: "(" });
@@ -105,7 +117,7 @@ function parseLevel(tokens: Token[], pos: { i: number }): PrereqNode {
   flushWords();
 
   // ";" separates independent clauses that must all hold: "2021 or EE 2361; CS upper div".
-  const segments: (PrereqNode | "and" | "or" | ",")[][] = [[]];
+  const segments: Item[][] = [[]];
   for (const it of items) {
     if (it === ";") segments.push([]);
     else segments[segments.length - 1].push(it);
@@ -114,7 +126,42 @@ function parseLevel(tokens: Token[], pos: { i: number }): PrereqNode {
   return parsed.length === 1 ? parsed[0] : { kind: "and", children: parsed };
 }
 
-function combine(items: (PrereqNode | "and" | "or" | ",")[]): PrereqNode {
+type Item = PrereqNode | "and" | "or" | ",";
+const isOp = (x: Item | undefined): x is "and" | "or" => x === "and" || x === "or";
+
+/**
+ * Commas are read two ways, as the catalog's own strings use them (data/catalog.db, checked 2026-11-03):
+ * - **A list:** "A, B, or C", "A, B or C", "A, B": no part before a comma has its own and/or, or the only
+ *   word used is the one that ends the list ("1272 or 1372, 1572, or 2472" = any of the four, MATH 4065).
+ *   Each comma takes the next explicit and/or ("and" if none).
+ * - **Clauses:** once a part before a comma has its own and/or, the commas separate parts that all hold:
+ *   "Math 2243 or Math 2373, 3331" (ME 3332) = (2243 or 2373) and 3331; "Acct 2050 or Acct 2051, SCO 2550
+ *   or BA 2551" (FINA 3001H) = (2050 or 2051) and (2550 or 2551). A part that starts with and/or
+ *   (", or C") joins with that word instead.
+ */
+function combine(items: Item[]): PrereqNode {
+  const parts: Item[][] = [[]];
+  for (const it of items) {
+    if (it === ",") parts.push([]);
+    else parts[parts.length - 1].push(it);
+  }
+  // Mixed words with a ", or" ending ("A, B, and C or D, E") still read as clauses: checked on FINA 4242W,
+  // SOC 4821, APEC 5151 and ESPM 4601, where only that reading matches the catalog.
+  const endsList = new Set(items.filter(isOp)).size === 1 && parts.slice(1).some((p) => isOp(p[0]));
+  if (parts.length > 1 && !endsList && parts.slice(0, -1).some((p) => p.some(isOp))) {
+    let node: PrereqNode | null = null;
+    for (const p of parts) {
+      const body = isOp(p[0]) ? p.slice(1) : p;
+      if (!body.some((x) => !isOp(x))) continue;
+      const part = combineList(body);
+      node = node ? { kind: isOp(p[0]) ? p[0] : "and", children: [node, part] } : part;
+    }
+    if (node) return node;
+  }
+  return combineList(items);
+}
+
+function combineList(items: Item[]): PrereqNode {
   // Resolve commas, then split by "or" into groups of "and".
   const ops = items.map((it, i) => {
     if (it !== ",") return it;
@@ -138,7 +185,9 @@ export function extractPrereqText(description: string | null | undefined): strin
 }
 
 export function parsePrereqs(text: string, ownDept: string): PrereqNode | null {
-  const tokens = tokenize(text, ownDept.toUpperCase());
+  // "Credit will not be granted if credit has been received for: …" lists courses that *block* credit
+  // (10 catalog strings; MICB 3303 lists itself), not prerequisites.
+  const tokens = tokenize(text.split(/\bcredit will not be granted\b/i)[0], ownDept.toUpperCase());
   if (!tokens.some((t) => t.t === "code")) return null;
   return simplify(parseLevel(tokens, { i: 0 }));
 }
