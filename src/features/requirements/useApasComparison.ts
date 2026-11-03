@@ -3,12 +3,8 @@
 import { useMemo } from "react";
 import type { ApasAudit } from "@/domain/apas";
 import { compareApasProgram, type ApasComparison } from "@/domain/apasCompare";
-import { apasProgramId } from "@/domain/apasPlan";
 import type { PlannedForAudit, ProgramResult } from "@/domain/requirements";
-import { useImportedAudit } from "@/features/apas/importedAudit";
-import { PROGRAM_OPTIONS } from "./programOptions";
-
-const PROGRAM_IDS = PROGRAM_OPTIONS.map((p) => p.id);
+import { importedAuditFor, useImportedAudit, type ImportedAudit } from "@/features/apas/importedAudit";
 
 export interface ProgramApasComparison {
   audit: ApasAudit;
@@ -16,18 +12,24 @@ export interface ProgramApasComparison {
 }
 
 /**
- * C4: for each of the plan's programs that the APAS audit imported in this tab is for, APAS's results
- * paired with planu.mn's (evaluated on the courses the audit has on record). Empty when no audit was
- * imported, or when it's for another program. Display only.
+ * C4, per program (B1 multi-audit): for each of the plan's programs, APAS's results from **that
+ * program's** audit imported in this tab, paired with planu.mn's (evaluated on the courses that audit
+ * has on record). A program with no matching audit has no entry. Display only.
  */
+export function apasComparisons(
+  audits: readonly ImportedAudit[],
+  results: ProgramResult[],
+  planned: PlannedForAudit[],
+): Map<string, ProgramApasComparison> {
+  const out = new Map<string, ProgramApasComparison>();
+  for (const r of results) {
+    const audit = importedAuditFor(audits, r.program.id);
+    if (audit) out.set(r.program.id, { audit, comparison: compareApasProgram(audit, r.program, planned) });
+  }
+  return out;
+}
+
 export function useApasComparisons(results: ProgramResult[], planned: PlannedForAudit[]): Map<string, ProgramApasComparison> {
-  const audit = useImportedAudit((s) => s.audit);
-  return useMemo(() => {
-    const out = new Map<string, ProgramApasComparison>();
-    if (!audit) return out;
-    const programId = apasProgramId(audit.program.code, PROGRAM_IDS);
-    for (const r of results)
-      if (r.program.id === programId) out.set(r.program.id, { audit, comparison: compareApasProgram(audit, r.program, planned) });
-    return out;
-  }, [audit, results, planned]);
+  const audits = useImportedAudit((s) => s.audits);
+  return useMemo(() => apasComparisons(audits, results, planned), [audits, results, planned]);
 }

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { ApasAudit } from "@/domain/apas";
 import {
-  apasPlan,
+  apasPlanFromAudits,
   type ApasPlanResult,
   type ApasSkipReason,
 } from "@/domain/apasPlan";
@@ -45,9 +45,16 @@ async function lookupCodes(codes: string[]): Promise<Map<string, number>> {
  * for review first; opening it replaces this browser's autosave (after confirmation, like transcript
  * import), and the editor takes it from there.
  */
-export function ApasPlanStep({ audit }: { audit: ApasAudit }) {
+export function ApasPlanStep({ audits }: { audits: readonly ApasAudit[] }) {
   const router = useRouter();
-  const [result, setResult] = useState<ApasPlanResult | null>(null);
+  // A result belongs to the reports it was built from: adding or replacing a report asks for a rebuild.
+  const [built, setBuilt] = useState<{ from: readonly ApasAudit[]; result: ApasPlanResult } | null>(null);
+  const result = built?.from === audits ? built.result : null;
+  const setResult = (r: ApasPlanResult | null) => setBuilt(r && { from: audits, result: r });
+  const heading =
+    audits.length > 1
+      ? `Create one plan from these ${audits.length} reports`
+      : "Create a plan from this report";
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [existing, setExisting] = useState(false);
@@ -65,11 +72,11 @@ export function ApasPlanStep({ audit }: { audit: ApasAudit }) {
     setError("");
     try {
       const ids = await lookupCodes([
-        ...new Set(audit.courses.map((c) => c.code)),
+        ...new Set(audits.flatMap((a) => a.courses.map((c) => c.code))),
       ]);
       setResult(
-        apasPlan(
-          audit,
+        apasPlanFromAudits(
+          audits,
           ids,
           PROGRAM_OPTIONS.map((p) => p.id),
         ),
@@ -98,9 +105,9 @@ export function ApasPlanStep({ audit }: { audit: ApasAudit }) {
   return (
     <section
       className="my-8 space-y-4 rounded-card border border-border-strong bg-surface p-6"
-      aria-label="Create a plan from this report"
+      aria-label={heading}
     >
-      <h2 className="text-lg font-semibold">Create a plan from this report</h2>
+      <h2 className="text-lg font-semibold">{heading}</h2>
       <p className="text-sm text-text-secondary">
         Courses go into the terms APAS lists, locked in place. AP, IB and exam
         credit, and transfer credit from before your first term at the U, go
@@ -127,19 +134,30 @@ export function ApasPlanStep({ audit }: { audit: ApasAudit }) {
         <div className="space-y-3 text-sm">
           <ul className="space-y-1">
             <li>{result.matched} courses matched the catalog.</li>
-            <li>
-              Program:{" "}
-              {result.program.programId
-                ? `${programName(result.program.programId)} (from APAS "${result.program.title}")`
-                : `"${result.program.title}" has no matching planu.mn program. Add your programs in the editor.`}
-            </li>
+            {result.programs.map((p, i) => (
+              <li key={`${p.apasCode}-${i}`}>
+                Program:{" "}
+                {p.programId
+                  ? `${programName(p.programId)} (from APAS "${p.title}")`
+                  : `"${p.title}" has no matching planu.mn program. Add your programs in the editor.`}
+              </li>
+            ))}
+            {result.shared > 0 && (
+              <li>
+                {result.shared} course{result.shared === 1 ? "" : "s"} on more
+                than one report in the same term: each is added once, as the
+                most recently prepared report lists it.
+              </li>
+            )}
             <li>
               Plan:{" "}
               {termLabel(
                 result.plan.semesters.find((s) => s.kind !== "prior")!.index,
               )}{" "}
               to {termLabel(result.plan.semesters.at(-1)!.index)}
-              {audit.expectedGradTerm ? " (your expected graduation term)" : ""}
+              {audits.some((a) => a.expectedGradTerm)
+                ? " (your expected graduation term)"
+                : ""}
               .
             </li>
           </ul>
