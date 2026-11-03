@@ -131,6 +131,12 @@ describe("constraintProgress (C2)", () => {
     // Can't be split safely ("or"; one amount over two lists): can't check, not "met" from Group A alone.
     expect(check("Take 3 credits from Group A or 3 credits from Group B.")).toEqual([[null, null]]);
     expect(check("Take at least 6 credits from Group A and Group B.")).toEqual([[null, null]]);
+    // #91 review: a comma list ending in "or" is a choice too, not one minimum per list.
+    const choice = "Take 6 credits from Group A, 6 credits from Group B, or 6 credits from Group C.";
+    expect(check(choice)).toEqual([[null, null]]);
+    expect(readCreditConstraints(choice).map(describeConstraint)).toEqual([
+      "At least 6 credits from Group A, 6 credits from Group B, or 6 credits from Group C",
+    ]);
   });
 
   it("treats a cap as met while under it", () => {

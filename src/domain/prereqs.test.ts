@@ -124,3 +124,61 @@ describe("commas: lists and clauses", () => {
     expect(parsePrereqs("Credit will not be granted if credit has been received for: BIOL 3020, Biol 4003, GCD 3022.", "BIOL")).toBeNull();
   });
 });
+
+// Review of #91: nine catalog strings the old parser read right and the first comma rule read wrong.
+// Each is the literal text from data/catalog.db, checked with the courses the reviewer planned.
+describe("commas: list readings the clause rule must keep (#91 review)", () => {
+  const check = (text: string, dept: string, ...taken: string[]) => checkPrereqs(parsePrereqs(text, dept)!, has(...taken));
+
+  it("EEB 3412W: 'one of the following' is one list, and 'Credit granted for only one of' isn't a prerequisite", () => {
+    const text =
+      "BIOL1951 or one of the following: BIOL1001, BIOL1003, BIOL1009, BIOL1012, BIOL1015, BIOL1052, BIOL1055, MATH1241, CHEM1081, CHEM1061, CHEM1071H, PHYS1221, PHYS1301W, PHYS1401V or instructor consent. Credit granted for only one of the following: EEB 3411, EEB 3412W or EEB 5412.";
+    expect(check(text, "EEB", "BIOL 1951").met).toBe(true);
+    expect(check(text, "EEB", "CHEM 1061").met).toBe(true);
+    expect(JSON.stringify(parsePrereqs(text, "EEB"))).not.toContain("EEB 3412W");
+  });
+
+  it("ECON 3951, 4721, 4538: a cross-listed course after a comma is another way in, not a second requirement", () => {
+    const econ = ["ECON 1101", "ECON 1102", "ECON 3101", "ECON 3102", "MATH 1271", "MATH 1272", "STAT 3011", "STAT 3022"];
+    for (const text of [
+      "(ECON 1101 or ECON 1165, APEC 1101), (ECON 1102 or APEC 1102), ECON 3101, ECON 3102, (STAT 3011 or STAT 3021), (STAT 3022 or STAT 3032), and Econ writing intensive elective or equivalent courses approved by the Economics Department",
+      "(ECON 1101 or ECON 1165, APEC 1101), (ECON 1102 or APEC 1102), ECON 3101, ECON 3102, and MATH 1271, or equivalent courses approved by the Economics Department.",
+      "(ECON 1101 or ECON 1165, APEC 1101), (ECON 1102 or APEC 1102), ECON 3101, ECON 3102, MATH 1271, MATH 1272, and two Econ electives or equivalent courses approved by the Economics Department.",
+    ]) {
+      expect(check(text, "ECON", ...econ).met).toBe(true);
+      expect(check(text, "ECON", ...econ).missing).not.toContain("APEC 1101");
+    }
+  });
+
+  it("ARTS 3180: '… one of the following courses: 1101, 1102, 1103, OR 1107' is one list", () => {
+    const text = "Students must be a degree-seeking student and have taken one of the following courses:  1101, 1102, 1103, OR 1107.";
+    expect(check(text, "ARTS", "ARTS 1102").met).toBe(true);
+  });
+
+  it("BIOL 3051: 'Biol 1951 and 2003, Biol 1009 or BMEN 2501' = (1951 and 2003) or 1009 or 2501", () => {
+    const text = "Introductory biology such as Biol 1951 and 2003, Biol 1009 or BMEN 2501";
+    expect(check(text, "BIOL", "BIOL 1009").met).toBe(true);
+    expect(check(text, "BIOL", "BMEN 2501").met).toBe(true);
+  });
+
+  it("APEC 4311: '1101, 1102 or Econ 1101, 1102' accepts the ECON cross-listings", () => {
+    expect(check("1101, 1102 or Econ 1101, 1102", "APEC", "ECON 1101", "ECON 1102").met).toBe(true);
+  });
+
+  it("NURS 6705 and APEC 8501: 'in 6704' is a corequisite in text, not the course IN 6704", () => {
+    const nurs = "[6702, 6703] or instr consent, concurrent registration is required (or allowed) in 6704";
+    expect(check(nurs, "NURS", "NURS 6702", "NURS 6703").met).toBe(true);
+    expect(JSON.stringify(parsePrereqs(nurs, "NURS"))).not.toContain("IN 6704");
+    const apec = "8003 or equiv or concurrent registration is required (or allowed) in 8003, 8211, 5032 or equiv";
+    expect(check(apec, "APEC", "APEC 8003").met).toBe(true);
+    // The numbers after "in 1061" continue the corequisite list, so they don't become CHEM prerequisites (CHEM 1065).
+    expect(parsePrereqs("concurrent registration is required (or allowed) in 1061, 1071, 1071H, 1081", "CHEM")).toBeNull();
+    // A bracket ends that list: "[3732 or …]" is FSCN 3732 again (FSCN 3731).
+    const fscn = parsePrereqs(
+      "[3102 or concurrent registration is required (or allowed) in  3102], [3732 or concurrent registration is required (or allowed) in  3732]",
+      "FSCN",
+    )!;
+    expect(checkPrereqs(fscn, has("FSCN 3102", "FSCN 3732")).met).toBe(true);
+    expect(JSON.stringify(fscn)).toContain('"FSCN 3732"');
+  });
+});

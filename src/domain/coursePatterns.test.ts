@@ -228,6 +228,12 @@ describe("non-SUBJ about people (#88 review)", () => {
     expect(r("Upper division students from non-CSE colleges may enroll with instructor consent.")).toBeNull();
     expect(r("Students transferring from a non-CLA college, school, program or department should see an advisor.")).toBeNull();
     expect(r("Courses from non-CSE departments may count with approval.")).toBeNull();
+    // #91 review: beside a course level, "non-ARCH departments" still rules ARCH out.
+    const arch = r("xxxx 3xxx xxxx 4xxx courses from non-ARCH departments")!;
+    expect(arch.exceptSubjects).toEqual(["ARCH"]);
+    expect(["ARCH 3150", "HIST 3001", "HIST 4001"].map((c) => matchesPattern(arch, c))).toEqual([false, true, true]);
+    // A level word without a course level ("Upper division") doesn't make it a course pattern.
+    expect(r("Upper division students from non-CSE colleges may enroll with instructor consent. EE 4xxx.")?.exceptSubjects ?? []).toEqual([]);
     const p = r("EE 4xxx. Non-CSE students should consult their advisor.")!;
     expect(p.exceptSubjects).toEqual([]);
     expect(["MUS 1001", "EE 4111"].map((c) => matchesPattern(p, c))).toEqual([false, true]);

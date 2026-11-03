@@ -15,6 +15,8 @@ export type PrereqNode =
 type Token = { t: "(" | ")" | ";" | "," | "and" | "or" } | { t: "code"; code: string } | { t: "word"; text: string };
 
 const CODE = /^(?:([A-Za-z]{2,5})\s*)?(\d{4}[A-Za-z]{0,2})$/;
+/** English words that can sit right before a number ("in 6704", "of 1004") and aren't subject codes. */
+const NOT_A_SUBJECT = /^(?:in|of|at|to|by|for|on|or|and|the|than|with|from|above|below|after|before)$/i;
 /**
  * A grade minimum before a course: "grade of at least C- in CSCI 1133", "C- or better in SPAN 1003",
  * also with the label left on ("Prereq: grade of … in CSCI 1133"). The course after "in" is read; the
@@ -26,7 +28,8 @@ const GRADE_OR_BETTER = /(\b[A-F][+-]?\s+)or\s+(better|higher|above)\b/g;
 
 function tokenize(text: string, defaultDept: string): Token[] {
   const tokens: Token[] = [];
-  let dept = defaultDept;
+  /** null after "… in 6704": the bare numbers that follow continue that corequisite list ("in 1061, 1071"). */
+  let dept: string | null = defaultDept;
   const parts = text
     .replace(/[[{]/g, "(")
     .replace(/[\]}]/g, ")")
@@ -42,7 +45,10 @@ function tokenize(text: string, defaultDept: string): Token[] {
       dept = part;
       continue;
     }
-    if (part === "(" || part === ")" || part === ";" || part === ",") tokens.push({ t: part });
+    if (part === "(" || part === ")" || part === ";" || part === ",") {
+      if (part !== ",") dept ??= defaultDept; // a bracket or ";" ends a corequisite list
+      tokens.push({ t: part });
+    }
     else if (lower === "and" || part === "&") tokens.push({ t: "and" });
     else if (lower === "or") tokens.push({ t: "or" });
     else {
@@ -52,7 +58,14 @@ function tokenize(text: string, defaultDept: string): Token[] {
         for (const piece of text.split(/\s*\/\s*/)) {
           const m = piece.replace(/\.$/, "").match(CODE);
           if (!m) return [];
+          // "… concurrent registration is required (or allowed) in 6704": "in" isn't a subject, and the
+          // course is a corequisite, kept as text like other corequisites.
+          if (m[1] && NOT_A_SUBJECT.test(m[1])) {
+            dept = null;
+            return [];
+          }
           if (m[1]) dept = m[1].toUpperCase();
+          if (dept === null) return [];
           codes.push(`${dept} ${m[2].toUpperCase()}`);
         }
         return codes;
@@ -131,13 +144,12 @@ const isOp = (x: Item | undefined): x is "and" | "or" => x === "and" || x === "o
 
 /**
  * Commas are read two ways, as the catalog's own strings use them (data/catalog.db, checked 2026-11-03):
- * - **A list:** "A, B, or C", "A, B or C", "A, B": no part before a comma has its own and/or, or the only
- *   word used is the one that ends the list ("1272 or 1372, 1572, or 2472" = any of the four, MATH 4065).
- *   Each comma takes the next explicit and/or ("and" if none).
- * - **Clauses:** once a part before a comma has its own and/or, the commas separate parts that all hold:
+ * - **A list** (the default): "A, B, or C", "A, B or C", "A, B". Each comma takes the next explicit
+ *   and/or ("and" if none).
+ * - **Clauses:** when a part before a comma has its own "or", the commas separate parts that all hold:
  *   "Math 2243 or Math 2373, 3331" (ME 3332) = (2243 or 2373) and 3331; "Acct 2050 or Acct 2051, SCO 2550
  *   or BA 2551" (FINA 3001H) = (2050 or 2051) and (2550 or 2551). A part that starts with and/or
- *   (", or C") joins with that word instead.
+ *   (", or C") joins with that word instead. `clausesFit` lists the exceptions that keep the list reading.
  */
 function combine(items: Item[]): PrereqNode {
   const parts: Item[][] = [[]];
@@ -145,20 +157,60 @@ function combine(items: Item[]): PrereqNode {
     if (it === ",") parts.push([]);
     else parts[parts.length - 1].push(it);
   }
-  // Mixed words with a ", or" ending ("A, B, and C or D, E") still read as clauses: checked on FINA 4242W,
-  // SOC 4821, APEC 5151 and ESPM 4601, where only that reading matches the catalog.
-  const endsList = new Set(items.filter(isOp)).size === 1 && parts.slice(1).some((p) => isOp(p[0]));
-  if (parts.length > 1 && !endsList && parts.slice(0, -1).some((p) => p.some(isOp))) {
-    let node: PrereqNode | null = null;
-    for (const p of parts) {
-      const body = isOp(p[0]) ? p.slice(1) : p;
-      if (!body.some((x) => !isOp(x))) continue;
-      const part = combineList(body);
-      node = node ? { kind: isOp(p[0]) ? p[0] : "and", children: [node, part] } : part;
-    }
-    if (node) return node;
+  return clausesFit(items, parts) ? combineClauses(parts) : combineList(items);
+}
+
+/** An and/or that isn't the first item of its comma part (", or C" starts a part; "A or B" has one inside). */
+const inner = (p: Item[], op: "and" | "or") => p.slice(1).includes(op);
+const courseIn = (x: Item | undefined): x is { kind: "course"; code: string } => typeof x === "object" && x.kind === "course";
+const numberOf = (code: string) => code.split(" ")[1];
+
+/**
+ * Whether commas here separate clauses (see `combine`'s doc). Only when a part before the last comma
+ * has an "or" inside it, and none of the signs that the list reading is the right one:
+ * - the only word used also ends the list ("1272 or 1372, 1572, or 2472", MATH 4065);
+ * - the text says "one of" ("BIOL1951 or one of the following: BIOL1001, …", EEB 3412W);
+ * - a part before a comma ends in text ending in a bare number after "in"/"of", so the commas continue a
+ *   list the text started ("… concurrent registration is required (or allowed) in 8003, 8211, 5032 or
+ *   equiv", APEC 8501);
+ * - a part that is one course with the same number as a course of another subject in the part before
+ *   it: a cross-listing named as an alternative ("ECON 1101 or ECON 1165, APEC 1101", ECON 3951; "1101,
+ *   1102 or Econ 1101, 1102", APEC 4311).
+ * Each of these was right under the list reading and wrong under clauses (review of #91). A part before
+ * the last comma with only "and" inside stays a list ("Biol 1951 and 2003, Biol 1009 or BMEN 2501" =
+ * (1951 and 2003) or 1009 or 2501, BIOL 3051).
+ */
+function clausesFit(items: Item[], parts: Item[][]): boolean {
+  if (parts.length < 2) return false;
+  const early = parts.slice(0, -1);
+  if (!early.some((p) => inner(p, "or"))) return false;
+  if (new Set(items.filter(isOp)).size === 1 && parts.slice(1).some((p) => isOp(p[0]))) return false;
+  if (items.some((x) => typeof x === "object" && x.kind === "other" && /\bone of\b/i.test(x.text))) return false;
+  if (
+    early.some((p) => {
+      const last = p[p.length - 1];
+      return typeof last === "object" && last.kind === "other" && /\b(?:in|of)\s+\d{4}[A-Za-z]{0,2}\s*$/i.test(last.text);
+    })
+  )
+    return false;
+  return !parts.some((p, i) => {
+    const body = p.filter((x) => !isOp(x));
+    const only = body[0];
+    if (i === 0 || body.length !== 1 || !courseIn(only)) return false;
+    const [subject, number] = only.code.split(" ");
+    return parts[i - 1].some((x) => courseIn(x) && numberOf(x.code) === number && !x.code.startsWith(`${subject} `));
+  });
+}
+
+function combineClauses(parts: Item[][]): PrereqNode {
+  let node: PrereqNode | null = null;
+  for (const p of parts) {
+    const body = isOp(p[0]) ? p.slice(1) : p;
+    if (!body.some((x) => !isOp(x))) continue;
+    const part = combineList(body);
+    node = node ? { kind: isOp(p[0]) ? p[0] : "and", children: [node, part] } : part;
   }
-  return combineList(items);
+  return node ?? { kind: "and", children: [] };
 }
 
 function combineList(items: Item[]): PrereqNode {
@@ -184,10 +236,14 @@ export function extractPrereqText(description: string | null | undefined): strin
   return m ? m[1].trim() : null;
 }
 
+/** "Credit will not be granted if …", "Credit granted for only one of …": courses that block credit. */
+const ANTI_REQUISITE = /\bcredit (?:will not be granted|(?:is |will be )?granted for only one of)\b/i;
+
 export function parsePrereqs(text: string, ownDept: string): PrereqNode | null {
-  // "Credit will not be granted if credit has been received for: …" lists courses that *block* credit
-  // (10 catalog strings; MICB 3303 lists itself), not prerequisites.
-  const tokens = tokenize(text.split(/\bcredit will not be granted\b/i)[0], ownDept.toUpperCase());
+  // "Credit will not be granted if credit has been received for: …" and "Credit granted for only one of
+  // the following: …" list courses that *block* credit (12 catalog strings; MICB 3303 and EEB 3412W list
+  // themselves), not prerequisites.
+  const tokens = tokenize(text.split(ANTI_REQUISITE)[0], ownDept.toUpperCase());
   if (!tokens.some((t) => t.t === "code")) return null;
   return simplify(parseLevel(tokens, { i: 0 }));
 }

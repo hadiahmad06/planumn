@@ -116,12 +116,20 @@ const NEXT_AMOUNT = new RegExp(
 const NO_CREDITS = new RegExp(String.raw`^((?:${QUALIFIER})?${AMOUNT})(\s+from\b)`, "i");
 
 /**
+ * "… from Group A, 6 credits from Group B, or 6 credits from Group C": an "or" before another amount on a
+ * list makes the sentence a choice. It isn't split, and its part is every list named, so it shows as
+ * "can't check" rather than as one minimum per list (#91 review).
+ */
+const CHOICE = new RegExp(String.raw`\bor\s+(?:${QUALIFIER})?${AMOUNT}(?:\s+credits?)?\s+(?:of|from|in)\b`, "i");
+
+/**
  * "Take 3 credits from Group A, 3 from Group B and 3 from Group C" → "Take 3 credits from Group A", "take
  * 3 credits from Group B", "take 3 credits from Group C": one reading per list. A clause after the first
  * gets back a left-out "credits" and borrows its verb ("up to" after a cap, else "take") so the patterns
  * read it on its own. Split only when the first clause names a list too.
  */
 function clausesOf(sentence: string): string[] {
+  if (CHOICE.test(sentence)) return [sentence];
   const [first, ...rest] = sentence.split(NEXT_AMOUNT);
   if (!rest.length || !/\d{1,2}(?:\s+or more)?\s+credits?\s+(?:of|from|in)\b/i.test(first)) return [sentence];
   const verb = /up to|maximum of|at most|no more than/i.test(first) ? "up to " : "take ";
@@ -182,6 +190,9 @@ export function readCreditConstraints(text: string | null | undefined, ruleName 
           }
           // "A total of 6 credits from this list may count towards major electives" is a cap.
           if (c.kind === "total" && /\b(?:may|can) count\b/i.test(sentence)) c.kind = "max";
+          // A choice names all its lists as the part: "Group A, 6 credits from Group B, or 6 credits from Group C".
+          const choice = CHOICE.test(clause) && c.scope && c.kind !== "dept" ? clause.slice(start).match(/\b(?:of|from|in)\s+(.+?)\s*\.?$/i) : null;
+          if (choice) c.scope = choice[1];
           found.push(c);
         }
       }
