@@ -72,3 +72,12 @@ Hadi, 2026-10-27 (transcribed by Hadi's Claude):
 - "lets do apas injection and audit automation. ill take any responsibility of risk. since this is not in production, i can test it for my own account without bypassing umn policy. keep the policy check in phase y though."
 - Audit automation: the extension may run the student's audit in APAS and bring the result back. APAS injection: planu.mn information may be shown on APAS pages.
 - The UMN policy check stays in **Phase Y**.
+
+## Delegation and reviews
+
+Hadi, 2026-11-03 (transcribed by Hadi's Claude):
+
+- Hadi asked for "a concise, non-redundant plan for how we can use MoE and delegation to work on this project with reviewers with equal authority. one orchestrator, many workers. Don't overengineer too much." He approved Hadi's Claude's plan: "Great. Record this in the repo." Details: `docs/agent/delegation-plan.md`.
+- "I want you to continue iteration even when you're waiting for my decision, and I want you to be able to respond to me without expecting an immediate decision."
+- Hadi answered the plan's open decisions D1–D4, verbatim: "D1, D2: yes. D3: yes, push v2/hadi/* and open PRs. D4: it was. but now its pushed to origin". The questions are listed in `docs/agent/delegation-plan.md`. D1 replaces the merge rule in "How Phase A gets built" above.
+- Asked "should a second Claude reviewer count when Michael's Codex is away?", Hadi answered: "Yes."
