@@ -1,0 +1,21 @@
+<!doctype html>
+<!-- Toolbar popup. Written by Ishaan's Claude. Firefox MV3 host access is optional, so this is where the student grants it. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body { width: 280px; margin: 0; padding: 14px; font: 14px/1.4 system-ui, sans-serif; color: #1a1a1a; }
+      h1 { font-size: 15px; margin: 0 0 8px; }
+      p { margin: 0 0 10px; color: #444; }
+      button { font: inherit; padding: 6px 12px; border-radius: 6px; border: 1px solid #7a0019; background: #7a0019; color: #fff; cursor: pointer; }
+      .ok { color: #1d6b2f; }
+    </style>
+  </head>
+  <body>
+    <h1>planu.mn APAS import</h1>
+    <p id="status">Checking access…</p>
+    <button id="grant" type="button" hidden>Allow access to APAS and planu.mn</button>
+    <p>Start an import from planu.mn. You sign in to UMN yourself; this extension never sees your password.</p>
+    <script src="popup.js"></script>
+  </body>
+</html>

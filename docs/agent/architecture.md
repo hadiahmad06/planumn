@@ -1,0 +1,110 @@
+# v2 Architecture
+
+> Written by **Hadi's Claude** (Claude Code, Opus 5.5), 2026-10-26.
+> Chosen by Hadi's Claude so Phase A could start (Hadi delegated implementation). Michael's Codex: challenge anything here in `codex-notes.md`.
+
+## What-if plan comparison — Michael's Codex
+
+> Written by **Michael's Codex**, 2026-10-27.
+
+`/plans/compare` loads only the signed-in user's active plans through the existing owner-scoped repository. Comparing never mounts the editor, changes the plan store or saves either source. `comparePlans(left, right)` in `src/features/plans/compare.ts` pairs repeated course entries by term and lock, preserving old repeated-term rows, and distinguishes matching entries, changed locks, another-term appearances and unmatched counts. `duplicatePlan(source, now?)` returns a deep copy with new identity/lifecycle fields and an empty access list; explicit Duplicate saves it as a new row. UserMenu links to the workspace. No PlanRepository, API or persisted row contract changes. `ComparedTerm.key` identifies comparison rows (`prior` for the logical prior-credit bucket; otherwise the term code). Rows also expose `leftKind`/`rightKind` and `leftSlots`/`rightSlots`. Slots pair unchanged shared keys first, then equal label/credit/Lib Ed contents, then a remaining shared key marks edited contents. Prior-credit buckets align across different stored dates. The view shows slot counts/content differences and semester types.
+
+## Stack
+
+| Concern | Choice | Why |
+|---|---|---|
+| Framework | **Next.js 16.4** App Router, React 19.3, `cacheComponents` on | Same family as 2025; current major. **Read `node_modules/next/dist/docs/` before using an API from memory**, because v16 changed a lot (`proxy.ts` replaces `middleware.ts`, async `params`, `use cache`) |
+| Language | TypeScript **strict** | 2025 ran with strict off. Not repeating that |
+| Styling | Tailwind v4 + design tokens in `src/app/globals.css` | One source of truth (2026 ADR-0004). No raw hex outside `globals.css` |
+| UI primitives | Radix (`@radix-ui/react-*`) + our own components in `src/components/ui/` | Mantine was kept in 2026 only to avoid a migration. A rewrite has no migration cost |
+| Client state | zustand | Small stores with a clear contract between features |
+| Drag and drop | `@dnd-kit/core` + `@dnd-kit/sortable` | Supports grid layouts and one drag context for rail + search + schedule |
+| Course catalog | `data/catalog.db` (2025 `ProcessedData.db`, unchanged), read with **`node:sqlite`** (no native deps), server-only | Course ids are what 2025 plans stored. Same file = same ids = old plans load. Data covers Spring 2017 – Fall 2024 |
+| Auth + plan storage | Supabase (same `plans` row shape as 2025) | Existing users' plans keep working |
+| Program requirements | UMN CourseDog API (fetched server-side, cached) | Same source as 2025 |
+| Tests | Vitest (pure logic + catalog queries) | |
+| CI | GitHub Actions: lint, typecheck, test, build on every PR into `v2/**` | |
+| Node | ≥ 22.13 (`node:sqlite` unflagged) | |
+
+## Read-only snapshot sharing — Michael's Codex
+
+> Written by **Michael's Codex**, 2026-10-27.
+
+`src/features/sharing/snapshot.ts` exports `encodeSnapshot(plan)`, `decodeSnapshot(token, now?)`, and `copySnapshot(plan, now?)`. The bounded, versioned URL-fragment format carries only title, program IDs and semester/course/lock tuples. Cloud plan/owner IDs, access lists, timestamps and deletion state are excluded. Decode validates the existing plan constraints and creates detached identity/lifecycle fields. Copy always creates a new row/autosave; it never updates a sender's cloud plan.
+
+`<SharePlanButton plan disabled? />` generates a snapshot link from an explicit action on an active My Plans row. `/share#v1.…` renders a separate read-only view without mounting PlanEditor, replacing the plan store, or saving automatically. Recipients explicitly copy to their own My Plans or browser autosave; overwriting an existing browser autosave requires confirmation. This is a fixed snapshot with no revocation or live updates. No production plans schema, RLS, API ownership contract or `can_view` behavior changes.
+
+## Layout
+
+```
+data/catalog.db                 read-only course catalog (do not modify)
+src/
+  domain/                       pure types + logic, no React, no I/O (terms, course, plan)
+  contracts/                    interfaces between features (PlanRepository)
+  server/catalog/               catalog queries (server-only)
+  app/                          routes (pages + API route handlers)
+  features/<feature>/           everything for one feature: components, stores, hooks
+  components/ui/                shared primitives
+```
+
+## Catalog observations and APAS reminder — Michael's Codex
+
+> Written by **Michael's Codex**, 2026-10-28 (B21 reassignment on #16).
+
+`POST /api/catalog-check` accepts only public `courseIds` (≤200) and `programIds` (≤5), with same-origin validation and private/no-store responses. `src/server/catalog-changes/snapshot.ts` reads Twin Cities identifiers from the bundled catalog, bounded/cached public CourseDog metadata for course code/title/credits/version and selected raw program rule/text/version data, and returns `CatalogCheck` (`items`, `unavailable`, `checkedAt`). Fingerprints canonicalize object keys; arrays retain source order. No plan, account identifier or personal APAS record is accepted or persisted by this feature.
+
+`<CatalogUpdates />` in SaveStatus performs an explicit check, shows differences against the last acknowledged browser reference, and links to APAS import with the each-term reminder. First observations establish references rather than claim changes; missing/failed source data stays unknown. Only **Remember these versions** updates `planumn:catalog-history:v1` (public metadata, bounded to 1,000 recently observed items). It merges against current stored history, preserves newer observations, and requires no plan/repository/schema changes. Browser storage failures are reported; clearing/evicting history loses old comparisons. This does not establish which current/future catalog rules apply to a student's admit year, and does not alter requirement progress.
+
+## Contracts between features
+
+| Contract | File | Provided by | Used by |
+|---|---|---|---|
+| Plan shape (2025-compatible) | `src/domain/plan.ts` | Hadi's Claude | everyone |
+| Term codes (`"1259"` = Fall 2025) | `src/domain/terms.ts` | Hadi's Claude | everyone |
+| Course types | `src/domain/course.ts` | Hadi's Claude | everyone |
+| `GET /api/courses/search?q=` → `CourseSummary[]` | `src/app/api/courses/search/route.ts` | Hadi's Claude | search, transcript import |
+| B8 search filters: `GET /api/courses/search` also takes `libed`, `season`, `level`, `credits`, `minGpa`, `noPrereqs`, `ids` (≤1000 course ids: "satisfies requirement X", resolved client-side by `useRequirementOptions(plan)` in `src/features/requirements/requirementOptions.ts`) (all optional; `q` may be empty when one is set; 400 on an invalid filter, 502 if CourseDog is down for `libed`). `SearchFilters`, `parseFilters`/`filtersToParams`, `matchesFilters` | `src/domain/searchFilters.ts`, `src/server/catalog/facts.ts`, `src/server/libed/libEdIndex.ts` (CourseDog CLE index, cached for days) | Hadi's Claude | top-bar search; later B12 double-dip |
+| `GET /api/courses?ids=` → `CourseDetails[]` | `src/app/api/courses/route.ts` | Hadi's Claude | course cache |
+| `GET /api/courses/[courseId]/instructors` → `InstructorInsight[]` (named instructor/term/grade aggregates; Twin Cities only; invalid ID 400, catalog unavailable 503; unknown ID empty) | `src/server/catalog/instructors.ts`, new API route, `src/features/preview/instructor.ts` | Michael's Codex (B9 assignment on #16) | `<InstructorInsights courseId />` in previews; alphabetical history, ≥20 letter grades for GPA, loading/empty/error/retry states; RMP deferred |
+| `useCourse(id)`, `useCourses(ids)`, `fetchCourses(ids)` | `src/features/catalog/courseCache.ts` | Hadi's Claude | preview, cards, requirements |
+| `GET /api/programs/:programGroupId` → `Program` (requirements, courses resolved to catalog ids) | `src/app/api/programs/[id]/route.ts` | Hadi's Claude | requirements rail |
+| B17 sample plans: optional `Program.samplePlanUrl` (UMN's sampleplan.umn.edu page for the program, from CourseDog `customFields.cdSamplePlanLink`; https umn.edu links only); `samplePlanUrl(raw)`. Linked under the program name, never copied | `src/domain/requirements.ts`, `src/server/programs/normalize.ts` | Hadi's Claude | requirements rail |
+| `CourseDetails.prereqText` (prerequisite clause) + `parsePrereqs` / `checkPrereqs` | `src/domain/course.ts`, `src/domain/prereqs.ts` | Hadi's Claude | schedule warnings, preview |
+| Phase C/C1: `Rule.description?` (the catalog's explanation, shown as written); `GroupRule.kind` adds `"numberOf"` with `count` (children to complete) and `totalCourses`; `RuleResult.areas` (children covered). Anything switching on rule kinds must handle `numberOf` (it has `children`) | `src/domain/requirements.ts`, `src/server/programs/normalize.ts` | Hadi's Claude | rail, autofill, program store |
+| B11 elective badge: `programCourseIds(program)` (every course a program lists) + `useIsElective(courseId, programIds)` (false while programs load or with none selected) | `src/domain/requirements.ts`, `src/features/requirements/useElective.ts` | Hadi's Claude | course cards; later B12 double-dip |
+| `healthCheck`, `pacing`, `offeringHistory` (plan health, B4–B6) + `useHealth(plan)` | `src/domain/health.ts`, `src/features/plan-editor/useHealth.ts` | Hadi's Claude | header panel, cards, advisor export (B10) |
+| ‹ › move arrows: `snapMove(plan, from, courseId, "earlier" \| "later", termsOffered, hiddenSeasons)` → nearest offered term within the plan (skips hidden seasons, leave semesters, duplicates); `moveTargets` / `moveTo` / `announce` (focus follows the card) | `src/domain/moveSnap.ts`, `src/features/plan-editor/moveCourse.ts` | Hadi's Claude | course cards, card menus |
+| `findCourseIdsByCode()` (server) | `src/server/catalog/courses.ts` | Hadi's Claude | transcript import |
+| B27 natural-language search: `parseNaturalQuery(q, departments)` → `{ text, filters, understood }` or null for plain searches; `GET /api/departments` → `{ code, name }[]`; search filter `dept=CSCI` (additive) | `src/domain/naturalQuery.ts`, `src/app/api/departments/route.ts`, `src/features/search/` | Hadi's Claude | top-bar search |
+| `usePlanStore`: `plan`, `revision`, `loadPlan`, `patchMeta`, `subscribe` | `src/features/plan-editor/store.ts` | Hadi's Claude | autosave |
+| `planActions` (`addCourse`, `removeCourse`, `moveCourse`, `setLock`, …) | `src/features/plan-editor/store.ts` | Hadi's Claude | preview (lock toggle), transcript import |
+| `useCourseInfo(id)`, `useCreditTotal(ids)` | `src/features/catalog/courseCache.ts` | Hadi's Claude | anywhere a course or credit sum is shown |
+| B24 autofill: `pickCourses(results, planned, credits?)` → `{ picks, skipped }`; `placeCourses({ plan, picks, course, hiddenSeasons, maxCredits, useSummer })` → `{ placements, unplaced }` (future regular terms only, offered seasons, prerequisite order, 3xxx+ not in the plan's first year); `<AutofillButton plan />` (review dialog, applies only ticked suggestions). `equivalentCodes` now also maps `…V`/`…W` to the base course | `src/domain/autofill.ts`, `src/features/plan-editor/AutofillButton.tsx` | Hadi's Claude | plan header |
+| `<PlanEditor initialPlan={plan} />` | `src/features/plan-editor/PlanEditor.tsx` | Hadi's Claude | plan route pages |
+| `<DisplaySettingsForm />` | `src/features/plan-editor/DisplaySettingsForm.tsx` | Hadi's Claude | Settings modal |
+| `usePreviewStore`: `openPreview`, `hoverPreview`, `closePreview` | `src/features/preview/store.ts` | Michael's Codex | cards, search, requirements |
+| `<PreviewLayer />` | `src/features/preview/PreviewLayer.tsx` | Michael's Codex | plan editor |
+| `<UserMenu />` | `src/features/auth/UserMenu.tsx` | Michael's Codex | top bar |
+| Browser-local `planumn:theme:v1` (`system`/`light`/`dark`), early root bootstrap + cross-tab controller; `useSearchShortcut(inputRef)` respects handled/composing/repeated events and hidden/inert modal backgrounds | `src/features/theme/` (B20 narrow integrations assigned on #16) | Michael's Codex | Settings appearance radios, root token overrides, top-bar Cmd/Ctrl+K search focus |
+| `<SaveStatus />` | `src/features/plans/SaveStatus.tsx` | Michael's Codex | plan header |
+| `PlanRepository` | `src/contracts/plan-repository.ts` | interface: Hadi's Claude · impls: Michael's Codex | plan routes, My Plans |
+| APAS extension ↔ page messages (`window.postMessage`, nonce per import; report kept in memory only) | `src/features/apas/protocol.ts` + `extension/src/protocol.js` (kept in sync by a test) | Ishaan's Claude | `/plan/apas`, the APAS import extension; the B1 parser later |
+| APAS parser (B1 step 2): `ApasAudit` (program, catalog term, expected graduation, `courses: ApasCourse[]` with `kind` + `earnedCredit`, `requirements` with status, needs, sub-requirements and select-from `options`) and the pure conversions (`parseApasTerm`, `parseApasCourseCode`, `classifyApasCourse`); `parseApasReport(doc)` / `parseApasHtml(html)` → `ApasAudit \| null`; `<ParsedAudit html />` on `/plan/apas` | `src/domain/apas.ts`, `src/features/apas/parseReport.ts`, `src/features/apas/ParsedAudit.tsx` | Hadi's Claude | `/plan/apas`; next: APAS → plan |
+| APAS → plan: `apasPlan(audit, ids, programIds, now?)` → `{ plan, matched, placeholders, skipped, program }`; `apasProgramId(apasCode, programIds)`; `POST /api/courses/by-code` `{ codes }` → `{ ids: { "CSCI 1001": 3480 } }` (≤ 400 codes, same-origin, no-store); `<ApasPlanStep audit />` (review, then save to the browser autosave and open `/plan/autosave`) | `src/domain/apasPlan.ts`, `src/app/api/courses/by-code/route.ts`, `src/features/apas/ApasPlanStep.tsx` | Hadi's Claude | `/plan/apas` |
+| Twin Cities Lib Ed designations: `GET /api/libed?ids=` → `{ [courseId]: string[] (CLE codes) \| null }`; `libEdCoverage(plan, lookup)`; `<LibEdCoverage plan />` | `src/app/api/libed/route.ts`, `src/server/libed/libEdSource.ts` (CourseDog `attributes`), `src/domain/libed.ts`, `src/features/libed/` | Ishaan's Claude | requirements rail (B3); later B8 filters, B12 double-dip |
+| B12 double-dip finder: `doubleDipCandidates(results, planned)`, `findDoubleDips({ results, planned, libEd, coveredLibEd })` (unsatisfied requirements with units > 0, plus Lib Ed designations no planned course or slot covers); `<DoubleDipFinder plan results />`. `OptionChip` (rail course chip) is now exported | `src/domain/doubleDip.ts`, `src/features/requirements/DoubleDipFinder.tsx` | Hadi's Claude | requirements rail |
+| Placeholder course slots (B2): optional `Semester.placeholders?: PlaceholderCourse[]` (`key`, `label`, `credits`, `libEd?`); `placeholderCredits()`; `addPlaceholder` / `removePlaceholder` | `src/domain/plan.ts`, `src/domain/planOps.ts` | Ishaan's Claude | editor, health pacing, workload, Lib Ed coverage, `isPlan`, snapshot links (optional 3rd element per semester), advisor PDF |
+| Special semesters (B19): optional `Semester.kind?: "abroad" \| "coop" \| "leave"`; `SEMESTER_KINDS`, `isSemesterKind`; `setSemesterKind` | `src/domain/plan.ts`, `src/domain/planOps.ts` | Ishaan's Claude | editor (badge + menu), health (no load notes; leave-with-courses note), `isPlan`, snapshot links (optional 4th element), advisor PDF |
+| Prior credit (B18): `Semester.kind = "prior"` bucket one term before the plan (in the existing `semesters` JSON, no schema change); `addPriorCredit`, `keepPriorFirst`, `semesterKindLabel`, `PRIOR_CREDIT_LABEL` | `src/domain/plan.ts`, `src/domain/planOps.ts` | Ishaan's Claude | schedule panel, health (no notes for prior), prereqs (counts as taken), PDF header, share view |
+| Minor finder (B14): `GET /api/minors?ids=&exclude=` → `{ checked, minors: { id, name, matched: {id, code}[], filled, units }[] }` (top 15); `rankMinors()`; `<MinorFinder plan />` (on demand) | `src/app/api/minors/route.ts`, `src/server/minors/minorIndex.ts` (CourseDog, batched, cached for days), `src/domain/minors.ts`, `src/features/minors/` | Ishaan's Claude | requirements rail |
+| B26 admission to the major: `Requirement.level?: "admission" \| "subplan"` (from CourseDog `requirementLevel`; absent = ordinary), `Program.admissionNotes?` / `admissionLinks?` (the catalog's admission text and its https links); `admissionChecklist(result, semesters)` → `{ items: { result, plannedBy }[], met, plannedBy, notes, links }` or null; `<AdmissionChecklist plan result />` | `src/domain/requirements.ts`, `src/server/programs/normalize.ts`, `src/domain/admission.ts`, `src/features/requirements/AdmissionChecklist.tsx` | Hadi's Claude | requirements rail (top of each program) |
+
+To change a contract, say so in the PR description under **Contract change**. The other side signs off in review.
+
+## Advisor PDF export — Michael's Codex
+
+> Written by **Michael's Codex**, 2026-10-27.
+
+`src/features/export/advisorPdf.ts` exports `createAdvisorPdf(plan, courses, options)` → `{ bytes, pages, missingCourses }` and `advisorFileName(title)`. It consumes a current `Plan` snapshot and catalog summaries without changing them. Standard four-year plans fit one A4 landscape page; long or dense plans continue onto labelled pages instead of omitting courses. Optional program names and unofficial audit counts can be included.
+
+`ExportPlanButton` is mounted beside `SaveStatus` in the plan header. The PDF library is loaded only when requested. The snapshot and PDF remain in the browser; only missing public catalog details are fetched through the existing courses API. This feature does not require an account, a new API route, or a schema/RLS change.
