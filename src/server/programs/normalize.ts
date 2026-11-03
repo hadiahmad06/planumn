@@ -1,4 +1,5 @@
 // Relative with extensions: scripts/requirement-coverage.ts runs this file in plain Node (C0).
+import { readCoursePattern } from "../../domain/coursePatterns.ts";
 import { readCreditConstraints, type CreditConstraint } from "../../domain/creditConstraints.ts";
 import type { CourseOption, Program, Requirement, RequirementLevel, Rule } from "@/domain/requirements";
 import { CREDIT_OVERRIDES, type CreditOverride } from "./creditOverrides.ts";
@@ -116,10 +117,34 @@ function ruleConstraints(r: RawRule, text: string, overrides: Record<string, Cre
   return readCreditConstraints(text, r.name).filter((c) => !(c.kind === "total" && c.credits === structuredMin && !c.maxCredits));
 }
 
-function normalizeRule(r: RawRule, resolve: ResolveOption, path: string, overrides?: Record<string, CreditOverride[]>): Rule {
+/** Options `normalizeProgram` passes down to every rule. */
+interface RuleContext {
+  overrides?: Record<string, CreditOverride[]>;
+  /** C3: catalog subject codes, so only real subjects are read from pattern text. */
+  subjects?: ReadonlySet<string>;
+}
+
+/**
+ * C3: a leaf rule that lists no courses gets the course pattern its catalog text describes, if any
+ * ("Complete additional 4xxx/5xxx EE courses …"). Rules that list courses keep only their list, even when
+ * their text mentions a pattern (87 such rules in the 2026-10-28 survey). Shown only.
+ */
+function withPattern(rule: Rule, r: RawRule, ctx: RuleContext): Rule {
+  const listsNothing = rule.kind === "text" || (rule.kind === "courses" && rule.choices.every((c) => c.options.length === 0));
+  if (!listsNothing) return rule;
+  const text = [r.name, rule.description, rule.notes, rule.kind === "text" ? rule.text : null].filter(Boolean).join("\n");
+  const pattern = readCoursePattern(text, { subjects: ctx.subjects });
+  return pattern ? { ...rule, pattern } : rule;
+}
+
+function normalizeRule(r: RawRule, resolve: ResolveOption, path: string, ctx: RuleContext): Rule {
+  return withPattern(normalizeRuleKind(r, resolve, path, ctx), r, ctx);
+}
+
+function normalizeRuleKind(r: RawRule, resolve: ResolveOption, path: string, ctx: RuleContext): Rule {
   const description = htmlToText(r.description);
   const notes = htmlToText(r.notes);
-  const constraints = ruleConstraints(r, [description, notes].filter(Boolean).join("\n"), overrides);
+  const constraints = ruleConstraints(r, [description, notes].filter(Boolean).join("\n"), ctx.overrides);
   const base = {
     id: r.id ?? path,
     name: (r.name ?? "").trim() || "Requirement",
@@ -127,7 +152,7 @@ function normalizeRule(r: RawRule, resolve: ResolveOption, path: string, overrid
     ...(description ? { description } : {}),
     ...(constraints.length ? { constraints } : {}),
   };
-  const children = () => (r.subRules ?? []).map((s, i) => normalizeRule(s, resolve, `${path}.${i}`, overrides));
+  const children = () => (r.subRules ?? []).map((s, i) => normalizeRule(s, resolve, `${path}.${i}`, ctx));
   if (r.condition === "anyOf" || r.condition === "allOf") return { ...base, kind: r.condition, children: children() };
   if (r.condition === "numberOf") {
     // C1: "complete N of these" (EE Breadth and Depth: number 4 areas, restriction 5 courses).
@@ -182,14 +207,18 @@ function requirementConstraints(g: RawGroup): { constraints?: CreditConstraint[]
   return constraints.length ? { constraints } : {};
 }
 
-export function normalizeProgram(raw: RawProgram, resolve: ResolveOption, overrides = CREDIT_OVERRIDES): Program {
+/**
+ * `subjects` (C3): the catalog's subject codes. Without it, pattern text is read with a short list of
+ * capitalized words that aren't subjects ("OR", "GPA").
+ */
+export function normalizeProgram(raw: RawProgram, resolve: ResolveOption, overrides = CREDIT_OVERRIDES, subjects?: ReadonlySet<string>): Program {
   const groups = Object.values(raw.requisites ?? {}).flat();
-  const programOverrides = overrides[raw.programGroupId ?? ""];
+  const ctx: RuleContext = { overrides: overrides[raw.programGroupId ?? ""], subjects };
   const requirements: Requirement[] = groups.map((g, i) => ({
     id: g.id ?? `req-${i}`,
     name: (g.name ?? "").trim() || "Requirement",
     notes: htmlToText(g.notes),
-    rules: (g.rules ?? []).map((r, j) => normalizeRule(r, resolve, `req-${i}.${j}`, programOverrides)),
+    rules: (g.rules ?? []).map((r, j) => normalizeRule(r, resolve, `req-${i}.${j}`, ctx)),
     ...requirementConstraints(g),
     ...(g.requirementLevel && LEVELS[g.requirementLevel] ? { level: LEVELS[g.requirementLevel] } : {}),
   }));

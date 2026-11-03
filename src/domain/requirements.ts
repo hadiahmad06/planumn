@@ -1,4 +1,5 @@
 import { equivalentCodes, type CourseId, type CreditRange } from "./course";
+import { patternMatches, type CoursePattern, type PatternMatch } from "./coursePatterns";
 import { constraintProgress, type ConstraintPart, type ConstraintProgress, type CreditConstraint, type ListedCourse } from "./creditConstraints";
 
 /**
@@ -38,6 +39,11 @@ interface RuleBase {
    * **Shown, never counted** toward progress (Hadi, 2026-10-28: "show first").
    */
   constraints?: CreditConstraint[];
+  /**
+   * C3 (Phase C): a subject-and-level pattern ("4xxx/5xxx EE, excluding EE 4981H") read from the catalog
+   * text of a leaf rule that lists no courses. **Shown, never counted** (Hadi, 2026-10-28: "show first").
+   */
+  pattern?: CoursePattern;
 }
 
 export interface CoursesRule extends RuleBase {
@@ -106,6 +112,8 @@ export interface PlannedForAudit {
   courseId: CourseId;
   /** Credits counted toward credit minimums (the course's minimum credits). */
   credits: number;
+  /** C3: "EE 4111", to match catalog-text patterns. Optional; without it no pattern matches the course. */
+  code?: string | null;
 }
 
 export interface RuleResult {
@@ -124,6 +132,8 @@ export interface RuleResult {
   children?: RuleResult[];
   /** C2: planned credits against `rule.constraints`. Display only; never affects `satisfied`/`filled`. */
   constraints?: ConstraintProgress[];
+  /** C3: planned courses matching `rule.pattern`. Display only; never affects `satisfied`/`filled`. */
+  patternMatches?: PatternMatch[];
 }
 
 export interface RequirementResult {
@@ -192,6 +202,7 @@ function evaluateCourses(rule: CoursesRule, planned: PlannedForAudit[]): RuleRes
 
 export function evaluateRule(rule: Rule, planned: PlannedForAudit[]): RuleResult {
   const result = evaluateRuleKind(rule, planned);
+  if (rule.pattern) result.patternMatches = patternMatches(rule.pattern, planned);
   if (!rule.constraints?.length) return result;
   const children = rule.kind === "anyOf" || rule.kind === "allOf" || rule.kind === "numberOf" ? rule.children : [];
   return { ...result, constraints: progressOf(rule.constraints, [rule], children, planned) };
