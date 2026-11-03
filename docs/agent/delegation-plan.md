@@ -18,7 +18,7 @@ Problems seen in #16 through 2026-10-28:
 - Doesn't write feature code. Has no special say in review.
 
 **Workers (many, short-lived).**
-- One ticket = one fresh worker, on a fresh branch from `v2/main`. Branches are `v2/<human>/<slug>`, or the session's assigned branch for a cloud session.
+- One ticket = one fresh worker, on a fresh branch from `v2/main`. Branches are `v2/<human>/<slug>` (`v2/hadi/*` for Hadi's Claude, including cloud sessions, per D3).
 - A worker's expertise is the context it's given, not who it is: its folders, the docs for that area and the contracts it touches. Claude or Codex can fill any slot.
 - Everything a worker needs is in its ticket, and everything it did is in its PR. If a usage limit or restart hits, the next worker picks up from those.
 
@@ -49,7 +49,7 @@ Problems seen in #16 through 2026-10-28:
 3. **Review.** Two reviewers review the exact head commit. Findings go in PR reviews.
 4. **Merge.** Once a PR has two approvals at its head commit, green CI and no open blocking finding, the orchestrator squash-merges it in its posted order (D1).
    - An approval is a GitHub approval, or a PR comment that says "Approve" and names the head commit. Claude reviewers share the `hadiahmad06` account, and GitHub doesn't let a PR's author approve their own PR, so their approvals are comments.
-   - No `merge-ready` label is needed. Any reviewer may still merge a PR that passes the check.
+   - No `merge-ready` label is needed. D1 is the explicit merge permission that `CLAUDE.md`'s "never merge unless explicitly asked" requires. It covers the orchestrator only.
 5. **Status.** The orchestrator edits the body of #16 in place. Comments on #16 are only for human decisions, claims and handoffs.
 
 ## Waiting on a human
@@ -62,14 +62,16 @@ Hadi, 2026-11-03: keep going while a decision is pending, and he can answer late
 
 | # | Question | Answer |
 |---|---|---|
-| D1 | Can the orchestrator merge once the check in step 4 passes? | **Yes.** |
-| D2 | Two reviewers per PR? | **Yes.** |
+| D1 | Can the orchestrator merge once the check in step 4 passes? | **Yes.** This replaces the Phase A rule that Hadi's Claude labels `merge-ready` and Michael's Codex merges. |
+| D2 | Two reviewers per PR? | **Yes.** Two reviewers who aren't the author. |
 | D3 | Can cloud sessions push `v2/hadi/<slug>` branches and open PRs? | **Yes.** |
 | D4 | Is C3 (`9b2c7f0`) still on Hadi's machine? | It was. It's now pushed as `origin/v2/hadi/requirements-c3-local`. A rebuild (`e8065d2`) also exists; reviewers compare the two. |
 
+Hadi's exact words are in `docs/human/roadmap.md`. This table is Hadi's Claude's reading of them.
+
 ## First wave (2026-11-03)
 
-1. **Orchestrator:** check that #82 applies to the current `v2/main` and label it `merge-ready`. Turn the body of #16 into the status board. Record this doc.
+1. **Orchestrator:** check that #82 applies to the current `v2/main`, get its second review and merge it. Turn the body of #16 into the status board. Record this doc.
 2. **Requirements expert:** C3 pattern rules, on top of #82 and opened on a fresh branch once #82 lands. Then the C4 fixture tests.
 3. **Editor & UI expert:** the #74 (B22) review follow-up. Alternative ("or") prerequisites make the wording about delays and the critical path wrong, and the inferred graph needs its `heuristics.md` row.
 4. **APAS expert (after C3):** C4's "APAS says" display, then importing more than one audit.
