@@ -9,8 +9,9 @@ import { cn } from "@/components/ui/cn";
 import { useCourseCache } from "@/features/catalog/courseCache";
 
 /**
- * Prerequisite chain (B22). Written by Ishaan's Claude. Shows the plan's longest prerequisite chain
- * (delaying any course on it pushes the rest back) and which later courses each course unlocks.
+ * Prerequisite chain (B22). Written by Ishaan's Claude; "or" wording by Hadi's Claude. Shows the plan's
+ * longest chain of required prerequisites and which later courses each course unlocks. A course that is
+ * only one of several planned options ("A or B") is never called required, and isn't on the chain.
  */
 export function PrereqChain({ plan }: { plan: Plan }) {
   const [open, setOpen] = useState(true);
@@ -22,6 +23,7 @@ export function PrereqChain({ plan }: { plan: Plan }) {
   for (const s of plan.semesters) for (const c of s.courses) if (!termOf.has(c.id)) termOf.set(c.id, s.index);
   const code = (id: CourseId) => details[id]?.code ?? String(id);
   const keys = [...unlocks.entries()].filter(([, later]) => later.length > 0).sort((a, b) => b[1].length - a[1].length);
+  const hasAlternatives = keys.some(([, later]) => later.some((u) => !u.required));
 
   return (
     <section className="flex flex-col gap-2 border-t border-border pt-4" aria-label="Prerequisite chain">
@@ -33,10 +35,11 @@ export function PrereqChain({ plan }: { plan: Plan }) {
       {open && (
         <>
           <p className="text-micro text-text-tertiary">
-            From catalog prerequisite text. Delaying a course on the longest chain pushes every course after it back.
+            Inferred from catalog prerequisite text, so it can miss or misread a requirement. The chain only follows prerequisites your
+            plan has no other planned way to meet: moving one of them later pushes the next course back unless you add an alternative.
           </p>
           {criticalPath.length === 0 ? (
-            <p className="text-text-tertiary">No planned course needs another planned course yet.</p>
+            <p className="text-text-tertiary">No planned course needs one specific planned course yet.</p>
           ) : (
             <ol className="flex flex-col gap-0.5 text-micro">
               {criticalPath.map((id, i) => (
@@ -50,12 +53,25 @@ export function PrereqChain({ plan }: { plan: Plan }) {
           )}
           {keys.length > 0 && (
             <ul className="flex flex-col gap-0.5 text-micro text-text-secondary">
-              {keys.slice(0, 6).map(([id, later]) => (
-                <li key={id}>
-                  <span className="font-medium text-text-primary">{code(id)}</span> unlocks {later.map(code).join(", ")}
-                </li>
-              ))}
+              {keys.slice(0, 6).map(([id, later]) => {
+                const required = later.filter((u) => u.required).map((u) => code(u.id));
+                const optional = later.filter((u) => !u.required).map((u) => code(u.id));
+                return (
+                  <li key={id}>
+                    <span className="font-medium text-text-primary">{code(id)}</span>
+                    {required.length > 0 && <> unlocks {required.join(", ")}</>}
+                    {required.length > 0 && optional.length > 0 && ";"}
+                    {optional.length > 0 && <> is one option for {optional.join(", ")}</>}
+                  </li>
+                );
+              })}
             </ul>
+          )}
+          {hasAlternatives && (
+            <p className="text-micro text-text-tertiary">
+              &ldquo;One option&rdquo;: the prerequisite can be met another way in your plan (another course planned earlier also meets
+              that part), so this link isn&apos;t counted on the chain.
+            </p>
           )}
         </>
       )}
