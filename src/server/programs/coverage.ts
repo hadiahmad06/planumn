@@ -1,4 +1,5 @@
 import { collectGroupIds, htmlToText, normalizeProgram, type RawGroup, type RawProgram, type RawRule } from "./normalize.ts";
+import { describePattern, type PatternForm } from "../../domain/coursePatterns.ts";
 import type { Rule } from "@/domain/requirements";
 
 /**
@@ -58,6 +59,8 @@ export interface ProgramCoverage {
   emptyCourseRules: RuleFinding[];
   /** C2: normalized rules and requirements carrying credit constraints read from text (shown, not counted). */
   readConstraints: number;
+  /** C3: leaf rules listing no courses that get a course pattern from their text (shown, not counted). Detail = the pattern. */
+  patternRules: (RuleFinding & { forms: PatternForm[] })[];
   ids: Record<IdStatus, number>;
   unresolvedIds: string[];
 }
@@ -66,7 +69,8 @@ const hasStructuredCredits = (r: RawRule) => [r.minCredits, r.maxCredits, r.cred
 const ruleName = (r: { name?: string }) => (r.name ?? "").trim() || "(unnamed rule)";
 const clip = (s: string, n = 140) => (s.length > n ? `${s.slice(0, n - 1)}…` : s);
 
-export function analyzeProgram(raw: RawProgram, idStatus: (groupId: string) => IdStatus): ProgramCoverage {
+/** `subjects` (C3): the catalog's subject codes, as `getProgram` passes them to the normalizer. */
+export function analyzeProgram(raw: RawProgram, idStatus: (groupId: string) => IdStatus, subjects?: ReadonlySet<string>): ProgramCoverage {
   const out: ProgramCoverage = {
     id: raw.programGroupId ?? "",
     name: raw.catalogDisplayName ?? raw.name ?? "Program",
@@ -77,6 +81,7 @@ export function analyzeProgram(raw: RawProgram, idStatus: (groupId: string) => I
     proseOnlyCredits: [],
     emptyCourseRules: [],
     readConstraints: 0,
+    patternRules: [],
     ids: { catalog: 0, coursedog: 0, old: 0, unresolved: 0 },
     unresolvedIds: [],
   };
@@ -113,7 +118,19 @@ export function analyzeProgram(raw: RawProgram, idStatus: (groupId: string) => I
     if (status === "unresolved") out.unresolvedIds.push(id);
   }
 
-  const program = normalizeProgram(raw, (groupId) => ({ groupId, courseId: null, code: null, title: null, credits: null }));
+  const program = normalizeProgram(raw, (groupId) => ({ groupId, courseId: null, code: null, title: null, credits: null }), undefined, subjects);
+  const visitPatterns = (rule: Rule, requirement: string) => {
+    if (rule.pattern) {
+      const p = rule.pattern;
+      const detail = [
+        describePattern(p),
+        p.exclude.length ? `excluding ${p.exclude.join(", ")}` : "",
+        p.include.length ? `also ${p.include.join(", ")}` : "",
+      ].filter(Boolean);
+      out.patternRules.push({ requirement, rule: rule.name, detail: detail.join("; "), forms: p.forms });
+    }
+    if (rule.kind !== "courses" && rule.kind !== "text") rule.children.forEach((c) => visitPatterns(c, requirement));
+  };
   const visitNormalized = (rule: Rule, requirement: string) => {
     if (rule.constraints?.length) out.readConstraints++;
     if (rule.kind === "courses" && rule.choices.every((c) => c.options.length === 0)) {
@@ -124,6 +141,7 @@ export function analyzeProgram(raw: RawProgram, idStatus: (groupId: string) => I
   for (const req of program.requirements) {
     if (req.constraints?.length) out.readConstraints++;
     req.rules.forEach((r) => visitNormalized(r, req.name));
+    req.rules.forEach((r) => visitPatterns(r, req.name));
   }
   return out;
 }

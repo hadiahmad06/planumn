@@ -72,6 +72,14 @@ describe("requirement coverage (C0)", () => {
     expect(c.emptyCourseRules.map((f) => f.rule)).toEqual(["Area 2"]);
   });
 
+  it("lists rules where C3 reads a course pattern, with the forms it used", () => {
+    expect(c.patternRules).toEqual([
+      { requirement: "Technical Electives", rule: "Pattern", detail: "EE 4xxx/5xxx", forms: ["level-subject"] },
+    ]);
+    // With the catalog's subject list, an unknown subject isn't read.
+    expect(analyzeProgram(raw, (id) => status[id], new Set(["CSCI"])).patternRules).toEqual([]);
+  });
+
   it("reads credit phrases", () => {
     expect(creditPhrases("34 total credits, minimum of 22 credits; up to 12 credits; 4 cr")).toEqual(["34 total credits", "22 credits", "12 credits", "4 cr"]);
     expect(creditPhrases("3.5 credits or 2 to 4 credits")).toEqual(["3.5 credits", "2 to 4 credits"]);

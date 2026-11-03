@@ -110,7 +110,11 @@ async function main() {
   }
   const idStatus = (id: string): IdStatus => (inCatalog.has(id) ? "catalog" : (status.get(id) ?? "unresolved"));
 
-  const results = programs.map((p) => analyzeProgram(p, idStatus));
+  // C3: the same subject list getProgram gives the normalizer.
+  const subjects = new Set(
+    (db.prepare("SELECT dept_abbr AS code FROM departmentdistribution WHERE campus = 'UMNTC'").all() as { code: string }[]).map((r) => r.code),
+  );
+  const results = programs.map((p) => analyzeProgram(p, idStatus, subjects));
   writeFileSync(OUT, render(results, failed, allIds.length));
   console.error(`wrote ${path.relative(process.cwd(), OUT)} (${results.length} programs, ${failed.length} failed)`);
 }
@@ -151,6 +155,7 @@ function render(results: ProgramCoverage[], failed: string[], uniqueIds: number)
   p(`| \`freeformText\` rules (prose only, nothing checkable) | ${sum((r) => r.freeform.length)} | ${count((r) => r.freeform.length > 0)} |`);
   p(`| Credit counts only in \`description\`/notes (no \`minCredits\`/\`maxCredits\`/\`credits\`) | ${sum((r) => r.proseOnlyCredits.length)} | ${count((r) => r.proseOnlyCredits.length > 0)} |`);
   p(`| Rules and requirements where C2 reads a credit constraint from text (shown, not counted) | ${sum((r) => r.readConstraints)} | ${count((r) => r.readConstraints > 0)} |`);
+  p(`| Rules listing no courses where C3 reads a course pattern from text (shown, not counted) | ${sum((r) => r.patternRules.length)} | ${count((r) => r.patternRules.length > 0)} |`);
   p(`| Course rules that normalize to **no options** | ${sum((r) => r.emptyCourseRules.length)} | ${count((r) => r.emptyCourseRules.length > 0)} |`);
   p(`| Programs with an unresolved course id | — | ${count((r) => r.unresolvedIds.length > 0)} |`);
   p();
@@ -162,6 +167,15 @@ function render(results: ProgramCoverage[], failed: string[], uniqueIds: number)
   p(`| CourseDog, current id | ${idTotals.coursedog} | shown by name, "isn't in planu.mn's course data yet" |`);
   p(`| CourseDog, **old** id (\`deprecatedCourseGroupId\`) | ${idTotals.old} | blank on \`v2/main\`; resolved by #80 (C1c) |`);
   p(`| Nothing | ${idTotals.unresolved} (${unresolvedUnique.size} distinct) | shown as "Other approved course" |`);
+  p();
+  p("### Course patterns read from text (C3)");
+  p();
+  p("| Form | Rules | Programs |");
+  p("|---|---|---|");
+  for (const form of ["subject-level", "level-subject", "or-higher", "any-subject", "non-subject", "exclude", "include"] as const) {
+    const has = (r: ProgramCoverage) => r.patternRules.filter((f) => f.forms.includes(form)).length;
+    p(`| \`${form}\` | ${sum(has)} | ${count((r) => has(r) > 0)} |`);
+  }
   p();
   p("### Rule conditions");
   p();
@@ -211,6 +225,7 @@ function render(results: ProgramCoverage[], failed: string[], uniqueIds: number)
       ...r.freeform.map((f) => ["freeform", f] as const),
       ...r.proseOnlyCredits.map((f) => ["prose credits", f] as const),
       ...r.emptyCourseRules.map((f) => ["empty", f] as const),
+      ...r.patternRules.map((f) => ["pattern (C3)", f] as const),
     ];
     if (!rows.length && !r.unresolvedIds.length) continue;
     p();

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { courseCode } from "@/domain/course";
 import type { Plan } from "@/domain/plan";
 import { evaluateProgram, type PlannedForAudit, type ProgramResult } from "@/domain/requirements";
 import { useCourseCache } from "@/features/catalog/courseCache";
@@ -20,7 +21,9 @@ export function useAudit(plan: Plan | null): { results: ProgramResult[]; met: nu
       for (const c of sem.courses) {
         if (seen.has(c.id)) continue;
         seen.add(c.id);
-        planned.push({ courseId: c.id, credits: (courses[c.id] ?? summaries[c.id])?.credits.min ?? 0 });
+        const known = courses[c.id] ?? summaries[c.id];
+        // The code lets C3's catalog-text patterns ("EE 4xxx") list the course; it never changes progress.
+        planned.push({ courseId: c.id, credits: known?.credits.min ?? 0, code: known ? courseCode(known) : null });
       }
     const results = plan.programs.flatMap((id) => {
       const e = entries[id];
