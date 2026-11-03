@@ -96,4 +96,22 @@ describe("constraintProgress (C2)", () => {
     expect(range([4, 4, 4, 4, 4, 4])).toEqual([[24, true]]);
     expect(range([4, 4, 4, 4, 4, 4, 4])).toEqual([[28, false]]);
   });
+
+  // #82 review: a range on a named list kept only its minimum ("At least 18 …") and read as met at 28.
+  it("labels a named-list range as a range and marks it met only inside it", () => {
+    const constraints = readCreditConstraints("Take 18 - 24 credits of Core Department Electives.", "Technical Electives");
+    expect(constraints.map(describeConstraint)).toEqual(["18–24 credits from Core Department Electives"]);
+    const range = (credits: number[]) => {
+      const ids = credits.map((_, i) => 200 + i);
+      return constraintProgress(
+        constraints,
+        ids.map((courseId, i) => ({ courseId, code: `EE 41${i}1` })),
+        [{ name: "Core Department Electives", courseIds: new Set(ids) }],
+        credits.map((c, i) => ({ courseId: ids[i], credits: c })),
+      ).map((p) => [p.planned, p.met]);
+    };
+    expect(range([4, 4, 4, 4])).toEqual([[16, false]]);
+    expect(range([4, 4, 4, 4, 4])).toEqual([[20, true]]);
+    expect(range([4, 4, 4, 4, 4, 4, 4])).toEqual([[28, false]]);
+  });
 });

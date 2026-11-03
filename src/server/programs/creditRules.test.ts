@@ -25,6 +25,16 @@ const raw = {
           { id: "all", name: "Required Courses", condition: "completedAllOf", value: ids("1", "2") },
           { id: "any", name: "Cognitive Science", condition: "completedAnyOf", credits: 2, value: ids("3") },
           { id: "atleast", name: "Fluids Technical Electives", condition: "completedAtLeastXOf", restriction: 0, minCourses: 0, value: ids("2") },
+          // #82 review: structured credits the normalized rule doesn't keep, so the prose reading must stay.
+          {
+            id: "anycr",
+            name: "Math Electives",
+            condition: "anyOf",
+            minCredits: 12,
+            description: "Take at least 12 credits from the following.",
+            subRules: [{ id: "anycr.list", name: "Math list", condition: "minimumCourses", minCourses: 1, value: ids("3") }],
+          },
+          { id: "varcr", name: "Free Electives", condition: "completeVariableCoursesAndVariableCredits", credits: 12, description: "Take 12 credits from the following.", value: ids("1", "2") },
         ],
       },
     ],
@@ -47,6 +57,17 @@ describe("credit constraints in the normalizer (C2)", () => {
 
   it("drops a reading that only repeats the structured minCredits", () => {
     expect(rule("dup").constraints).toBeUndefined();
+  });
+
+  it("keeps a reading whose structured credits the normalized rule doesn't count", () => {
+    expect(rule("anycr")).not.toHaveProperty("minCredits");
+    expect(rule("anycr").constraints?.map((c) => [c.kind, c.credits])).toEqual([["total", 12]]);
+    expect(rule("varcr") as CoursesRule).toMatchObject({ minCredits: 0 });
+    expect(rule("varcr").constraints?.map((c) => [c.kind, c.credits])).toEqual([["total", 12]]);
+    // Shown, not counted: the anyOf still reads satisfied with 4 credits, and the box says 4 of 12.
+    const result = evaluateProgram(program, [{ courseId: 3, credits: 4 }]).requirements[0].rules.find((r) => r.rule.id === "anycr")!;
+    expect(result.satisfied).toBe(true);
+    expect(result.constraints?.map((p) => [p.planned, p.met])).toEqual([[4, false]]);
   });
 
   it("keeps a prose cap even when the raw rule has maxCredits, since the normalized rule has no maximum", () => {

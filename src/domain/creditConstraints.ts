@@ -24,7 +24,7 @@ export type CreditConstraintKind =
 export interface CreditConstraint {
   kind: CreditConstraintKind;
   credits: number;
-  /** total only: the top of a range ("18 - 24 credits"). */
+  /** total/min: the top of a range ("18 - 24 credits", "18 - 24 credits of Core Department Electives"). */
   maxCredits?: number;
   /** min/max: the part the catalog names, as written (absent on a max = the rule itself); dept: the subject code ("CSCI"). */
   scope?: string;
@@ -118,7 +118,8 @@ export function readCreditConstraints(text: string | null | undefined, ruleName 
           else if (bullet && !/this list|these courses|following/i.test(sentence)) c.scope = bullet;
           else if (!/this list|these courses|following|total/i.test(sentence)) continue;
         }
-        if (kind === "total" && m[2]) c.maxCredits = Number(m[2]);
+        // A range ("18 - 24 credits") keeps its top, also when it turns out to name a part below.
+        if (kind === "total" && m[2] && Number(m[2]) > credits) c.maxCredits = Number(m[2]);
         if (kind === "total") {
           const part = cleanScope(m[3]?.split(/:/)[0]);
           if (part && !/^(?:electives?|courses?|coursework)$/i.test(part) && !findPart(part, [{ name: ruleName, courseIds: new Set() }])) {
@@ -162,7 +163,7 @@ export interface ConstraintProgress {
   constraint: CreditConstraint;
   /** Planned credits that count toward it; null = planu.mn can't tell which courses the text means. */
   planned: number | null;
-  /** total/min/dept: planned ≥ credits (a bounded total also ≤ maxCredits); max: planned ≤ credits. null when it can't be checked. */
+  /** total/min/dept: planned ≥ credits (a range also ≤ maxCredits); max: planned ≤ credits. null when it can't be checked. */
   met: boolean | null;
 }
 
@@ -205,19 +206,20 @@ export function constraintProgress(
         ? null
         : constraint.kind === "max"
           ? planned <= constraint.credits
-          : planned >= constraint.credits && (constraint.kind !== "total" || !constraint.maxCredits || planned <= constraint.maxCredits);
+          : planned >= constraint.credits && (!constraint.maxCredits || planned <= constraint.maxCredits);
     return { constraint, planned, met };
   });
 }
 
-/** "At least 23 credits", "At most 12 credits from Directed Study", "11 credits with a CSCI designator". */
+/** "At least 23 credits", "18–24 credits from Core Department Electives", "At most 12 credits from Directed Study", "11 credits with a CSCI designator". */
 export function describeConstraint(c: CreditConstraint): string {
   const cr = (n: number) => `${n} credit${n === 1 ? "" : "s"}`;
+  const amount = c.maxCredits && c.maxCredits > c.credits ? `${c.credits}–${cr(c.maxCredits)}` : `At least ${cr(c.credits)}`;
   switch (c.kind) {
     case "total":
-      return c.maxCredits && c.maxCredits > c.credits ? `${c.credits}–${cr(c.maxCredits)} in all` : `At least ${cr(c.credits)} in all`;
+      return `${amount} in all`;
     case "min":
-      return `At least ${cr(c.credits)} from ${c.scope}`;
+      return `${amount} from ${c.scope}`;
     case "max":
       return c.scope ? `At most ${cr(c.credits)} from ${c.scope}` : `At most ${cr(c.credits)} from this list`;
     case "dept":

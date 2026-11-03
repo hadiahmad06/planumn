@@ -106,27 +106,39 @@ export function collectGroupIds(program: RawProgram): string[] {
 
 /**
  * C2: credit constraints for one rule, read from its catalog text unless the program has an override.
- * A reading that only repeats the structured `minCredits` is dropped: that already counts. A prose cap is kept even
- * when the raw rule has `maxCredits`, because the normalized rule doesn't carry or enforce a maximum.
+ * A reading that only repeats the credit minimum the *normalized* rule enforces is dropped: that already
+ * counts. The raw `minCredits`/`credits` isn't enough, since some rules lose it when normalized (an
+ * `anyOf` group carries no credits; `completeVariableCoursesAndVariableCredits` reads only `minCredits`),
+ * and dropping the reading there would hide the only sign of the requirement. A prose cap or range is
+ * always kept, because the normalized rule doesn't carry or enforce a maximum.
  */
-function ruleConstraints(r: RawRule, text: string, overrides: Record<string, CreditOverride[]> | undefined): CreditConstraint[] {
+function ruleConstraints(r: RawRule, rule: Rule, text: string, overrides: Record<string, CreditOverride[]> | undefined): CreditConstraint[] {
   const override = r.id ? overrides?.[r.id] : undefined;
   if (override) return override.map((c) => ({ ...c, source: "override" }));
-  const structuredMin = r.minCredits ?? r.credits;
-  return readCreditConstraints(text, r.name).filter((c) => !(c.kind === "total" && c.credits === structuredMin && !c.maxCredits));
+  const counted = rule.kind === "courses" ? rule.minCredits : 0;
+  return readCreditConstraints(text, r.name).filter((c) => !(c.kind === "total" && c.credits === counted && !c.maxCredits));
 }
 
 function normalizeRule(r: RawRule, resolve: ResolveOption, path: string, overrides?: Record<string, CreditOverride[]>): Rule {
   const description = htmlToText(r.description);
   const notes = htmlToText(r.notes);
-  const constraints = ruleConstraints(r, [description, notes].filter(Boolean).join("\n"), overrides);
-  const base = {
+  const rule = normalizeRuleShape(r, resolve, path, overrides, {
     id: r.id ?? path,
     name: (r.name ?? "").trim() || "Requirement",
     notes,
     ...(description ? { description } : {}),
-    ...(constraints.length ? { constraints } : {}),
-  };
+  });
+  const constraints = ruleConstraints(r, rule, [description, notes].filter(Boolean).join("\n"), overrides);
+  return constraints.length ? { ...rule, constraints } : rule;
+}
+
+function normalizeRuleShape(
+  r: RawRule,
+  resolve: ResolveOption,
+  path: string,
+  overrides: Record<string, CreditOverride[]> | undefined,
+  base: Pick<Rule, "id" | "name" | "notes" | "description">,
+): Rule {
   const children = () => (r.subRules ?? []).map((s, i) => normalizeRule(s, resolve, `${path}.${i}`, overrides));
   if (r.condition === "anyOf" || r.condition === "allOf") return { ...base, kind: r.condition, children: children() };
   if (r.condition === "numberOf") {
