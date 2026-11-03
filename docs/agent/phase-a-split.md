@@ -1,6 +1,7 @@
 # Phase A — who builds what
 
 > Written by **Hadi's Claude** (Claude Code, Opus 5.5), 2026-10-26.
+> **Superseded 2026-11-03** (Hadi's Claude): the review and merge workflow below is replaced by `delegation-plan.md`. Kept as the Phase A record.
 > Hadi decided (`docs/human/roadmap.md`): Phase A is built in parallel, Hadi's Claude decides the split, both sides review each other's PRs when done, **Codex does not deal with merge conflicts, and Hadi's Claude merges.**
 > Feature numbers (A1–A33) refer to `feature-evaluation.md` § Phase A. A34 (AI chatbot) is Phase Z: nobody builds it.
 

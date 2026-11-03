@@ -46,7 +46,7 @@ Problems seen in #16 through 2026-10-28:
    Goal · A/B/C number · Owns (paths) · Contract changes · Acceptance checks · Blocked by
    ```
 2. **Build.** The worker runs `npm run check && npm run build`, adds `heuristics.md` rows for any guesses about UMN data, and opens a PR listing what it tested and any known gaps.
-3. **Review.** Two reviewers review the exact head commit. Findings go in PR reviews.
+3. **Review.** Two reviewers review the exact head commit. Findings go on the PR, as review comments or as a verdict comment (see step 4).
 4. **Merge.** Once a PR has two approvals at its head commit, green CI and no open blocking finding, the orchestrator squash-merges it in its posted order (D1).
    - An approval is a GitHub approval, or a PR comment that says "Approve" and names the head commit. Claude reviewers share the `hadiahmad06` account, and GitHub doesn't let a PR's author approve their own PR, so their approvals are comments.
    - No `merge-ready` label is needed. D1 is the explicit merge permission that `CLAUDE.md`'s "never merge unless explicitly asked" requires. It covers the orchestrator only.
@@ -62,7 +62,7 @@ Hadi, 2026-11-03: keep going while a decision is pending, and he can answer late
 
 | # | Question | Answer |
 |---|---|---|
-| D1 | Can the orchestrator merge once the check in step 4 passes? | **Yes.** This replaces the Phase A rule that Hadi's Claude labels `merge-ready` and Michael's Codex merges. |
+| D1 | Can the orchestrator merge once the check in step 4 passes? | **Yes.** This replaces the merge rule in `roadmap.md`'s "How Phase A gets built" (Hadi's Claude labels `merge-ready`, Michael's Codex merges). |
 | D2 | Two reviewers per PR? | **Yes.** Two reviewers who aren't the author. Mixing Claude and Codex is preferred, not required. When Michael's Codex is away, two separate Claude reviewers count. |
 | D3 | Can cloud sessions push `v2/hadi/<slug>` branches and open PRs? | **Yes.** |
 | D4 | Is C3 (`9b2c7f0`) still on Hadi's machine? | It was. It's now pushed as `origin/v2/hadi/requirements-c3-local`. A rebuild (`e8065d2`) also exists; reviewers compare the two. |
