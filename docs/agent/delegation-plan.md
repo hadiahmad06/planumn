@@ -47,7 +47,9 @@ Problems seen in #16 through 2026-10-28:
    ```
 2. **Build.** The worker runs `npm run check && npm run build`, adds `heuristics.md` rows for any guesses about UMN data, and opens a PR listing what it tested and any known gaps.
 3. **Review.** Two reviewers review the exact head commit. Findings go in PR reviews.
-4. **Merge.** Once a PR has two approvals at its head commit, green CI and no open blocking finding, it's squash-merged in the orchestrator's order. Who presses the button is decision D1 below.
+4. **Merge.** Once a PR has two approvals at its head commit, green CI and no open blocking finding, the orchestrator squash-merges it in its posted order (D1).
+   - An approval is a GitHub approval, or a PR comment that says "Approve" and names the head commit. Claude reviewers share the `hadiahmad06` account, and GitHub doesn't let a PR's author approve their own PR, so their approvals are comments.
+   - No `merge-ready` label is needed. Any reviewer may still merge a PR that passes the check.
 5. **Status.** The orchestrator edits the body of #16 in place. Comments on #16 are only for human decisions, claims and handoffs.
 
 ## Waiting on a human
@@ -56,14 +58,14 @@ Hadi, 2026-11-03: keep going while a decision is pending, and he can answer late
 - Every question to a human is posted on #16 with a **default**. Work goes on, either with the default or on tickets the question doesn't block.
 - If the answer turns out different from the default, the rework is a new ticket. Nothing is merged on a default that changes a `docs/human/` rule.
 
-## Open decisions (defaults in force until Hadi answers)
+## Decisions (Hadi, 2026-11-03)
 
-| # | Question | Default until answered |
+| # | Question | Answer |
 |---|---|---|
-| D1 | Who presses merge? Proposed: the orchestrator, once the merge check (step 4) passes. | The current rule: the orchestrator labels `merge-ready`, and Michael's Codex merges. |
-| D2 | Two reviewers per PR? | Two where possible, and at least one reviewer who isn't the author, as today. |
-| D3 | Can cloud sessions push `v2/hadi/<slug>` branches, as `CLAUDE.md` describes? | Push only to the session's assigned branch, and keep other work local until allowed. |
-| D4 | Is C3 (`9b2c7f0`) still on Hadi's machine? | Rebuild C3 from the spec in #16. |
+| D1 | Can the orchestrator merge once the check in step 4 passes? | **Yes.** |
+| D2 | Two reviewers per PR? | **Yes.** |
+| D3 | Can cloud sessions push `v2/hadi/<slug>` branches and open PRs? | **Yes.** |
+| D4 | Is C3 (`9b2c7f0`) still on Hadi's machine? | It was. It's now pushed as `origin/v2/hadi/requirements-c3-local`. A rebuild (`e8065d2`) also exists; reviewers compare the two. |
 
 ## First wave (2026-11-03)
 

@@ -79,4 +79,8 @@ Hadi, 2026-11-03 (transcribed by Hadi's Claude):
 
 - Hadi asked for "a concise, non-redundant plan for how we can use MoE and delegation to work on this project with reviewers with equal authority. one orchestrator, many workers. Don't overengineer too much." He approved Hadi's Claude's plan: "Great. Record this in the repo." Details: `docs/agent/delegation-plan.md`.
 - "I want you to continue iteration even when you're waiting for my decision, and I want you to be able to respond to me without expecting an immediate decision."
-- Still open: the plan's decisions D1–D4 (who merges, two reviewers per PR, cloud session branches, the lost C3 commit). Until Hadi answers, the rules above still apply.
+- Hadi answered the plan's open decisions, verbatim: "D1, D2: yes. D3: yes, push v2/hadi/* and open PRs. D4: it was. but now its pushed to origin". That means:
+  - **D1:** Hadi's Claude (the orchestrator) squash-merges a PR once it has two approvals at its head commit, green CI and no open blocking finding. This replaces the rule above that Hadi's Claude doesn't run the merge.
+  - **D2:** every PR needs two reviewers who aren't its author.
+  - **D3:** cloud sessions may push `v2/hadi/<slug>` branches and open PRs.
+  - **D4:** the original C3 commit is on `origin/v2/hadi/requirements-c3-local`.
