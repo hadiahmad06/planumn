@@ -44,7 +44,7 @@ describe("readCoursePattern (C3)", () => {
 
   it("reads non-SUBJ, with a level from 'upper division' when the text gives no level", () => {
     expect(terms("Upper-Division Electives: non-ARCH")).toEqual(["Non-ARCH 3xxx or higher"]);
-    expect(terms("Electives: non-ARCH")).toEqual(["Non-ARCH (any level)"]);
+    expect(terms("Electives: non-ARCH")).toBeNull(); // no course level beside it (#88 review)
     expect(terms("non-CSCI 4xxx")).toEqual(["Non-CSCI 4xxx"]);
     expect(read("non-CSCI 4xxx")?.forms).toEqual(["non-subject"]);
   });
@@ -155,7 +155,7 @@ describe("patternSearches (C3)", () => {
 
   it("sets only the level for any-subject terms, and nothing for a non-subject term with no level", () => {
     expect(patternSearches(term("xxxx 3xxx"))).toEqual([{ level: 3000, label: "Any 3xxx" }]);
-    expect(patternSearches(term("Electives: non-ARCH"))).toEqual([]);
+    expect(patternSearches({ subjects: [], levels: [] })).toEqual([]);
   });
 });
 
@@ -212,5 +212,27 @@ describe("review fixes (C3)", () => {
     expect(r("No ECON 3xxx courses may be used.")).toBeNull();
     expect(r("MATH 1xxx and 2xxx excluded")).toBeNull();
     expect(terms("HIST 3xxx. No ECON 3xxx courses may be used.", SUBJECTS)).toEqual(["HIST 3xxx"]);
+  });
+});
+
+// #88 review: CSE and CLA are real subject codes, so prose about non-CSE students read as a course pattern.
+describe("non-SUBJ about people (#88 review)", () => {
+  const SUBJECTS = ["CSE", "CLA", "ARCH", "HIST", "MUS", "EE"];
+  const r = (text: string) => read(text, SUBJECTS);
+
+  it("ignores 'non-SUBJ' followed by students, majors, advisor and the like", () => {
+    expect(r("Non-CSE students should consult their advisor before choosing electives.")).toBeNull();
+    expect(r("Non-CLA majors must get approval from the department.")).toBeNull();
+    expect(r("Non-CSE applicants are admitted in spring.")).toBeNull();
+    const p = r("EE 4xxx. Non-CSE students should consult their advisor.")!;
+    expect(p.exceptSubjects).toEqual([]);
+    expect(["MUS 1001", "EE 4111"].map((c) => matchesPattern(p, c))).toEqual([false, true]);
+  });
+
+  it("reads a bare non-SUBJ only beside a course level", () => {
+    expect(r("Electives: non-CSE")).toBeNull();
+    expect(terms("Upper-Division Electives: non-ARCH", SUBJECTS)).toEqual(["Non-ARCH 3xxx or higher"]);
+    const arch = r("Upper-Division Electives: non-ARCH\nxxxx 3xxx xxxx 4xxx")!;
+    expect(["ARCH 3150", "HIST 3001", "HIST 4001", "HIST 5001"].map((c) => matchesPattern(arch, c))).toEqual([false, true, true, false]);
   });
 });

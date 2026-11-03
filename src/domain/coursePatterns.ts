@@ -83,6 +83,8 @@ const PREFIX = new RegExp(String.raw`(?:\b([xX]{4})|\b([Nn]on-?\s?)?(${SUBJECT_L
 const OR_HIGHER = /^(?:[- ]?level)?(?:\s+(?:courses?|coursework|classes))?\s*(?:\+|or\s+(?:higher|above|greater)|and\s+(?:higher|above|up))/i;
 const SUFFIX = new RegExp(String.raw`^(?:[- ]?level)?(?:\s*(?:\+|or\s+(?:higher|above|greater)|and\s+(?:higher|above|up)))?(?:[- ]?level)?\s+(${SUBJECT_LIST})\b`);
 const NON_SUBJECT = /\b[Nn]on-?\s?([A-Z]{2,4})\b/g;
+/** Words after "non-SUBJ" that make it about people ("Non-CSE students"), not courses. */
+const ABOUT_PEOPLE = /^[\s'’-]*(?:students?|majors?|minors?|applicants?|advis\w*|admit\w*|faculty|staff|graduates?|undergraduates?|candidates?|transfers?|individuals?|people)\b/i;
 const KEYWORD =
   /\b(?:(not\s+includ(?:e|es|ing)|does\s+not\s+include|exclud(?:e|es|ing)|except(?:\s+for)?|other\s+than)|(includ(?:e|es|ing)|also\s+(?:allowed|accepted|counts?)))\b/gi;
 /** A course code in an exclusion or inclusion list, any case ("Law 3050"); a bare number takes the last subject. */
@@ -235,6 +237,8 @@ export function readCoursePattern(text: string | null | undefined, options: Opti
       for (const m of clause.text.matchAll(NON_SUBJECT)) {
         const at = m.index ?? 0;
         if (consumed.some(([a, b]) => at >= a && at < b) || !isSubject(m[1])) continue;
+        // "Non-CSE students should consult …", "Non-CLA majors …": about people, not courses.
+        if (ABOUT_PEOPLE.test(clause.text.slice(at + m[0].length))) continue;
         exceptSubjects.add(m[1]);
         forms.add("non-subject");
         used = true;
@@ -243,12 +247,13 @@ export function readCoursePattern(text: string | null | undefined, options: Opti
     if (used) sentences.add(sentence);
   }
 
-  // "Upper-Division Electives: non-ARCH" names no level: "upper division" gives one, but only when no term does.
+  // A bare "non-ARCH" is a pattern only beside a course level: a level term ("xxxx 3xxx") or, when no term names
+  // one, "upper/lower division" ("Upper-Division Electives: non-ARCH"). Alone it gives nothing.
   if (exceptSubjects.size && !terms.length) {
     const all = text ?? "";
     const upper = /\bupper[- ]?division\b/i.test(all);
     const lower = /\blower[- ]?division\b/i.test(all);
-    terms.push(upper === lower ? { subjects: [], levels: [] } : upper ? { subjects: [], levels: [3], orHigher: true } : { subjects: [], levels: [1, 2] });
+    if (upper !== lower) terms.push(upper ? { subjects: [], levels: [3], orHigher: true } : { subjects: [], levels: [1, 2] });
   }
   if (!terms.length) return null; // exclusions alone describe nothing to match
   return {
