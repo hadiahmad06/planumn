@@ -48,6 +48,23 @@ describe("readCreditConstraints (C2)", () => {
     expect(read("Students will take a minimum of 109 credits.")).toEqual([]);
     expect(read("")).toEqual([]);
   });
+
+  // #82 second review: "each" spreads credits over lists, so "3 credits each from two areas" isn't a 3-credit total.
+  it("skips any sentence with each, per-semester loads and grading basis", () => {
+    expect(read("Take at least 3 credits each from two of the following areas.")).toEqual([]);
+    expect(read("Students should take at least 15 credits per semester.")).toEqual([]);
+    expect(read("Up to 3 credits may be taken S/N.")).toEqual([]);
+    expect(read("A maximum of 4 credits may be taken A-F or S/N.")).toEqual([]);
+  });
+
+  // #82 second review: one reading for two lists was checked against the first list only.
+  it("splits two amounts on two lists into one reading per list", () => {
+    expect(read("Take 3 credits from Group A and 3 credits from Group B.")).toEqual(["At least 3 credits from Group A", "At least 3 credits from Group B"]);
+    expect(read("Students may take up to 6 credits from Directed Study and 3 credits from Internships.")).toEqual([
+      "At most 6 credits from Directed Study",
+      "At most 3 credits from Internships",
+    ]);
+  });
 });
 
 describe("constraintProgress (C2)", () => {
@@ -77,6 +94,22 @@ describe("constraintProgress (C2)", () => {
   it("checks a named part when a child rule has that name, otherwise says it can't", () => {
     expect(progress("with a minimum of 22 coming from the Core Department Electives.")).toEqual([[7, false]]);
     expect(progress("up to 12 credits of additional approved technical electives.")).toEqual([[null, null]]);
+  });
+
+  it("checks each list of a split sentence on its own, and never guesses between lists", () => {
+    const groups = [
+      { name: "Group A", courseIds: new Set([1]) },
+      { name: "Group B", courseIds: new Set([2]) },
+    ];
+    const check = (text: string) =>
+      constraintProgress(readCreditConstraints(text), listed, groups, [{ courseId: 1, credits: 3 }]).map((p) => [p.planned, p.met]);
+    expect(check("Take 3 credits from Group A and 3 credits from Group B.")).toEqual([
+      [3, true],
+      [0, false],
+    ]);
+    // Can't be split safely ("or"; one amount over two lists): can't check, not "met" from Group A alone.
+    expect(check("Take 3 credits from Group A or 3 credits from Group B.")).toEqual([[null, null]]);
+    expect(check("Take at least 6 credits from Group A and Group B.")).toEqual([[null, null]]);
   });
 
   it("treats a cap as met while under it", () => {

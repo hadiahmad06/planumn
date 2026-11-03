@@ -36,10 +36,12 @@ export interface CreditConstraint {
 
 /**
  * Sentences about graduate study, sub-plan or whole-program totals, waivers, transfer, or a course's
- * own credit value aren't constraints on the rule they sit in.
+ * own credit value aren't constraints on the rule they sit in. Any sentence with "each" is skipped: it
+ * spreads credits over lists or areas ("3 credits each from two of the following areas" needs 6, not 3).
+ * So are per-semester loads ("15 credits per semester") and grading basis ("Up to 3 credits may be taken S/N").
  */
 const SKIP =
-  /sub-?plan|master|doctoral|ph\.?\s?d|graduate|\bm\.?s\.? students|waive|double[- ]count|transfer|integrated|taken for|senior year|toward (?:the|a|your) (?:b\.|bachelor|degree|major|minor)|to complete the|in order to count|or greater|for either|plan [ab]\b|degree program|from each|in each|each of|of the (?:two|three|four|five)\b/i;
+  /sub-?plan|master|doctoral|ph\.?\s?d|graduate|\bm\.?s\.? students|waive|double[- ]count|transfer|integrated|taken for|senior year|toward (?:the|a|your) (?:b\.|bachelor|degree|major|minor)|to complete the|in order to count|or greater|for either|plan [ab]\b|degree program|\beach\b|of the (?:two|three|four|five)\b|\bper (?:semester|term|year)\b|\bS\/N\b|\bA-F\b|pass\/fail|grading (?:basis|option)/i;
 
 /** Numbers above this aren't one rule's credits (program totals like "109 credits"). */
 const MAX_RULE_CREDITS = 60;
@@ -84,6 +86,25 @@ const PATTERNS: { kind: CreditConstraintKind; re: RegExp }[] = [
   },
 ];
 
+const QUALIFIER = String.raw`(?:at least|a minimum of|up to|a maximum of|at most|no more than)\s+`;
+/** " and 3 credits from Group B": a second amount on a second list starts its own clause. */
+const NEXT_AMOUNT = new RegExp(
+  String.raw`\s+(?:and|plus)\s+(?=(?:${QUALIFIER})?\d{1,2}(?:\s*(?:-|–|to)\s*\d{1,2})?(?:\s+or more)?\s+credits?\s+(?:of|from|in)\b)`,
+  "i",
+);
+
+/**
+ * "Take 3 credits from Group A and 3 credits from Group B" → "Take 3 credits from Group A", "take 3
+ * credits from Group B": one reading per list. A clause after the first borrows its verb ("up to" after
+ * a cap, else "take") so the patterns read it on its own. Split only when the first clause names a list too.
+ */
+function clausesOf(sentence: string): string[] {
+  const [first, ...rest] = sentence.split(NEXT_AMOUNT);
+  if (!rest.length || !/\d{1,2}(?:\s+or more)?\s+credits?\s+(?:of|from|in)\b/i.test(first)) return [sentence];
+  const verb = /up to|maximum of|at most|no more than/i.test(first) ? "up to " : "take ";
+  return [first, ...rest.map((c) => (new RegExp(`^${QUALIFIER}`, "i").test(c) ? `take ${c}` : verb + c))];
+}
+
 /**
  * Reads the credit constraints in one rule's catalog text (its `description` and `notes`). `ruleName`
  * tells "24 credits of Art History Electives" (the rule's own total) from "6 credits of 5xxx-level
@@ -93,43 +114,45 @@ export function readCreditConstraints(text: string | null | undefined, ruleName 
   const out: CreditConstraint[] = [];
   for (const sentence of (text ?? "").split(/(?<=[.;])\s+|\n+/)) {
     if (SKIP.test(sentence)) continue;
-    const taken: [number, number][] = [];
     const found: CreditConstraint[] = [];
-    for (const { kind, re } of PATTERNS) {
-      for (const m of sentence.matchAll(re)) {
-        const start = m.index ?? 0;
-        const end = start + m[0].length;
-        if (taken.some(([a, b]) => start < b && end > a)) continue; // one reading per phrase
-        if (kind === "total" && /additional/i.test(m[0])) continue; // "an additional 6 credits": relative to something else
-        const credits = Number(m[1]);
-        if (!(credits > 0 && credits <= MAX_RULE_CREDITS)) continue;
-        taken.push([start, end]);
-        const c: CreditConstraint = { kind, credits, source: "text", sentence: sentence.trim() };
-        if (kind === "dept") c.scope = m[2];
-        if (kind === "max" || kind === "min") {
-          const scope = cleanScope(m[2]);
-          // "Take at least 12 credits from the following" names no part: it's the rule's total.
-          // A cap that names no part caps the rule itself only when it says so ("up to 4 credits total
-          // from this list"); in a bullet ("• Non-EE 4000 and 5000 level coursework--maximum of 12 credits")
-          // the part is the bullet's subject.
-          const bullet = sentence.match(/^\s*•?\s*(.+?)\s*(?:--|—|:)/)?.[1];
-          if (scope) c.scope = scope;
-          else if (kind === "min") c.kind = "total";
-          else if (bullet && !/this list|these courses|following/i.test(sentence)) c.scope = bullet;
-          else if (!/this list|these courses|following|total/i.test(sentence)) continue;
-        }
-        // A range ("18 - 24 credits") keeps its top, also when it turns out to name a part below.
-        if (kind === "total" && m[2] && Number(m[2]) > credits) c.maxCredits = Number(m[2]);
-        if (kind === "total") {
-          const part = cleanScope(m[3]?.split(/:/)[0]);
-          if (part && !/^(?:electives?|courses?|coursework)$/i.test(part) && !findPart(part, [{ name: ruleName, courseIds: new Set() }])) {
-            c.kind = "min";
-            c.scope = part;
+    for (const clause of clausesOf(sentence)) {
+      const taken: [number, number][] = [];
+      for (const { kind, re } of PATTERNS) {
+        for (const m of clause.matchAll(re)) {
+          const start = m.index ?? 0;
+          const end = start + m[0].length;
+          if (taken.some(([a, b]) => start < b && end > a)) continue; // one reading per phrase
+          if (kind === "total" && /additional/i.test(m[0])) continue; // "an additional 6 credits": relative to something else
+          const credits = Number(m[1]);
+          if (!(credits > 0 && credits <= MAX_RULE_CREDITS)) continue;
+          taken.push([start, end]);
+          const c: CreditConstraint = { kind, credits, source: "text", sentence: sentence.trim() };
+          if (kind === "dept") c.scope = m[2];
+          if (kind === "max" || kind === "min") {
+            const scope = cleanScope(m[2]);
+            // "Take at least 12 credits from the following" names no part: it's the rule's total.
+            // A cap that names no part caps the rule itself only when it says so ("up to 4 credits total
+            // from this list"); in a bullet ("• Non-EE 4000 and 5000 level coursework--maximum of 12 credits")
+            // the part is the bullet's subject.
+            const bullet = sentence.match(/^\s*•?\s*(.+?)\s*(?:--|—|:)/)?.[1];
+            if (scope) c.scope = scope;
+            else if (kind === "min") c.kind = "total";
+            else if (bullet && !/this list|these courses|following/i.test(sentence)) c.scope = bullet;
+            else if (!/this list|these courses|following|total/i.test(sentence)) continue;
           }
+          // A range ("18 - 24 credits") keeps its top, also when it turns out to name a part below.
+          if (kind === "total" && m[2] && Number(m[2]) > credits) c.maxCredits = Number(m[2]);
+          if (kind === "total") {
+            const part = cleanScope(m[3]?.split(/:/)[0]);
+            if (part && !/^(?:electives?|courses?|coursework)$/i.test(part) && !findPart(part, [{ name: ruleName, courseIds: new Set() }])) {
+              c.kind = "min";
+              c.scope = part;
+            }
+          }
+          // "A total of 6 credits from this list may count towards major electives" is a cap.
+          if (c.kind === "total" && /\b(?:may|can) count\b/i.test(sentence)) c.kind = "max";
+          found.push(c);
         }
-        // "A total of 6 credits from this list may count towards major electives" is a cap.
-        if (c.kind === "total" && /\b(?:may|can) count\b/i.test(sentence)) c.kind = "max";
-        found.push(c);
       }
     }
     // "Of these 24 credits, … a minimum of 12" and "6 or more credits … and 12 or more credits in …"
@@ -169,11 +192,21 @@ export interface ConstraintProgress {
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
-/** A part whose name matches the catalog's wording ("Core Department Electives" ≈ "Core Dept. Electives" doesn't). */
+/**
+ * A part whose name matches the catalog's wording ("Core Department Electives" ≈ "Core Dept. Electives"
+ * doesn't). A scope that still holds a credit amount ("Group A or 3 credits from Group B") or names
+ * more than one part ("Group A and Group B") isn't one part: undefined, so it shows as "can't check".
+ */
 export function findPart(scope: string, parts: ConstraintPart[]): ConstraintPart | undefined {
   const s = norm(scope);
-  if (!s) return undefined;
-  return parts.find((p) => norm(p.name) === s) ?? parts.find((p) => norm(p.name).length > 3 && (s.includes(norm(p.name)) || norm(p.name).includes(s)));
+  if (!s || /\b\d{1,2} (?:credits?|cr)\b/.test(s)) return undefined;
+  const exact = parts.find((p) => norm(p.name) === s);
+  if (exact) return exact;
+  const loose = parts.filter((p) => norm(p.name).length > 3 && (s.includes(norm(p.name)) || norm(p.name).includes(s)));
+  const names = [...new Set(loose.map((p) => norm(p.name)))];
+  // Nested names ("Electives" inside "Technical Electives") are one part; unrelated ones are a guess.
+  const outer = names.filter((n) => !names.some((m) => m !== n && m.includes(n)));
+  return outer.length === 1 ? loose.find((p) => norm(p.name) === outer[0]) : undefined;
 }
 
 /**
