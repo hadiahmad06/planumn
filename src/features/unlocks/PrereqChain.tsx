@@ -4,7 +4,7 @@ import { useState } from "react";
 import { courseCode, type CourseId } from "@/domain/course";
 import type { Plan } from "@/domain/plan";
 import { termLabel } from "@/domain/terms";
-import { prerequisiteGraph, type UnlockCourse } from "@/domain/unlocks";
+import { firstPlannedTerms, prerequisiteGraph, type UnlockCourse } from "@/domain/unlocks";
 import { cn } from "@/components/ui/cn";
 import { useCourseCache } from "@/features/catalog/courseCache";
 
@@ -19,8 +19,7 @@ export function PrereqChain({ plan }: { plan: Plan }) {
   const details: Record<CourseId, UnlockCourse> = {};
   for (const [id, c] of Object.entries(courses)) details[Number(id)] = { id: c.id, code: courseCode(c), dept: c.dept, prereqText: c.prereqText };
   const { unlocks, criticalPath } = prerequisiteGraph(plan, details);
-  const termOf = new Map<CourseId, string>();
-  for (const s of plan.semesters) for (const c of s.courses) if (!termOf.has(c.id)) termOf.set(c.id, s.index);
+  const termOf = firstPlannedTerms(plan);
   const code = (id: CourseId) => details[id]?.code ?? String(id);
   const keys = [...unlocks.entries()].filter(([, later]) => later.length > 0).sort((a, b) => b[1].length - a[1].length);
   const hasAlternatives = keys.some(([, later]) => later.some((u) => !u.required));
