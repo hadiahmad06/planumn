@@ -69,8 +69,8 @@ export function PrereqChain({ plan }: { plan: Plan }) {
           )}
           {hasAlternatives && (
             <p className="text-micro text-text-tertiary">
-              &ldquo;One option&rdquo;: the prerequisite says &ldquo;or&rdquo; and another course earlier in your plan also meets it, so this
-              course alone doesn&apos;t hold the later one back.
+              &ldquo;One option&rdquo;: the prerequisite can be met another way in your plan (another course planned earlier also meets
+              that part), so this link isn&apos;t counted on the chain.
             </p>
           )}
         </>
