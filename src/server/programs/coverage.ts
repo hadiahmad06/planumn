@@ -1,5 +1,5 @@
 import { collectGroupIds, htmlToText, normalizeProgram, type RawGroup, type RawProgram, type RawRule } from "./normalize.ts";
-import { describeTerm, type PatternForm } from "../../domain/coursePatterns.ts";
+import { describePattern, type PatternForm } from "../../domain/coursePatterns.ts";
 import type { Rule } from "@/domain/requirements";
 
 /**
@@ -123,7 +123,7 @@ export function analyzeProgram(raw: RawProgram, idStatus: (groupId: string) => I
     if (rule.pattern) {
       const p = rule.pattern;
       const detail = [
-        p.terms.map(describeTerm).join(" or "),
+        describePattern(p),
         p.exclude.length ? `excluding ${p.exclude.join(", ")}` : "",
         p.include.length ? `also ${p.include.join(", ")}` : "",
       ].filter(Boolean);

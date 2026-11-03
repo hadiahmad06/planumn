@@ -1,11 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { describeTerm, matchesPattern, patternMatches, patternSearches, readCoursePattern, type CoursePattern } from "./coursePatterns";
+import { describeTerm, matchesPattern, patternMatches, patternSearches, patternSearchLinks, readCoursePattern, type CoursePattern } from "./coursePatterns";
 
 // Phase C/C3. Wording from CourseDog rule names, descriptions and notes (EE B.E.E., CompE B.Comp.E.,
 // Geoengineering B.GeoE., Spanish Studies B.A., Architecture B.D.A., German B.A.; 2026-10-27 survey and the
 // C0 coverage report), plus forms the survey named without a quoted example.
 const read = (text: string | null, subjects?: string[]) => readCoursePattern(text, subjects ? { subjects: new Set(subjects) } : {});
-const terms = (text: string, subjects?: string[]) => read(text, subjects)?.terms.map(describeTerm) ?? null;
+const terms = (text: string, subjects?: string[]) => {
+  const p = read(text, subjects);
+  return p ? p.terms.map((t) => describeTerm(t, p.exceptSubjects)) : null;
+};
 
 const EE_NAME = "Complete additional 4xxx/5xxx EE courses to meet the minimum 22 credits of required Core Department Electives.";
 
@@ -54,7 +57,7 @@ describe("readCoursePattern (C3)", () => {
 
     const listed = read("EE 4xxx\nExcluding:\n• EE 4951W\n• EE 4952\nStudents work with an advisor.")!;
     expect(listed.exclude).toEqual(["EE 4951W", "EE 4952"]);
-    expect(listed.terms.map(describeTerm)).toEqual(["EE 4xxx"]);
+    expect(listed.terms.map((t) => describeTerm(t))).toEqual(["EE 4xxx"]);
   });
 
   it("doesn't read a pattern inside an exclusion as something that counts", () => {
@@ -153,5 +156,61 @@ describe("patternSearches (C3)", () => {
   it("sets only the level for any-subject terms, and nothing for a non-subject term with no level", () => {
     expect(patternSearches(term("xxxx 3xxx"))).toEqual([{ level: 3000, label: "Any 3xxx" }]);
     expect(patternSearches(term("Electives: non-ARCH"))).toEqual([]);
+  });
+});
+
+// Review of e8065d2 against Hadi's original 9b2c7f0: each case below failed before the fix.
+describe("review fixes (C3)", () => {
+  const SUBJECTS = ["ACCT", "BLAW", "FINA", "LAW", "SCO", "APEC", "ARCH", "HIST", "CI", "ANTH", "SOC", "EE", "ECON", "MATH", "ENGL"];
+  const r = (text: string) => read(text, SUBJECTS);
+
+  it("keeps a non-SUBJ exclusion alongside any-subject terms, without an extra 'upper division' level", () => {
+    const p = r("non-ARCH xxxx 3xxx")!;
+    expect(p.exceptSubjects).toEqual(["ARCH"]);
+    expect(matchesPattern(p, "ARCH 3150")).toBe(false);
+    expect(matchesPattern(p, "HIST 3001")).toBe(true);
+    const arch = r("Upper-Division Electives: non-ARCH xxxx 3xxx xxxx 4xxx")!;
+    expect(terms("Upper-Division Electives: non-ARCH xxxx 3xxx xxxx 4xxx", SUBJECTS)).toEqual(["Non-ARCH 3xxx/4xxx"]);
+    expect(["ARCH 3150", "HIST 3001", "HIST 4001", "HIST 5001"].map((c) => matchesPattern(arch, c))).toEqual([false, true, true, false]);
+  });
+
+  it("reads 9b2c7f0's real catalog strings", () => {
+    expect(terms("ACCT 5XXX BLAW 3XXX FINA 4XXX FINA 5XXX", SUBJECTS)).toEqual(["ACCT 5xxx", "BLAW 3xxx", "FINA 4xxx/5xxx"]);
+    expect(terms("APEC 3xxx APEC 4xxx APEC 5xxx", SUBJECTS)).toEqual(["APEC 3xxx/4xxx/5xxx"]);
+    expect(terms("ARCH 3XXX ARCH 4XXX", SUBJECTS)).toEqual(["ARCH 3xxx/4xxx"]);
+    expect(terms("CI 3xxx-5xxx", SUBJECTS)).toEqual(["CI 3xxx/4xxx/5xxx"]);
+    expect(r("1xxx Art Electives")).toBeNull();
+    expect(r("Take ENGL 3000 or ENGL 3001.")).toBeNull();
+  });
+
+  it("reads exclusion codes in any case, so 'Law 3050' is LAW 3050", () => {
+    const p = r("ACCT 5XXX FINA 3XXX Excluding: ACCT 2051, ACCT 2051H, FINA 3001, Law 3050, and SCO 3001")!;
+    expect(p.exclude).toEqual(["ACCT 2051", "ACCT 2051H", "FINA 3001", "LAW 3050", "SCO 3001"]);
+    expect(matchesPattern(p, "FINA 3050")).toBe(true);
+  });
+
+  it("ends an exclusion list at the end of its sentence", () => {
+    const p = r("EE 4xxx courses except EE 4981H.\nEE 4111 and EE 4231 are recommended.")!;
+    expect(p.exclude).toEqual(["EE 4981H"]);
+    expect(matchesPattern(p, "EE 4111")).toBe(true);
+  });
+
+  it("keeps the last item of a list ending in ', or' / ', and'", () => {
+    expect(terms("Any 3xxx or 4xxx ANTH, SOC, or HIST course", SUBJECTS)).toEqual(["ANTH/SOC/HIST 3xxx/4xxx"]);
+    expect(terms("EE 4xxx, 5xxx, and 8xxx", SUBJECTS)).toEqual(["EE 4xxx/5xxx/8xxx"]);
+  });
+
+  it("drops a parenthetical cap without splitting at 'max.', and gives each search link once", () => {
+    const p = r("4xxx/5xxx EE courses (max. of 8 credits of EE 5xxx).")!;
+    expect(p.terms.map((t) => describeTerm(t))).toEqual(["EE 4xxx/5xxx"]);
+    expect(patternSearchLinks(p).map((s) => s.label)).toEqual(["EE 4xxx", "EE 5xxx"]);
+    const twice = { ...p, terms: [...p.terms, { subjects: ["EE"], levels: [5] }] };
+    expect(patternSearchLinks(twice).map((s) => s.label)).toEqual(["EE 4xxx", "EE 5xxx"]);
+  });
+
+  it("reads no pattern from a negated sentence", () => {
+    expect(r("No ECON 3xxx courses may be used.")).toBeNull();
+    expect(r("MATH 1xxx and 2xxx excluded")).toBeNull();
+    expect(terms("HIST 3xxx. No ECON 3xxx courses may be used.", SUBJECTS)).toEqual(["HIST 3xxx"]);
   });
 });
