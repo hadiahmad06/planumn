@@ -2,7 +2,7 @@
 
 import { useDraggable } from "@dnd-kit/core";
 import { useId, useState } from "react";
-import { describeTerm, patternSearches, type CoursePattern, type PatternMatch } from "@/domain/coursePatterns";
+import { describePattern, patternSearchLinks, type CoursePattern, type PatternMatch } from "@/domain/coursePatterns";
 import { describeConstraint, type ConstraintProgress } from "@/domain/creditConstraints";
 import type { CourseChoice, CourseOption, RequirementResult, RuleResult } from "@/domain/requirements";
 import { cn } from "@/components/ui/cn";
@@ -195,7 +195,7 @@ function CreditConstraints({ items }: { items: ConstraintProgress[] }) {
  * not counted, until C4 checks the readings against APAS.
  */
 function CoursePatternBox({ pattern, matches }: { pattern: CoursePattern; matches: PatternMatch[] }) {
-  const searches = pattern.terms.flatMap((t) => patternSearches(t)).slice(0, 6);
+  const searches = patternSearchLinks(pattern);
   return (
     <div className="flex flex-col gap-0.5 rounded-row border border-dashed border-border px-2 py-1.5 text-micro">
       <p
@@ -205,7 +205,7 @@ function CoursePatternBox({ pattern, matches }: { pattern: CoursePattern; matche
         Read from catalog text · not counted in progress
       </p>
       <p className="text-text-secondary" title={pattern.sentences.join("\n")}>
-        Courses matching {pattern.terms.map(describeTerm).join(" or ")}
+        Courses matching {describePattern(pattern)}
       </p>
       {pattern.exclude.length > 0 && <p className="text-text-secondary">Excluding {pattern.exclude.join(", ")}</p>}
       {pattern.include.length > 0 && <p className="text-text-secondary">Also counts: {pattern.include.join(", ")}</p>}

@@ -67,11 +67,28 @@ const rule = (id: string) => program.requirements.flatMap((q) => q.rules).find((
 describe("pattern rules in the normalizer (C3)", () => {
   it("reads a pattern from the name and notes of a rule that lists no courses", () => {
     expect(rule("pattern").pattern).toMatchObject({
-      terms: [{ subjects: ["EE"], notSubjects: [], levels: [4, 5] }],
+      terms: [{ subjects: ["EE"], levels: [4, 5] }],
+      exceptSubjects: [],
       exclude: ["EE 4981H"],
       include: ["CSCI 4203"],
     });
-    expect(rule("empty").pattern?.terms).toEqual([{ subjects: [], notSubjects: ["ARCH"], levels: [3], orHigher: true }]);
+    expect(rule("empty").pattern).toMatchObject({ terms: [{ subjects: [], levels: [3], orHigher: true }], exceptSubjects: ["ARCH"] });
+  });
+
+  it("keeps non-ARCH when the text also gives any-subject levels, and adds no 'upper division' level then (review fix)", () => {
+    const arch = {
+      programGroupId: "214623122",
+      requisites: {
+        a: [{ id: "g", name: "Upper-Division Electives Outside the ARCH Designator", rules: [{ id: "x", name: "Upper-Division Electives: non-ARCH", condition: "freeformText", value: "<p>xxxx 3xxx xxxx 4xxx</p>" }] }],
+      },
+    } as unknown as RawProgram;
+    const p = normalizeProgram(arch, resolve, {}, new Set(["ARCH", "HIST"]));
+    const planned = [
+      { courseId: 1, credits: 3, code: "ARCH 3150" },
+      { courseId: 2, credits: 3, code: "HIST 3001" },
+      { courseId: 3, credits: 3, code: "HIST 5001" },
+    ];
+    expect(evaluateProgram(p, planned).requirements[0].rules[0].patternMatches?.map((m) => m.code)).toEqual(["HIST 3001"]);
   });
 
   it("skips the cap sentence and leaves rules that list courses alone", () => {
