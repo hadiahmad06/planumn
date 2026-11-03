@@ -223,6 +223,28 @@ describe("pairing order", () => {
     const c = compareApas({ requirements: [titled("Technical Electives"), titled("Technical Elective")] }, evaluateProgram(p, planned));
     expect(c.pairs).toEqual([]);
     expect(c.planumnOnly.map((r) => r.id)).toEqual(["te"]);
+    expect(c.ambiguous.map((r) => r.title)).toEqual(["Technical Electives", "Technical Elective"]);
+  });
+
+  // Backlog after #89: two identical APAS titles left `ambiguous` empty.
+  it("pairs identical APAS titles with nothing and lists both as ambiguous", () => {
+    const p: Program = {
+      ...program,
+      requirements: [req("math", "Mathematics", [courses("m", "M", [1])]), req("adv", "Advanced Mathematics", [courses("a", "A", [3])])],
+    };
+    const c = compareApas({ requirements: [titled("Mathematics"), titled("Mathematics", "incomplete")] }, evaluateProgram(p, planned));
+    expect(c.pairs).toEqual([]);
+    expect(c.ambiguous.map((r) => r.status)).toEqual(["complete", "incomplete"]);
+    expect(c.apasOnly).toHaveLength(2);
+    expect(c.planumnOnly.map((r) => r.id)).toEqual(["math", "adv"]);
+    // The same through the per-program comparison #90's rail uses (one report per program).
+    const perProgram = compareApasProgram(
+      { requirements: [titled("Mathematics"), titled("Mathematics", "incomplete")], courses: audit.courses },
+      p,
+      planned,
+    );
+    expect(perProgram.pairs).toEqual([]);
+    expect(perProgram.ambiguous.map((r) => r.status)).toEqual(["complete", "incomplete"]);
   });
 });
 

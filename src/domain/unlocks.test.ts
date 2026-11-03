@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createEmptyPlan, type Plan } from "./plan";
 import { addCourse } from "./planOps";
-import { prerequisiteGraph, type UnlockCourse } from "./unlocks";
+import { firstPlannedTerms, prerequisiteGraph, type UnlockCourse } from "./unlocks";
 
 // Written by Ishaan's Claude (B22). "Or" regressions by Hadi's Claude.
 const c = (id: number, code: string, prereqText: string | null): UnlockCourse => ({ id, code, dept: code.split(" ")[0], prereqText });
@@ -118,5 +118,18 @@ describe("prerequisiteGraph: 'or' alternatives", () => {
     expect(r.unlocks.get(1)).toEqual([{ id: 2, required: false }]);
     expect(r.unlocks.get(15)).toEqual([{ id: 2, required: false }]);
     expect(r.criticalPath).toEqual([]);
+  });
+});
+
+// Backlog after #86: PrereqChain took a retaken course's first term in stored order, not term order.
+describe("firstPlannedTerms", () => {
+  it("gives each course its earliest term even when semesters are stored out of order", () => {
+    let p = addCourse(plan(), "1269", 1);
+    p = addCourse(p, "1273", 1); // retake in Spring 2027
+    p = addCourse(p, "1273", 2);
+    const reversed: Plan = { ...p, semesters: [...p.semesters].reverse() };
+    const terms = firstPlannedTerms(reversed);
+    expect(terms.get(1)).toBe("1269");
+    expect(terms.get(2)).toBe("1273");
   });
 });

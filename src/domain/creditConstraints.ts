@@ -63,6 +63,21 @@ function cleanScope(raw: string | undefined): string | undefined {
   return s;
 }
 
+/**
+ * Lib Ed designators that aren't Twin Cities subject codes (none is in `data/catalog.db`'s subject list):
+ * "3 credits must have a WI designator" is about Writing Intensive, which a listed course's code can't
+ * show, so it gives no reading. (BIOL, MATH and PHYS are both: those stay subject designators.)
+ */
+const LIBED_DESIGNATORS = new Set(["WI", "WE", "AH", "CIV", "DSJ", "ETH", "GP", "HIS", "LITR", "SOCS", "TS", "CLE", "LE"]);
+
+/**
+ * Right after a total's credit amount, a level, division, lab or designator says the amount is about a
+ * part the text doesn't name as a list ("at least 12 credits at the 3xxx level or higher", "at least 2
+ * credits in a laboratory course"): not the rule's total, and no part planu.mn can check, so no reading.
+ */
+const PART_OF_TOTAL =
+  /^\s*,?\s*(?:(?:at|in|from)\s+(?:or\s+above\s+)?(?:the\s+)?(?:\d(?:xxx|000)\b|(?:upper|lower)[-\s]division\b)|\d(?:xxx|000)[-\s]?(?:level\s+)?or\s+(?:higher|above)\b|(?:at|in|from)\s+(?:an?\s+|the\s+)?(?:laboratory|lab)\b|with\s+(?:an?|the)\s+[A-Z]{2,5}\s+designator)/i;
+
 const PATTERNS: { kind: CreditConstraintKind; re: RegExp }[] = [
   // "Of the 23 credits, 11 must have a CSCI designator" / "11 credits must carry the CSCI designator"
   { kind: "dept", re: new RegExp(String.raw`${NUM}(?:\s+credits?)?\s+must\s+(?:have|carry)\s+(?:an?|the)\s+([A-Z]{2,5})\s+designator`, "g") },
@@ -87,22 +102,44 @@ const PATTERNS: { kind: CreditConstraintKind; re: RegExp }[] = [
 ];
 
 const QUALIFIER = String.raw`(?:at least|a minimum of|up to|a maximum of|at most|no more than)\s+`;
-/** " and 3 credits from Group B": a second amount on a second list starts its own clause. */
+const AMOUNT = String.raw`\d{1,2}(?:\s*(?:-|–|to)\s*\d{1,2})?(?:\s+or more)?`;
+/**
+ * " and 3 credits from Group B", ", 3 credits from Group B", ", 3 from Group B": a second amount on a
+ * second list starts its own clause. "credits" may be left out only before "from" ("3 from Group B"),
+ * and "from which / of these" refers back, so it never starts one.
+ */
 const NEXT_AMOUNT = new RegExp(
-  String.raw`\s+(?:and|plus)\s+(?=(?:${QUALIFIER})?\d{1,2}(?:\s*(?:-|–|to)\s*\d{1,2})?(?:\s+or more)?\s+credits?\s+(?:of|from|in)\b)`,
+  String.raw`(?:\s*,\s*(?:and\s+|plus\s+)?|\s+(?:and|plus)\s+)(?=(?:${QUALIFIER})?${AMOUNT}(?:\s+credits?\s+(?:of|from|in)|\s+from)\s+(?!(?:which|these|those|them)\b))`,
   "i",
 );
+/** A clause that left out "credits" ("3 from Group B"). */
+const NO_CREDITS = new RegExp(String.raw`^((?:${QUALIFIER})?${AMOUNT})(\s+from\b)`, "i");
 
 /**
- * "Take 3 credits from Group A and 3 credits from Group B" → "Take 3 credits from Group A", "take 3
- * credits from Group B": one reading per list. A clause after the first borrows its verb ("up to" after
- * a cap, else "take") so the patterns read it on its own. Split only when the first clause names a list too.
+ * "… from Group A, 6 credits from Group B, or 6 credits from Group C": an "or" before another amount on a
+ * list makes the sentence a choice. It isn't split, and its part is every list named, so it shows as
+ * "can't check" rather than as one minimum per list (#91 review).
+ */
+const CHOICE = new RegExp(String.raw`\bor\s+(?:${QUALIFIER})?${AMOUNT}(?:\s+credits?)?\s+(?:of|from|in)\b`, "i");
+
+/**
+ * "Take 3 credits from Group A, 3 from Group B and 3 from Group C" → "Take 3 credits from Group A", "take
+ * 3 credits from Group B", "take 3 credits from Group C": one reading per list. A clause after the first
+ * gets back a left-out "credits" and borrows its verb ("up to" after a cap, else "take") so the patterns
+ * read it on its own. Split only when the first clause names a list too.
  */
 function clausesOf(sentence: string): string[] {
+  if (CHOICE.test(sentence)) return [sentence];
   const [first, ...rest] = sentence.split(NEXT_AMOUNT);
   if (!rest.length || !/\d{1,2}(?:\s+or more)?\s+credits?\s+(?:of|from|in)\b/i.test(first)) return [sentence];
   const verb = /up to|maximum of|at most|no more than/i.test(first) ? "up to " : "take ";
-  return [first, ...rest.map((c) => (new RegExp(`^${QUALIFIER}`, "i").test(c) ? `take ${c}` : verb + c))];
+  return [
+    first,
+    ...rest.map((raw) => {
+      const c = raw.replace(NO_CREDITS, "$1 credits$2");
+      return new RegExp(`^${QUALIFIER}`, "i").test(c) ? `take ${c}` : verb + c;
+    }),
+  ];
 }
 
 /**
@@ -126,6 +163,8 @@ export function readCreditConstraints(text: string | null | undefined, ruleName 
           const credits = Number(m[1]);
           if (!(credits > 0 && credits <= MAX_RULE_CREDITS)) continue;
           taken.push([start, end]);
+          if (kind === "dept" && LIBED_DESIGNATORS.has(m[2])) continue;
+          if (kind === "total" && !m[3] && PART_OF_TOTAL.test(clause.slice(end))) continue;
           const c: CreditConstraint = { kind, credits, source: "text", sentence: sentence.trim() };
           if (kind === "dept") c.scope = m[2];
           if (kind === "max" || kind === "min") {
@@ -151,6 +190,9 @@ export function readCreditConstraints(text: string | null | undefined, ruleName 
           }
           // "A total of 6 credits from this list may count towards major electives" is a cap.
           if (c.kind === "total" && /\b(?:may|can) count\b/i.test(sentence)) c.kind = "max";
+          // A choice names all its lists as the part: "Group A, 6 credits from Group B, or 6 credits from Group C".
+          const choice = CHOICE.test(clause) && c.scope && c.kind !== "dept" ? clause.slice(start).match(/\b(?:of|from|in)\s+(.+?)\s*\.?$/i) : null;
+          if (choice) c.scope = choice[1];
           found.push(c);
         }
       }

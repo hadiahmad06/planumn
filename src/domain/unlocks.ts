@@ -65,11 +65,16 @@ function needsCourse(n: PrereqNode, isA: (code: string) => boolean, others: (cod
   return needs.some(Boolean) && n.children.every((c, i) => needs[i] || evaluate(c, others) !== true);
 }
 
-export function prerequisiteGraph(plan: Plan, details: Record<CourseId, UnlockCourse | undefined>): UnlocksResult {
-  // Earliest planned term per course (a retake counts once).
+/** Earliest planned term per course (a retake counts once), whatever order the plan stores its semesters in. */
+export function firstPlannedTerms(plan: Plan): Map<CourseId, TermCode> {
   const term = new Map<CourseId, TermCode>();
   for (const s of [...plan.semesters].sort((a, b) => compareTerms(a.index, b.index)))
     for (const c of s.courses) if (!term.has(c.id)) term.set(c.id, s.index);
+  return term;
+}
+
+export function prerequisiteGraph(plan: Plan, details: Record<CourseId, UnlockCourse | undefined>): UnlocksResult {
+  const term = firstPlannedTerms(plan);
 
   const ids = [...term.keys()].filter((id) => details[id]);
   const tree = new Map<CourseId, PrereqNode | null>();

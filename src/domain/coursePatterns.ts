@@ -85,6 +85,13 @@ const SUFFIX = new RegExp(String.raw`^(?:[- ]?level)?(?:\s*(?:\+|or\s+(?:higher|
 const NON_SUBJECT = /\b[Nn]on-?\s?([A-Z]{2,4})\b/g;
 /** Words after "non-SUBJ" that make it about people ("Non-CSE students"), not courses. */
 const ABOUT_PEOPLE = /^[\s'’-]*(?:students?|majors?|minors?|applicants?|advis\w*|admit\w*|faculty|staff|graduates?|undergraduates?|candidates?|transfers?|individuals?|people)\b/i;
+/**
+ * Words after "non-SUBJ" that name a unit ("non-CSE colleges", "non-ARCH departments"). About the unit,
+ * not courses, only when the sentence has no course level ("Upper division students from non-CSE
+ * colleges …"); beside one it still rules the subject out ("xxxx 3xxx xxxx 4xxx courses from non-ARCH
+ * departments" never lists ARCH 3150).
+ */
+const ABOUT_UNITS = /^[\s'’-]*(?:colleges?|schools?|programs?|departments?|depts?\.?|units?|campus(?:es)?|institutions?|universit(?:y|ies))\b/i;
 const KEYWORD =
   /\b(?:(not\s+includ(?:e|es|ing)|does\s+not\s+include|exclud(?:e|es|ing)|except(?:\s+for)?|other\s+than)|(includ(?:e|es|ing)|also\s+(?:allowed|accepted|counts?)))\b/gi;
 /** A course code in an exclusion or inclusion list, any case ("Law 3050"); a bare number takes the last subject. */
@@ -238,7 +245,8 @@ export function readCoursePattern(text: string | null | undefined, options: Opti
         const at = m.index ?? 0;
         if (consumed.some(([a, b]) => at >= a && at < b) || !isSubject(m[1])) continue;
         // "Non-CSE students should consult …", "Non-CLA majors …": about people, not courses.
-        if (ABOUT_PEOPLE.test(clause.text.slice(at + m[0].length))) continue;
+        const after = clause.text.slice(at + m[0].length);
+        if (ABOUT_PEOPLE.test(after) || (ABOUT_UNITS.test(after) && !/\b[1-9][xX]{3}\b/.test(read))) continue;
         exceptSubjects.add(m[1]);
         forms.add("non-subject");
         used = true;
