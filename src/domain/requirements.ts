@@ -1,4 +1,5 @@
 import { equivalentCodes, type CourseId, type CreditRange } from "./course";
+import { constraintProgress, type ConstraintPart, type ConstraintProgress, type CreditConstraint, type ListedCourse } from "./creditConstraints";
 
 /**
  * Program requirements, normalized from UMN's CourseDog catalog (src/server/programs/normalize.ts),
@@ -32,6 +33,11 @@ interface RuleBase {
    * ("must total 23 credits… 11 must have a CSCI designator"). Shown as written.
    */
   description?: string | null;
+  /**
+   * C2 (Phase C): credit constraints read from the rule's catalog text or a per-program override.
+   * **Shown, never counted** toward progress (Hadi, 2026-10-28: "show first").
+   */
+  constraints?: CreditConstraint[];
 }
 
 export interface CoursesRule extends RuleBase {
@@ -71,6 +77,8 @@ export interface Requirement {
   notes: string | null;
   rules: Rule[];
   level?: RequirementLevel;
+  /** C2: constraints read from the requirement's own notes ("Take 12 credits from the lists below"). Shown only. */
+  constraints?: CreditConstraint[];
 }
 
 export interface Program {
@@ -114,6 +122,8 @@ export interface RuleResult {
   /** numberOf only: children covered, each by a different planned course. */
   areas?: number;
   children?: RuleResult[];
+  /** C2: planned credits against `rule.constraints`. Display only; never affects `satisfied`/`filled`. */
+  constraints?: ConstraintProgress[];
 }
 
 export interface RequirementResult {
@@ -124,6 +134,8 @@ export interface RequirementResult {
   rules: RuleResult[];
   /** Every planned course that counts toward this requirement. */
   courseIds: CourseId[];
+  /** C2: planned credits against `requirement.constraints`. Display only. */
+  constraints?: ConstraintProgress[];
 }
 
 /**
@@ -179,6 +191,35 @@ function evaluateCourses(rule: CoursesRule, planned: PlannedForAudit[]): RuleRes
 }
 
 export function evaluateRule(rule: Rule, planned: PlannedForAudit[]): RuleResult {
+  const result = evaluateRuleKind(rule, planned);
+  if (!rule.constraints?.length) return result;
+  const children = rule.kind === "anyOf" || rule.kind === "allOf" || rule.kind === "numberOf" ? rule.children : [];
+  return { ...result, constraints: progressOf(rule.constraints, [rule], children, planned) };
+}
+
+/**
+ * C2: constraint progress over the courses `rules` list. A constraint that names a part ("from the Core
+ * Department Electives") is checked against the rule among `partRoots` and their descendants with that name.
+ */
+function progressOf(constraints: CreditConstraint[], rules: Rule[], partRoots: Rule[], planned: PlannedForAudit[]): ConstraintProgress[] {
+  const parts: ConstraintPart[] = [];
+  const visit = (r: Rule) => {
+    parts.push({ name: r.name, courseIds: new Set(listedCourseIds(r)) });
+    if (r.kind === "anyOf" || r.kind === "allOf" || r.kind === "numberOf") r.children.forEach(visit);
+  };
+  partRoots.forEach(visit);
+  return constraintProgress(constraints, rules.flatMap(listedCourses), parts, planned);
+}
+
+function listedCourses(rule: Rule): ListedCourse[] {
+  if (rule.kind === "courses") {
+    return rule.choices.flatMap((c) => c.options).flatMap((o) => (o.courseId == null ? [] : [{ courseId: o.courseId, code: o.code }]));
+  }
+  if (rule.kind === "text") return [];
+  return rule.children.flatMap(listedCourses);
+}
+
+function evaluateRuleKind(rule: Rule, planned: PlannedForAudit[]): RuleResult {
   switch (rule.kind) {
     case "courses":
       return evaluateCourses(rule, planned);
@@ -238,6 +279,7 @@ export function evaluateRequirement(requirement: Requirement, planned: PlannedFo
     filled: rules.reduce((n, r) => n + r.filled, 0),
     rules,
     courseIds: [...ids],
+    ...(requirement.constraints?.length ? { constraints: progressOf(requirement.constraints, requirement.rules, requirement.rules, planned) } : {}),
   };
 }
 

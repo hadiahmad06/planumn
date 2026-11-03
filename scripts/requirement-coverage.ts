@@ -150,6 +150,7 @@ function render(results: ProgramCoverage[], failed: string[], uniqueIds: number)
   p(`| Conditions the normalizer has no case for | ${sum((r) => r.unhandled.length)} | ${count((r) => r.unhandled.length > 0)} |`);
   p(`| \`freeformText\` rules (prose only, nothing checkable) | ${sum((r) => r.freeform.length)} | ${count((r) => r.freeform.length > 0)} |`);
   p(`| Credit counts only in \`description\`/notes (no \`minCredits\`/\`maxCredits\`/\`credits\`) | ${sum((r) => r.proseOnlyCredits.length)} | ${count((r) => r.proseOnlyCredits.length > 0)} |`);
+  p(`| Rules and requirements where C2 reads a credit constraint from text (shown, not counted) | ${sum((r) => r.readConstraints)} | ${count((r) => r.readConstraints > 0)} |`);
   p(`| Course rules that normalize to **no options** | ${sum((r) => r.emptyCourseRules.length)} | ${count((r) => r.emptyCourseRules.length > 0)} |`);
   p(`| Programs with an unresolved course id | — | ${count((r) => r.unresolvedIds.length > 0)} |`);
   p();

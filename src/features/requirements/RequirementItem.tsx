@@ -2,6 +2,7 @@
 
 import { useDraggable } from "@dnd-kit/core";
 import { useId, useState } from "react";
+import { describeConstraint, type ConstraintProgress } from "@/domain/creditConstraints";
 import type { CourseChoice, CourseOption, RequirementResult, RuleResult } from "@/domain/requirements";
 import { cn } from "@/components/ui/cn";
 import { ProgressRing } from "@/components/ui/ProgressRing";
@@ -158,6 +159,34 @@ function RuleDescription({ text }: { text: string }) {
   );
 }
 
+/**
+ * C2: credit constraints planu.mn read from the catalog's wording. Hadi, 2026-10-28: show first; they
+ * don't count toward progress until C4 checks them against APAS.
+ */
+function CreditConstraints({ items }: { items: ConstraintProgress[] }) {
+  return (
+    <div className="rounded-row border border-dashed border-border px-2 py-1.5 text-micro">
+      <p
+        className="text-text-tertiary"
+        title="planu.mn read these limits from the catalog's wording, so they may be off. They aren't counted in your progress yet; APAS or your advisor has the final word."
+      >
+        Read from catalog text · not counted in progress
+      </p>
+      <ul>
+        {items.map((p, i) => (
+          <li key={i} title={p.constraint.sentence} className="flex items-baseline gap-2">
+            <span className={cn("text-text-secondary", p.met && "text-success")}>
+              {describeConstraint(p.constraint)}
+              {p.constraint.source === "override" ? " (corrected by planu.mn)" : ""}
+            </span>
+            <span className="ml-auto shrink-0 text-text-tertiary">{p.planned == null ? "can't check" : `${p.planned} cr planned`}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 function ruleStatus(r: RuleResult): string | null {
   if (r.rule.kind === "courses") {
     const { minCourses, minCredits } = r.rule;
@@ -191,6 +220,7 @@ function RuleView({ result, depth, hideTitle }: { result: RuleResult; depth: num
         </div>
       )}
       {rule.description && <RuleDescription text={rule.description} />}
+      {result.constraints?.length ? <CreditConstraints items={result.constraints} /> : null}
       {rule.notes && <Notes text={rule.notes} />}
       {rule.kind === "numberOf" && (
         <p className="text-micro text-text-secondary">
@@ -245,6 +275,7 @@ export function RequirementItem({ result, defaultOpen }: { result: RequirementRe
       {open && (
         <div className="flex flex-col gap-3 border-t border-border px-3 py-2.5">
           {requirement.notes && <Notes text={requirement.notes} />}
+          {result.constraints?.length ? <CreditConstraints items={result.constraints} /> : null}
           {result.rules.map((r) => (
             <RuleView key={r.rule.id} result={r} depth={0} hideTitle={single} />
           ))}

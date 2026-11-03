@@ -16,6 +16,10 @@ export const HANDLED_CONDITIONS = new Set([
   "minimumCourses",
   "minimumCredits",
   "completeVariableCoursesAndVariableCredits",
+  "numberOf", // C1 (#79)
+  "completedAllOf", // C2
+  "completedAnyOf",
+  "completedAtLeastXOf",
 ]);
 
 /** Fields C1/C2 read that `RawRule` doesn't declare yet. */
@@ -52,6 +56,8 @@ export interface ProgramCoverage {
   proseOnlyCredits: RuleFinding[];
   /** Normalized course rules with no options at all (data dropped somewhere). */
   emptyCourseRules: RuleFinding[];
+  /** C2: normalized rules and requirements carrying credit constraints read from text (shown, not counted). */
+  readConstraints: number;
   ids: Record<IdStatus, number>;
   unresolvedIds: string[];
 }
@@ -70,6 +76,7 @@ export function analyzeProgram(raw: RawProgram, idStatus: (groupId: string) => I
     freeform: [],
     proseOnlyCredits: [],
     emptyCourseRules: [],
+    readConstraints: 0,
     ids: { catalog: 0, coursedog: 0, old: 0, unresolved: 0 },
     unresolvedIds: [],
   };
@@ -108,11 +115,15 @@ export function analyzeProgram(raw: RawProgram, idStatus: (groupId: string) => I
 
   const program = normalizeProgram(raw, (groupId) => ({ groupId, courseId: null, code: null, title: null, credits: null }));
   const visitNormalized = (rule: Rule, requirement: string) => {
+    if (rule.constraints?.length) out.readConstraints++;
     if (rule.kind === "courses" && rule.choices.every((c) => c.options.length === 0)) {
       out.emptyCourseRules.push({ requirement, rule: rule.name, detail: `${rule.minCourses} courses / ${rule.minCredits} credits` });
     }
     if (rule.kind === "anyOf" || rule.kind === "allOf") rule.children.forEach((c) => visitNormalized(c, requirement));
   };
-  for (const req of program.requirements) req.rules.forEach((r) => visitNormalized(r, req.name));
+  for (const req of program.requirements) {
+    if (req.constraints?.length) out.readConstraints++;
+    req.rules.forEach((r) => visitNormalized(r, req.name));
+  }
   return out;
 }

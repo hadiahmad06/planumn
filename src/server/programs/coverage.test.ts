@@ -29,7 +29,7 @@ const raw = {
             condition: "anyOf",
             subRules: [
               { name: "Area 1", condition: "minimumCredits", minCredits: 4, value: { condition: "courses", values: [{ value: ["nVzH5vryuHXiotc1enDx"] }] } },
-              { name: "Area 2", condition: "completedAnyOf", credits: 0, value: { condition: "courses", values: [] } },
+              { name: "Area 2", condition: "someFutureCondition", credits: 0, value: { condition: "courses", values: [] } },
             ],
           },
         ],
@@ -44,8 +44,8 @@ const c = analyzeProgram(raw, (id) => status[id]);
 describe("requirement coverage (C0)", () => {
   it("counts conditions and flags ones the normalizer has no case for", () => {
     expect(c.rules).toBe(5);
-    expect(c.conditions).toMatchObject({ completedAnyOf: 1, freeformText: 1, minimumCredits: 1 });
-    expect(c.unhandled).toEqual([{ requirement: "Breadth and Depth", rule: "Area 2", detail: "completedAnyOf" }]);
+    expect(c.conditions).toMatchObject({ someFutureCondition: 1, freeformText: 1, minimumCredits: 1 });
+    expect(c.unhandled).toEqual([{ requirement: "Breadth and Depth", rule: "Area 2", detail: "someFutureCondition" }]);
   });
 
   it("lists freeformText rules with their text", () => {
