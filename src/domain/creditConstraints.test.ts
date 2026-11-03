@@ -65,6 +65,27 @@ describe("readCreditConstraints (C2)", () => {
       "At most 3 credits from Internships",
     ]);
   });
+
+  // Backlog after #82: the middle list of three was dropped, and a later list may leave out "credits".
+  it("splits a list of three at commas, also when later amounts leave out 'credits'", () => {
+    const three = ["At least 3 credits from Group A", "At least 3 credits from Group B", "At least 3 credits from Group C"];
+    expect(read("Take 3 credits from Group A, 3 from Group B and 3 from Group C.")).toEqual(three);
+    expect(read("Take 3 credits from Group A, 3 credits from Group B, and 3 credits from Group C.")).toEqual(three);
+    expect(read("Take 3 credits from Group A and 3 from Group B.")).toEqual(three.slice(0, 2));
+    // "from which" / "of these" point back at the first list: not a new one.
+    expect(read("Take 12 credits from the following, 6 from which must be upper division.")).toEqual(["At least 12 credits in all"]);
+  });
+
+  // Backlog after #82: these read as a subject designator or as the rule's total. Choice: no reading.
+  it("gives no reading for Lib Ed designators, levels and labs", () => {
+    expect(read("6 credits must have the WI designator.")).toEqual([]);
+    expect(read("Of the 12 credits, at least 3 credits must have a WI designator.")).toEqual([]);
+    expect(read("Take at least 12 credits at the 3xxx level or higher.")).toEqual([]);
+    expect(read("Students must complete at least 2 credits in a laboratory course.")).toEqual([]);
+    // A real subject designator and a plain total still read.
+    expect(read("Of the 23 credits, 11 must have a CSCI designator.")).toEqual(["At least 11 credits with a CSCI designator"]);
+    expect(read("Must total 23 credits.")).toEqual(["At least 23 credits in all"]);
+  });
 });
 
 describe("constraintProgress (C2)", () => {

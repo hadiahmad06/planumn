@@ -224,6 +224,10 @@ describe("non-SUBJ about people (#88 review)", () => {
     expect(r("Non-CSE students should consult their advisor before choosing electives.")).toBeNull();
     expect(r("Non-CLA majors must get approval from the department.")).toBeNull();
     expect(r("Non-CSE applicants are admitted in spring.")).toBeNull();
+    // Backlog after #88: units, not courses.
+    expect(r("Upper division students from non-CSE colleges may enroll with instructor consent.")).toBeNull();
+    expect(r("Students transferring from a non-CLA college, school, program or department should see an advisor.")).toBeNull();
+    expect(r("Courses from non-CSE departments may count with approval.")).toBeNull();
     const p = r("EE 4xxx. Non-CSE students should consult their advisor.")!;
     expect(p.exceptSubjects).toEqual([]);
     expect(["MUS 1001", "EE 4111"].map((c) => matchesPattern(p, c))).toEqual([false, true]);
