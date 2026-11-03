@@ -1,6 +1,6 @@
-import { equivalentCodes, type CourseId, type CreditRange } from "./course";
-import { patternMatches, type CoursePattern, type PatternMatch } from "./coursePatterns";
-import { constraintProgress, type ConstraintPart, type ConstraintProgress, type CreditConstraint, type ListedCourse } from "./creditConstraints";
+import { equivalentCodes, type CourseId, type CreditRange } from "./course.ts";
+import { patternMatches, type CoursePattern, type PatternMatch } from "./coursePatterns.ts";
+import { constraintProgress, type ConstraintPart, type ConstraintProgress, type CreditConstraint, type ListedCourse } from "./creditConstraints.ts";
 
 /**
  * Program requirements, normalized from UMN's CourseDog catalog (src/server/programs/normalize.ts),

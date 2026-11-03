@@ -11,7 +11,7 @@ import {
   type ApasRequirement,
   type ApasStatus,
   type ApasSubrequirement,
-} from "@/domain/apas";
+} from "../../domain/apas.ts";
 
 /**
  * Parse a captured UMN APAS audit page (uAchieve Self-Service "Audit Results", HTML format) into an

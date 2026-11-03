@@ -40,3 +40,6 @@ npm-debug.log*
 
 # CourseDog responses cached by scripts/ (Phase C)
 /.cache
+
+# Real APAS reports saved from /plan/apas ("Save a copy"); never commit them (C4)
+apas-report-*.html

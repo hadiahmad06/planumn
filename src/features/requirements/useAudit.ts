@@ -7,14 +7,17 @@ import { evaluateProgram, type PlannedForAudit, type ProgramResult } from "@/dom
 import { useCourseCache } from "@/features/catalog/courseCache";
 import { usePrograms } from "./programStore";
 
-/** Evaluate the plan against every program it targets. Programs still loading are skipped. */
-export function useAudit(plan: Plan | null): { results: ProgramResult[]; met: number; total: number } {
+/**
+ * Evaluate the plan against every program it targets. Programs still loading are skipped. `planned` is
+ * the list evaluated (each course once), for C4's APAS comparison.
+ */
+export function useAudit(plan: Plan | null): { results: ProgramResult[]; met: number; total: number; planned: PlannedForAudit[] } {
   const entries = usePrograms(plan?.programs ?? []);
   const courses = useCourseCache((s) => s.courses);
   const summaries = useCourseCache((s) => s.summaries);
 
   return useMemo(() => {
-    if (!plan) return { results: [], met: 0, total: 0 };
+    if (!plan) return { results: [], met: 0, total: 0, planned: [] };
     const seen = new Set<number>();
     const planned: PlannedForAudit[] = [];
     for (const sem of plan.semesters)
@@ -29,6 +32,6 @@ export function useAudit(plan: Plan | null): { results: ProgramResult[]; met: nu
       const e = entries[id];
       return e?.status === "ready" ? [evaluateProgram(e.program, planned)] : [];
     });
-    return { results, met: results.reduce((n, r) => n + r.filled, 0), total: results.reduce((n, r) => n + r.units, 0) };
+    return { results, met: results.reduce((n, r) => n + r.filled, 0), total: results.reduce((n, r) => n + r.units, 0), planned };
   }, [plan, entries, courses, summaries]);
 }

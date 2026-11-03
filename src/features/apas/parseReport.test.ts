@@ -23,7 +23,7 @@ describe("parseApasReport (B1 step 2)", () => {
   });
 
   it("reads one copy of the audit, and each course once", () => {
-    expect(audit.requirements).toHaveLength(6);
+    expect(audit.requirements).toHaveLength(7);
     expect(audit.courses.map((c) => c.code).sort()).toEqual(
       ["CHEM 1062", "CSCI 1001", "EE 2115", "EE 3101", "MATH 1271", "NOTR 0T001", "PHYS 1401V", "POL 1001"].sort(),
     );
@@ -57,6 +57,7 @@ describe("parseApasReport (B1 step 2)", () => {
     expect(req("124 CRS")).toMatchObject({ title: "Minimum Degree Credits", status: "in-progress", earned: { credits: 16 }, inProgress: { credits: 4 } });
     expect(req("CSCITELEC").needs).toEqual({ credits: 10, courses: null, groups: null, subrequirements: 2 });
     expect(req("COMSCTEXT")).toMatchObject({ title: "Example Science BSExSci - Major Requirements", status: "none", subrequirements: [] });
+    expect(req("MATHSCI")).toMatchObject({ title: "Mathematics & Circuits", status: "in-progress", earned: { courses: 1 }, inProgress: { courses: 1 } });
     expect(req("THEMES").subrequirements[0]).toMatchObject({ title: "The Environment", status: "incomplete", needs: { groups: 1, courses: null } });
   });
 

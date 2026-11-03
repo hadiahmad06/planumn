@@ -10,10 +10,13 @@ import { PrereqChain } from "@/features/unlocks/PrereqChain";
 import { planActions } from "@/features/plan-editor/store";
 import { loadProgram, usePrograms } from "./programStore";
 import { programName } from "./programOptions";
+import { apasPairIndex } from "@/domain/apasCompare";
 import { AdmissionChecklist } from "./AdmissionChecklist";
+import { ApasProgramSummary } from "./ApasSays";
 import { DoubleDipFinder } from "./DoubleDipFinder";
 import { ProgramPicker } from "./ProgramPicker";
-import { RequirementItem } from "./RequirementItem";
+import { RequirementItem, type RequirementApas } from "./RequirementItem";
+import { useApasComparisons } from "./useApasComparison";
 import { useAudit } from "./useAudit";
 
 /** Searchable text of a rule: its name, notes, and listed course codes/titles (not JSON keys or ids). */
@@ -34,7 +37,9 @@ export function matchesFilter(r: Requirement, query: string) {
 /** Left rail: the plan's programs and their requirements (A22–A28). */
 export function RequirementsRail({ plan }: { plan: Plan }) {
   const entries = usePrograms(plan.programs);
-  const { results } = useAudit(plan);
+  const { results, planned } = useAudit(plan);
+  // C4: APAS's own results, when an audit for one of these programs was imported in this tab.
+  const apas = useApasComparisons(results, planned);
   const [query, setQuery] = useState("");
   const [hideDone, setHideDone] = useState(false);
 
@@ -79,6 +84,10 @@ export function RequirementsRail({ plan }: { plan: Plan }) {
         const entry = entries[id];
         const result = results.find((r) => r.program.id === id);
         const shown = result?.requirements.filter((r) => matchesFilter(r.requirement, query) && !(hideDone && r.satisfied)) ?? [];
+        const compared = apas.get(id);
+        const index = compared && apasPairIndex(compared.comparison);
+        const apasFor = (requirementId: string): RequirementApas | undefined =>
+          index && { requirement: index.requirements.get(requirementId), rules: index.rules.get(requirementId) ?? new Map() };
         return (
           <section key={id} className="flex flex-col gap-2">
             <div className="flex items-baseline gap-2">
@@ -110,11 +119,12 @@ export function RequirementsRail({ plan }: { plan: Plan }) {
                 </button>
               </p>
             )}
+            {compared && <ApasProgramSummary audit={compared.audit} comparison={compared.comparison} />}
             {result && <AdmissionChecklist plan={plan} result={result} />}
             {result && (
               <ul className="flex flex-col gap-1.5">
                 {shown.map((r) => (
-                  <RequirementItem key={r.requirement.id} result={r} defaultOpen={query.trim().length > 0} />
+                  <RequirementItem key={r.requirement.id} result={r} defaultOpen={query.trim().length > 0} apas={apasFor(r.requirement.id)} />
                 ))}
                 {shown.length === 0 && <li className="text-text-tertiary">{query ? "No matching requirements" : "All requirements completed"}</li>}
               </ul>
