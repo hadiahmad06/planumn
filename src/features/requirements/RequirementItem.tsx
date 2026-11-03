@@ -2,6 +2,7 @@
 
 import { useDraggable } from "@dnd-kit/core";
 import { useId, useState } from "react";
+import { describeTerm, patternSearches, type CoursePattern, type PatternMatch } from "@/domain/coursePatterns";
 import { describeConstraint, type ConstraintProgress } from "@/domain/creditConstraints";
 import type { CourseChoice, CourseOption, RequirementResult, RuleResult } from "@/domain/requirements";
 import { cn } from "@/components/ui/cn";
@@ -14,6 +15,7 @@ import { addCourseActions } from "@/features/plan-editor/courseActions";
 import { useDisplaySettings } from "@/features/plan-editor/displaySettings";
 import { hoverCourse, usePlanStore } from "@/features/plan-editor/store";
 import { AddToSemesterButton } from "@/features/plan-editor/AddToSemesterButton";
+import { openSearchWith } from "@/features/search/searchRequest";
 
 const MAX_CHOICES = 8;
 
@@ -187,6 +189,49 @@ function CreditConstraints({ items }: { items: ConstraintProgress[] }) {
   );
 }
 
+/**
+ * C3: a course pattern planu.mn read from the catalog's wording for a rule that lists no courses
+ * ("4xxx/5xxx EE, excluding EE 4981H"). Hadi, 2026-10-28: show first; matching planned courses are listed,
+ * not counted, until C4 checks the readings against APAS.
+ */
+function CoursePatternBox({ pattern, matches }: { pattern: CoursePattern; matches: PatternMatch[] }) {
+  const searches = pattern.terms.flatMap((t) => patternSearches(t)).slice(0, 6);
+  return (
+    <div className="flex flex-col gap-0.5 rounded-row border border-dashed border-border px-2 py-1.5 text-micro">
+      <p
+        className="text-text-tertiary"
+        title="planu.mn read this course pattern from the catalog's wording, so it may be off. Matching courses aren't counted in your progress yet; APAS or your advisor has the final word."
+      >
+        Read from catalog text · not counted in progress
+      </p>
+      <p className="text-text-secondary" title={pattern.sentences.join("\n")}>
+        Courses matching {pattern.terms.map(describeTerm).join(" or ")}
+      </p>
+      {pattern.exclude.length > 0 && <p className="text-text-secondary">Excluding {pattern.exclude.join(", ")}</p>}
+      {pattern.include.length > 0 && <p className="text-text-secondary">Also counts: {pattern.include.join(", ")}</p>}
+      <p className={matches.length ? "text-success" : "text-text-tertiary"}>
+        {matches.length ? `Planned: ${matches.map((m) => `${m.code} (${m.credits} cr)`).join(", ")}` : "No planned course matches yet"}
+      </p>
+      {searches.length > 0 && (
+        <p className="flex flex-wrap items-baseline gap-x-2">
+          <span className="text-text-tertiary">Find courses:</span>
+          {searches.map((s) => (
+            <button
+              key={s.label}
+              type="button"
+              onClick={() => openSearchWith({ ...(s.dept ? { dept: s.dept } : {}), ...(s.level ? { level: s.level } : {}) })}
+              title={`Open course search filtered to ${s.dept ?? "any department"}${s.level ? `, level ${s.level === 5000 ? "5xxx and up" : `${s.level / 1000}xxx`}` : ""}`}
+              className="text-accent hover:underline"
+            >
+              {s.label}
+            </button>
+          ))}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function ruleStatus(r: RuleResult): string | null {
   if (r.rule.kind === "courses") {
     const { minCourses, minCredits } = r.rule;
@@ -221,6 +266,7 @@ function RuleView({ result, depth, hideTitle }: { result: RuleResult; depth: num
       )}
       {rule.description && <RuleDescription text={rule.description} />}
       {result.constraints?.length ? <CreditConstraints items={result.constraints} /> : null}
+      {rule.pattern && <CoursePatternBox pattern={rule.pattern} matches={result.patternMatches ?? []} />}
       {rule.notes && <Notes text={rule.notes} />}
       {rule.kind === "numberOf" && (
         <p className="text-micro text-text-secondary">

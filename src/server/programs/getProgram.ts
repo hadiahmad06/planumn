@@ -1,9 +1,9 @@
 import "server-only";
 import type { Program } from "@/domain/requirements";
-import { findCoursesByGroupIds } from "@/server/catalog/courses";
+import { findCoursesByGroupIds, listDepartments } from "@/server/catalog/courses";
 import { fetchCourseDogCourses, fetchProgramVersions, type CourseDogCourse } from "./coursedog";
 import { coursesByRequestedId, isCourseDogId } from "./deprecatedIds";
-import { collectGroupIds, normalizeProgram, pickCurrentVersion, samplePlanUrl } from "./normalize";
+import { collectGroupIds, normalizeProgram, pickCurrentVersion, samplePlanUrl, type ResolveOption } from "./normalize";
 
 /** Program requirements with every listed course resolved to the catalog where possible. */
 export async function getProgram(programGroupId: string): Promise<Program | null> {
@@ -23,7 +23,7 @@ export async function getProgram(programGroupId: string): Promise<Program | null
   // Old ids resolve to the course's current group id, which may be in the catalog.
   const renamed = findCoursesByGroupIds([...byRequested.values()].map((c) => c.courseGroupId));
 
-  const program = normalizeProgram(raw, (groupId) => {
+  const resolve: ResolveOption = (groupId) => {
     const c = inCatalog.get(groupId) ?? renamed.get(byRequested.get(groupId)?.courseGroupId ?? "");
     if (c) return { groupId, courseId: c.id, code: `${c.dept} ${c.number}`, title: c.title, credits: c.credits };
     const d = byRequested.get(groupId);
@@ -36,7 +36,9 @@ export async function getProgram(programGroupId: string): Promise<Program | null
       title: d.name,
       credits: hours?.min != null ? { min: hours.min, max: hours.max ?? hours.min } : null,
     };
-  });
+  };
+  // C3: only the catalog's own subject codes are read from pattern text ("4xxx/5xxx EE").
+  const program = normalizeProgram(raw, resolve, undefined, new Set(listDepartments().map((d) => d.code)));
   const samplePlan = samplePlanUrl(raw); // B17
   return samplePlan ? { ...program, samplePlanUrl: samplePlan } : program;
 }
