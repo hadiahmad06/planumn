@@ -49,7 +49,7 @@ Dev-build note: Firefox match patterns can't contain a port (`http://localhost:3
 
 > Added by **Hadi's Claude**, 2026-11-03.
 
-In the app: import the audit on `/plan/apas`, then open the plan (or any plan with that program) **in the same tab**. The requirements rail shows "APAS says: …" on requirements it could pair by name, and the number of disagreements under the program name. Nothing is stored, so a reload, signing out or in, a new or failed import, or Discard clears it. planu.mn's side uses the plan's courses that are also on the audit, so a course on the audit that the plan lacks shows as a disagreement.
+In the app: import the audit on `/plan/apas`, then open the plan (or any plan with that program) **in the same tab**. The requirements rail shows "APAS says: …" on requirements it could pair by name, and the number of disagreements under the program name. Nothing is stored, so a reload, signing out or in, a failed import, or Discard clears it. For a minor or second major, click **Add another report** and send that program's audit with **I'll pick a report** (automation sends the degree program first); each program in the plan is compared with its own report (B1 multi-audit, Hadi's Claude; the extension itself is unchanged). planu.mn's side uses the plan's courses that are also on the audit, so a course on the audit that the plan lacks shows as a disagreement.
 
 From the command line, for a report saved with **Save a copy (.html)**:
 

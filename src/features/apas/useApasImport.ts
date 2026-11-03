@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { setImportedAudit } from "./importedAudit";
+import { clearImportedAudits } from "./importedAudit";
 import { APAS_PROTOCOL, newNonce, pageMessage, readExtensionMessage, type ApasReport } from "./protocol";
 
 export type ApasImportState =
@@ -27,7 +27,7 @@ export function useApasImport() {
   useEffect(() => {
     // C4: a failed import must not leave an older audit looking current in the rail (review fix, #89).
     const fail = (message: string) => {
-      setImportedAudit(null);
+      clearImportedAudits();
       setState({ phase: "error", message });
     };
     const self = { origin: window.location.origin, window };
@@ -55,14 +55,16 @@ export function useApasImport() {
 
   const start = useCallback(() => {
     nonce.current = newNonce();
-    setImportedAudit(null); // C4: a new import replaces the old audit, even if it fails
+    // B1 multi-audit: starting keeps the reports already held (listed on the page), so a second program's
+    // report can join them; a report for a program already held replaces it once it arrives. If this
+    // import fails, every held report is cleared (above), so nothing older is left looking current.
     setState({ phase: "waiting" });
     window.postMessage(pageMessage(APAS_PROTOCOL.START, nonce.current), window.location.origin);
   }, []);
 
   const discard = useCallback(() => {
     nonce.current = null;
-    setImportedAudit(null); // C4: Discard also removes the audit from the rail
+    clearImportedAudits(); // C4: Discard removes every held audit, from the page and the rail
     setState({ phase: "ready", version: "" });
   }, []);
 

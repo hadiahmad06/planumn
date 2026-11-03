@@ -1,15 +1,24 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo } from "react";
+import { programName } from "@/features/requirements/programOptions";
+import { ApasPlanStep } from "./ApasPlanStep";
 import { captureChecks, downloadReport } from "./capture";
+import { useImportedAudit, type ImportedAudit } from "./importedAudit";
 import { useApasImport } from "./useApasImport";
 import { ParsedAudit } from "./ParsedAudit";
 
 const kb = (s: string) => `${Math.max(1, Math.round(new Blob([s]).size / 1024))} KB`;
 
-/** /plan/apas: import from APAS through the browser extension (B1 step 1). Written by Ishaan's Claude. */
+/**
+ * /plan/apas: import from APAS through the browser extension (B1 step 1). Written by Ishaan's Claude.
+ * B1 multi-audit (Hadi's Claude): several reports, one per program, merge into one plan.
+ */
 export function ApasImport() {
   const { state, start, discard } = useApasImport();
+  const held = useImportedAudit((s) => s.audits);
+  const audits = useMemo(() => held.map((h) => h.audit), [held]);
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
@@ -36,11 +45,14 @@ export function ApasImport() {
           </p>
         )}
 
-        {state.phase === "ready" && (
-          <button type="button" onClick={start} className="rounded-row bg-accent px-4 py-2 font-medium text-surface hover:bg-accent-hover">
-            Import from APAS
-          </button>
-        )}
+        {state.phase === "ready" &&
+          (held.length === 0 ? (
+            <button type="button" onClick={start} className="rounded-row bg-accent px-4 py-2 font-medium text-surface hover:bg-accent-hover">
+              Import from APAS
+            </button>
+          ) : (
+            <MoreReports onAdd={start} onDiscard={discard} count={held.length} />
+          ))}
 
         {state.phase === "waiting" && (
           <p>
@@ -54,8 +66,8 @@ export function ApasImport() {
             <p className="font-medium">Report received ({kb(state.report.html)}).</p>
             <p className="text-sm text-text-secondary">
               From {state.report.title || "APAS"}
-              {state.report.capturedAt && ` · ${new Date(state.report.capturedAt).toLocaleString()}`}. Turning it into a
-              plan is coming next. Nothing has been saved or uploaded.
+              {state.report.capturedAt && ` · ${new Date(state.report.capturedAt).toLocaleString()}`}. Nothing has been
+              saved or uploaded.
             </p>
             <CaptureSummary html={state.report.html} />
             <div className="flex flex-wrap gap-2">
@@ -66,8 +78,13 @@ export function ApasImport() {
               >
                 Save a copy (.html)
               </button>
+              {held.length > 0 && (
+                <button type="button" onClick={start} className="rounded-row border border-border-strong px-4 py-2">
+                  Add another report
+                </button>
+              )}
               <button type="button" onClick={discard} className="rounded-row border border-border-strong px-4 py-2">
-                Discard report
+                {held.length > 1 ? "Discard reports" : "Discard report"}
               </button>
             </div>
             <p className="text-sm text-text-secondary">
@@ -86,7 +103,59 @@ export function ApasImport() {
         )}
       </section>
       {state.phase === "received" && <ParsedAudit html={state.report.html} />}
+      {held.length > 0 && state.phase !== "waiting" && (
+        <>
+          <HeldReports held={held} />
+          <ApasPlanStep audits={audits} />
+        </>
+      )}
     </main>
+  );
+}
+
+const ADD_HINT =
+  "For a minor or second major, add that program's report: in the planu.mn bar on APAS, choose “I'll pick a report”, open that program's audit and send it. A report for a program already here replaces the older one.";
+
+/** "Add another report" / "Discard reports", when reports are already held (B1 multi-audit). */
+function MoreReports({ onAdd, onDiscard, count }: { onAdd: () => void; onDiscard: () => void; count: number }) {
+  return (
+    <div>
+      <div className="flex flex-wrap gap-2">
+        <button type="button" onClick={onAdd} className="rounded-row bg-accent px-4 py-2 font-medium text-surface hover:bg-accent-hover">
+          Add another report
+        </button>
+        <button type="button" onClick={onDiscard} className="rounded-row border border-border-strong px-4 py-2">
+          {count > 1 ? "Discard reports" : "Discard report"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/** The reports held in this tab, one per program (B1 multi-audit). */
+export function HeldReports({ held }: { held: readonly ImportedAudit[] }) {
+  return (
+    <section
+      className="my-8 space-y-3 rounded-card border border-border-strong bg-surface p-6"
+      aria-label="Reports in this tab"
+    >
+      <h2 className="text-lg font-semibold">
+        {held.length === 1 ? "1 report" : `${held.length} reports`} in this tab
+      </h2>
+      <ul className="space-y-1 text-sm">
+        {held.map(({ key, programId, audit }) => (
+          <li key={key}>
+            {audit.program.title} ({audit.program.code})
+            {audit.preparedOn && <span className="text-text-secondary"> · prepared {audit.preparedOn}</span>}
+            <span className="text-text-secondary">
+              {" "}
+              · {programId ? `planu.mn program: ${programName(programId)}` : "no matching planu.mn program"}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <p className="text-sm text-text-secondary">{ADD_HINT}</p>
+    </section>
   );
 }
 

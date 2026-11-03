@@ -27,6 +27,13 @@ export type ApasSkipReason =
   /** The term already has the maximum number of placeholder slots. */
   | "slot-limit";
 
+/** An audit's program and the planu.mn (CourseDog) program it maps to, if any. */
+export interface ApasPlanProgram {
+  apasCode: string;
+  title: string;
+  programId: string | null;
+}
+
 export interface ApasPlanResult {
   plan: Plan;
   /** Course rows placed as catalog courses. */
@@ -34,8 +41,15 @@ export interface ApasPlanResult {
   /** Rows not in planu.mn's catalog, placed as placeholder slots with their APAS credits. */
   placeholders: { code: string; term: TermCode | "prior" }[];
   skipped: { code: string; termRaw: string; reason: ApasSkipReason }[];
-  /** The audit's program and the planu.mn (CourseDog) program it maps to, if any. */
-  program: { apasCode: string; title: string; programId: string | null };
+  /** The first audit's program (the only one for a single report). */
+  program: ApasPlanProgram;
+  /** Every audit's program, in import order (B1 multi-audit). */
+  programs: ApasPlanProgram[];
+  /**
+   * Course rows left out because a newer report already lists the same course in the same term
+   * (B1 multi-audit). 0 for a single report.
+   */
+  shared: number;
 }
 
 /**
@@ -80,6 +94,42 @@ const atUmn = (c: ApasCourse) =>
   c.kind === "planned" ||
   c.kind === "withdrawn";
 
+/** "10/27/2026 02:02 PM" (APAS's "Prepared On") as a sortable number, or null when unreadable. */
+export function apasPreparedTime(preparedOn: string | null): number | null {
+  const m = preparedOn?.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2})\s*([AP]M))?/i);
+  if (!m) return null;
+  const hour = m[4] ? (Number(m[4]) % 12) + (m[6].toUpperCase() === "PM" ? 12 : 0) : 0;
+  return Date.UTC(Number(m[3]), Number(m[1]) - 1, Number(m[2]), hour, Number(m[5] ?? 0));
+}
+
+/** Course + term: the same row on two reports. A retake in another term has another key. */
+const rowKey = (c: ApasCourse) => `${c.term ?? `?${c.termRaw.trim().toUpperCase()}`}|${c.code.toUpperCase()}`;
+
+/**
+ * B1 multi-audit (Hadi's Claude): one course list from several reports for the same student (a major
+ * and a minor, or two majors; APAS shows one program per report). Reports are read newest-prepared
+ * first (import order when a date is missing or equal). A report's rows for a course and term that a
+ * newer report already lists are dropped, so a course two reports share is placed once and the newest
+ * report's grade and status win. Within one report every row is kept, so retakes and the same-term
+ * rules in `apasPlan` work as for a single report. Rule in docs/agent/heuristics.md §4.
+ */
+export function mergeApasCourses(audits: readonly ApasAudit[]): { courses: ApasCourse[]; shared: number } {
+  const newestFirst = audits
+    .map((audit, i) => ({ audit, i, t: apasPreparedTime(audit.preparedOn) ?? -Infinity }))
+    .sort((a, b) => (b.t === a.t ? a.i - b.i : b.t - a.t));
+  const seen = new Set<string>();
+  const courses: ApasCourse[] = [];
+  let shared = 0;
+  for (const { audit } of newestFirst) {
+    const mine = audit.courses.filter((c) => !seen.has(rowKey(c)));
+    shared += audit.courses.length - mine.length;
+    courses.push(...mine);
+    for (const c of mine) seen.add(rowKey(c));
+  }
+  return { courses, shared };
+}
+
+/** A single report's plan. Same as `apasPlanFromAudits([audit], …)`. */
 export function apasPlan(
   audit: ApasAudit,
   /** Catalog ids by "DEPT NUMBER" (server lookup). */
@@ -87,6 +137,34 @@ export function apasPlan(
   programIds: readonly string[],
   now = new Date(),
 ): ApasPlanResult {
+  return apasPlanFromAudits([audit], ids, programIds, now);
+}
+
+/**
+ * One plan from one or more APAS audits (B1 multi-audit): the courses merged by `mergeApasCourses`,
+ * every audit's mapped program (each once, in import order) and the latest expected graduation term.
+ * Placeholders, prior credit and skipped rows follow the single-report rules unchanged.
+ */
+export function apasPlanFromAudits(
+  audits: readonly ApasAudit[],
+  /** Catalog ids by "DEPT NUMBER" (server lookup). */
+  ids: ReadonlyMap<string, CourseId>,
+  programIds: readonly string[],
+  now = new Date(),
+): ApasPlanResult {
+  if (audits.length === 0) throw new Error("apasPlanFromAudits needs at least one audit");
+  const { courses, shared } = mergeApasCourses(audits);
+  const grads = audits
+    .map((a) => a.expectedGradTerm)
+    .filter((t): t is TermCode => t != null)
+    .sort(compareTerms);
+  const audit: ApasAudit = { ...audits[0], courses, expectedGradTerm: grads.at(-1) ?? null };
+  const programs: ApasPlanProgram[] = audits.map((a) => ({
+    apasCode: a.program.code,
+    title: a.program.title,
+    programId: apasProgramId(a.program.code, programIds),
+  }));
+
   const umnTerms = audit.courses
     .filter((c) => atUmn(c) && c.term)
     .map((c) => c.term!)
@@ -106,17 +184,16 @@ export function apasPlan(
   )
     semesters.push({ index: t, courses: [] });
 
-  const programId = apasProgramId(audit.program.code, programIds);
   let plan: Plan = {
     ...createEmptyPlan(now),
     title: `Imported from APAS`,
-    programs: programId ? [programId] : [],
+    programs: [...new Set(programs.flatMap((p) => (p.programId ? [p.programId] : [])))],
     semesters,
   };
   plan = addPriorCredit(plan, now);
   const prior = plan.semesters.find((s) => s.kind === "prior")!;
 
-  const result: Omit<ApasPlanResult, "plan" | "program"> = {
+  const result: Pick<ApasPlanResult, "matched" | "placeholders" | "skipped"> = {
     matched: 0,
     placeholders: [],
     skipped: [],
@@ -176,13 +253,5 @@ export function apasPlan(
       });
     }
   }
-  return {
-    plan,
-    ...result,
-    program: {
-      apasCode: audit.program.code,
-      title: audit.program.title,
-      programId,
-    },
-  };
+  return { plan, ...result, program: programs[0], programs, shared };
 }
