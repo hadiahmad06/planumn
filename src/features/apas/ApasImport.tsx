@@ -4,7 +4,6 @@ import Link from "next/link";
 import { captureChecks, downloadReport } from "./capture";
 import { useApasImport } from "./useApasImport";
 import { ParsedAudit } from "./ParsedAudit";
-import { setImportedAudit } from "./importedAudit";
 
 const kb = (s: string) => `${Math.max(1, Math.round(new Blob([s]).size / 1024))} KB`;
 
@@ -67,14 +66,7 @@ export function ApasImport() {
               >
                 Save a copy (.html)
               </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setImportedAudit(null);
-                  discard();
-                }}
-                className="rounded-row border border-border-strong px-4 py-2"
-              >
+              <button type="button" onClick={discard} className="rounded-row border border-border-strong px-4 py-2">
                 Discard report
               </button>
             </div>

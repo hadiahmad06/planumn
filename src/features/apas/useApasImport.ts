@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { setImportedAudit } from "./importedAudit";
 import { APAS_PROTOCOL, newNonce, pageMessage, readExtensionMessage, type ApasReport } from "./protocol";
 
 export type ApasImportState =
@@ -24,6 +25,11 @@ export function useApasImport() {
   const nonce = useRef<string | null>(null);
 
   useEffect(() => {
+    // C4: a failed import must not leave an older audit looking current in the rail (review fix, #89).
+    const fail = (message: string) => {
+      setImportedAudit(null);
+      setState({ phase: "error", message });
+    };
     const self = { origin: window.location.origin, window };
     const onMessage = (event: MessageEvent) => {
       const msg = readExtensionMessage(event, self, nonce.current);
@@ -31,8 +37,8 @@ export function useApasImport() {
       if (msg.type === APAS_PROTOCOL.READY)
         setState((s) => (s.phase === "checking" || s.phase === "missing" ? { phase: "ready", version: msg.version } : s));
       else if (msg.type === APAS_PROTOCOL.STATUS) {
-        if (msg.status === "cancelled") setState({ phase: "error", message: "The APAS tab was closed before a report was sent." });
-        if (msg.status === "error") setState({ phase: "error", message: "The extension couldn't open APAS. Try again." });
+        if (msg.status === "cancelled") fail("The APAS tab was closed before a report was sent.");
+        if (msg.status === "error") fail("The extension couldn't open APAS. Try again.");
       } else if (msg.type === APAS_PROTOCOL.REPORT) {
         nonce.current = null; // one report per import
         setState({ phase: "received", report: msg.report });
@@ -49,12 +55,14 @@ export function useApasImport() {
 
   const start = useCallback(() => {
     nonce.current = newNonce();
+    setImportedAudit(null); // C4: a new import replaces the old audit, even if it fails
     setState({ phase: "waiting" });
     window.postMessage(pageMessage(APAS_PROTOCOL.START, nonce.current), window.location.origin);
   }, []);
 
   const discard = useCallback(() => {
     nonce.current = null;
+    setImportedAudit(null); // C4: Discard also removes the audit from the rail
     setState({ phase: "ready", version: "" });
   }, []);
 

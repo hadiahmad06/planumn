@@ -117,8 +117,9 @@ function Requirement({ r }: { r: ApasRequirement }) {
 export function ParsedAudit({ html }: { html: string }) {
   const audit = useMemo(() => parseApasHtml(html), [html]);
   // C4: keep the parsed audit in this tab's memory so the plan's requirements rail can show "APAS says".
+  // A page that isn't an audit clears the previous one, so it's never shown as current (review fix, #89).
   useEffect(() => {
-    if (audit) setImportedAudit(audit);
+    setImportedAudit(audit);
   }, [audit]);
   if (!audit) {
     return (
