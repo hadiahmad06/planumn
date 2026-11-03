@@ -11,7 +11,7 @@ import { cn } from "@/components/ui/cn";
  */
 
 const SOURCE =
-  "APAS's own result, from the audit you imported in this tab. planu.mn's side here uses only the courses on that audit, so plans with future courses can still show more progress above.";
+  "APAS's own result, from the audit you imported in this tab. planu.mn's side here uses only this plan's courses that are also on that audit: future courses don't count, and a course on the audit that isn't in this plan counts as missing.";
 
 function planumnSide(pair: ApasPair): string {
   if (pair.verdict === "unchecked") return "planu.mn can't check this one";

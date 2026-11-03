@@ -43,6 +43,7 @@ describe("APAS says (C4 display)", () => {
       pairs: [pair(apas("Core", "complete"), "Core", true, "agree"), pair(apas("Electives", "incomplete"), "Electives", true, "disagree")],
       apasOnly: [apas("Minimum Degree Credits", "in-progress")],
       planumnOnly: [{ id: "x", name: "Senior Project" }],
+      ambiguous: [],
       ignored: [],
       disagreements: 1,
     };

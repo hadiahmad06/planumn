@@ -2,6 +2,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import type { ApasRequirement } from "@/domain/apas";
 import { parseApasHtml } from "@/features/apas/parseReport";
 import {
   apasPairIndex,
@@ -150,6 +151,78 @@ describe("pairing order", () => {
       requirements: [req("udwi", "Upper Division Writing Intensive", [courses("a", "A", [5])]), req("wi", "Writing Intensive", [courses("b", "B", [4])])],
     };
     expect(compareApas(audit, evaluateProgram(two, planned)).pairs.find((p) => p.apas.id === "WI REQ")?.target.id).toBe("wi");
+  });
+
+  // Review fixes on #89 (reproductions from the reviewers).
+  const titled = (title: string, status: ApasRequirement["status"] = "complete"): ApasRequirement => ({
+    ...audit.requirements.find((r) => r.id === "WI REQ")!,
+    id: title.toUpperCase(),
+    title,
+    status,
+  });
+
+  it("prefers an exact rule over a similar requirement", () => {
+    const p: Program = {
+      ...program,
+      requirements: [
+        req("adv", "Advanced Technical Electives", [courses("adv-r", "Pick one", [1])]),
+        req("core", "Core", [courses("te", "Technical Electives", [3])]),
+      ],
+    };
+    const c = compareApas({ requirements: [titled("Technical Electives")] }, evaluateProgram(p, planned));
+    expect(c.pairs).toEqual([
+      expect.objectContaining({ match: "exact", verdict: "agree", target: expect.objectContaining({ level: "rule", requirementId: "core", id: "te" }) }),
+    ]);
+  });
+
+  it("keeps single letters: 'Elective Group A' doesn't pair with 'Elective Group B'", () => {
+    expect(nameMatch("Elective Group A", "Elective Group B")).toBe(0);
+    const p: Program = { ...program, requirements: [req("b", "Elective Group B", [courses("b-r", "B", [1])])] };
+    const c = compareApas({ requirements: [titled("Elective Group A")] }, evaluateProgram(p, planned));
+    expect(c.pairs).toEqual([]);
+    expect(c.apasOnly.map((r) => r.title)).toEqual(["Elective Group A"]);
+  });
+
+  it("pairs nothing when a name ties between two others, instead of letting catalog order decide", () => {
+    const p: Program = {
+      ...program,
+      requirements: [
+        req("lower", "Lower Division Technical Electives", [courses("l", "L", [1])]),
+        req("upper", "Upper Division Technical Electives", [courses("u", "U", [3])]),
+      ],
+    };
+    const c = compareApas({ requirements: [titled("Technical Electives")] }, evaluateProgram(p, planned));
+    expect(c.pairs).toEqual([]);
+    expect(c.ambiguous.map((r) => r.title)).toEqual(["Technical Electives"]);
+    expect(c.apasOnly.map((r) => r.title)).toEqual(["Technical Electives"]);
+    expect(c.planumnOnly.map((r) => r.id)).toEqual(["lower", "upper"]);
+  });
+
+  it("judges a tie among the names still free: an exact pair taken first removes the tie", () => {
+    const p: Program = {
+      ...program,
+      requirements: [
+        req("lower", "Lower Division Technical Electives", [courses("l", "L", [1])]),
+        req("upper", "Upper Division Technical Electives", [courses("u", "U", [3])]),
+      ],
+    };
+    const c = compareApas(
+      { requirements: [titled("Technical Electives"), titled("Upper Division Technical Electives")] },
+      evaluateProgram(p, planned),
+    );
+    // "Upper Division …" pairs exactly first; "Technical Electives" then has only "Lower Division …" left.
+    expect(c.pairs.map((x) => [x.apas.title, x.target.id])).toEqual([
+      ["Technical Electives", "lower"],
+      ["Upper Division Technical Electives", "upper"],
+    ]);
+    expect(c.ambiguous).toEqual([]);
+  });
+
+  it("leaves one name unpaired when two APAS titles match it equally", () => {
+    const p: Program = { ...program, requirements: [req("te", "Technical Electives", [courses("t", "T", [3])])] };
+    const c = compareApas({ requirements: [titled("Technical Electives"), titled("Technical Elective")] }, evaluateProgram(p, planned));
+    expect(c.pairs).toEqual([]);
+    expect(c.planumnOnly.map((r) => r.id)).toEqual(["te"]);
   });
 });
 

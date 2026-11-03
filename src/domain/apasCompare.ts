@@ -46,17 +46,24 @@ export interface ApasComparison {
   apasOnly: ApasRequirement[];
   /** planu.mn requirements that neither paired themselves nor through any of their rules. */
   planumnOnly: { id: string; name: string }[];
+  /**
+   * APAS requirements left unpaired because two or more planu.mn names matched equally well (or two APAS
+   * titles matched one name equally well). Also listed in `apasOnly`.
+   */
+  ambiguous: ApasRequirement[];
   /** APAS entries without a status: section headings and lists such as "Courses That Do Not Earn Credit". */
   ignored: ApasRequirement[];
   disagreements: number;
 }
 
-const STOPWORDS = new Set(["a", "an", "and", "or", "the", "of", "for", "in", "to", "requirement", "requirements", "req", "course", "courses"]);
+// Not "a": single letters and numbers name groups ("Elective Group A" vs "Group B"), so they count.
+const STOPWORDS = new Set(["an", "and", "or", "the", "of", "for", "in", "to", "requirement", "requirements", "req", "course", "courses"]);
 
 /**
  * Words of a requirement name, normalized: lower case, "&" read as "and", parentheticals ("(up to 22
  * credits)") dropped, punctuation as spaces, filler words ("requirements", "courses", "the") dropped and
  * a plural "s" removed, so "Technical Electives (up to 22 credits)" and "Technical Elective" agree.
+ * Single letters and numbers are kept: "Group A" ≠ "Group B", "Area 1" ≠ "Area 2".
  */
 export function nameWords(name: string): string[] {
   const words = name
@@ -108,31 +115,60 @@ function targetsOf(result: ProgramResult): PlanumnTarget[] {
   return out;
 }
 
+interface Candidate {
+  a: number;
+  t: number;
+  exact: boolean;
+  requirement: boolean;
+  score: number;
+}
+
+/** Rank: an exact name first, then a requirement before a rule, then the closer similar name. */
+function rank(x: Candidate, y: Candidate): number {
+  return Number(y.exact) - Number(x.exact) || Number(y.requirement) - Number(x.requirement) || y.score - x.score;
+}
+
 /**
  * Pair an audit's requirements with a program's results, one to one. Candidate pairs are taken best
- * first: an exact name before a similar one, a requirement before a rule with the same name, then
- * catalog order. APAS requirements without a status are headings and are left out.
+ * first (see `rank`). When two candidates rank the same and share a side (one APAS title matching two
+ * planu.mn names equally well, or the reverse), that shared side is left unpaired instead of letting
+ * catalog order choose. APAS requirements without a status are headings and are left out.
  */
 export function compareApas(audit: Pick<ApasAudit, "requirements">, result: ProgramResult): ApasComparison {
   const ignored = audit.requirements.filter((r) => r.status === "none");
   const apas = audit.requirements.filter((r) => r.status !== "none");
   const targets = targetsOf(result);
 
-  const candidates: { a: number; t: number; score: number }[] = [];
+  const candidates: Candidate[] = [];
   apas.forEach((r, a) =>
     targets.forEach((target, t) => {
-      const m = nameMatch(r.title, target.name);
-      if (m > 0) candidates.push({ a, t, score: m * 2 + (target.level === "requirement" ? 1 : 0) });
+      const score = nameMatch(r.title, target.name);
+      if (score > 0) candidates.push({ a, t, exact: score === 1, requirement: target.level === "requirement", score });
     }),
   );
-  candidates.sort((x, y) => y.score - x.score || x.a - y.a || x.t - y.t);
+  candidates.sort((x, y) => rank(x, y) || x.a - y.a || x.t - y.t);
 
   const pairedApas = new Map<number, number>();
   const pairedTargets = new Set<number>();
-  for (const c of candidates) {
-    if (pairedApas.has(c.a) || pairedTargets.has(c.t)) continue;
-    pairedApas.set(c.a, c.t);
-    pairedTargets.add(c.t);
+  const blockedApas = new Set<number>();
+  const blockedTargets = new Set<number>();
+  const open = (c: Candidate) => !pairedApas.has(c.a) && !pairedTargets.has(c.t) && !blockedApas.has(c.a) && !blockedTargets.has(c.t);
+  for (let i = 0; i < candidates.length; ) {
+    let j = i;
+    while (j < candidates.length && rank(candidates[i], candidates[j]) === 0) j++;
+    const tier = candidates.slice(i, j).filter(open);
+    const count = (key: "a" | "t", v: number) => tier.filter((c) => c[key] === v).length;
+    const tied = tier.filter((c) => count("a", c.a) > 1 || count("t", c.t) > 1);
+    for (const c of tied) {
+      if (count("a", c.a) > 1) blockedApas.add(c.a);
+      if (count("t", c.t) > 1) blockedTargets.add(c.t);
+    }
+    for (const c of tier) {
+      if (!open(c)) continue;
+      pairedApas.set(c.a, c.t);
+      pairedTargets.add(c.t);
+    }
+    i = j;
   }
 
   const pairs: ApasPair[] = [...pairedApas.entries()]
@@ -147,6 +183,7 @@ export function compareApas(audit: Pick<ApasAudit, "requirements">, result: Prog
   return {
     pairs,
     apasOnly: apas.filter((_, a) => !pairedApas.has(a)),
+    ambiguous: apas.filter((_, a) => blockedApas.has(a) && !pairedApas.has(a)),
     planumnOnly: result.requirements.filter((r) => !touched.has(r.requirement.id)).map((r) => ({ id: r.requirement.id, name: r.requirement.name })),
     ignored,
     disagreements: pairs.filter((p) => p.verdict === "disagree").length,
