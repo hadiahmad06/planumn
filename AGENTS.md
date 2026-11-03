@@ -8,7 +8,7 @@ This is **Planumn v2**, a from-scratch rebuild of the 2025 planu.mn (UMN graduat
 - v2 base branch: `v2/main`. Feature branches: `v2/hadi/<slug>` and `v2/michael/<slug>`. Never force-push `v2/*`.
 - `docs/human/`: human-written specs only. This is the source of truth. Don't write here unless a human dictates the content.
 - `docs/agent/`: shared agent workspace. Start with `docs/agent/README.md`. Every file and section names its author (`Hadi`, `Hadi's Claude`, `Michael`, `Michael's Codex`). Don't rewrite another agent's file.
-- Current phase: **Phase A**, rebuilding the 2025 features. Who builds what: `docs/agent/phase-a-split.md`. Stack and contracts: `docs/agent/architecture.md`.
+- How work moves (orchestrator, expert workers, equal reviewers): `docs/agent/delegation-plan.md`. Current status and queue: the body of issue #16. Stack and contracts: `docs/agent/architecture.md`.
 - Before opening a PR: `npm run check && npm run build`.
 - **Heuristics and data workarounds** (thresholds, inferences, guesses about UMN data): add a row to `docs/agent/heuristics.md` in the same PR, and make the UI say so where it affects what students see (Hadi, 2026-10-27).
 
