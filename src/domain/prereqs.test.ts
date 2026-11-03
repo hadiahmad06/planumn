@@ -96,8 +96,10 @@ describe("grade minimums before a course", () => {
 // Backlog after #86 (B22): what a comma means, checked against data/catalog.db's own strings.
 describe("commas: lists and clauses", () => {
   it("reads 'A or B, C' as (A or B) and C (ME 3332, JOUR 3251, FINA 4329)", () => {
-    const me = parsePrereqs("Math 2243 or Math 2373, ME 3331", "ME")!;
+    // ME 3332's literal catalog text: the bare "3331" starting a clause is ME 3331 (there is no MATH 3331; #92 review).
+    const me = parsePrereqs("Math 2243 or Math 2373, 3331", "ME")!;
     expect(checkPrereqs(me, has("MATH 2243")).met).toBe(false);
+    expect(checkPrereqs(me, has("MATH 2243")).missing).toBe("ME 3331");
     expect(checkPrereqs(me, has("MATH 2243", "ME 3331")).met).toBe(true);
     expect(checkPrereqs(me, has("MATH 2373", "ME 3331")).met).toBe(true);
     const jour = parsePrereqs("JOUR 3004 or 3004H, JOUR 3201, Strat Comm major", "JOUR")!;
@@ -148,6 +150,19 @@ describe("commas: list readings the clause rule must keep (#91 review)", () => {
       expect(check(text, "ECON", ...econ).met).toBe(true);
       expect(check(text, "ECON", ...econ).missing).not.toContain("APEC 1101");
     }
+  });
+
+  // #92 review: in a clause reading, a bare number starting a part is the course's own subject.
+  it("IE 3522 and IE 4011: ', 3521 or Stat 3021' is IE 3521 or STAT 3021, not MATH 3521", () => {
+    for (const text of [
+      "MATH 2374, MATH 2142 or MATH 2373 or equivalent , 3521 or Stat 3021, CSE Upper Division",
+      "MATH 2374, MATH 2142 or MATH 2373 or equivalent, 3521 or Stat 3021, CSE Upper Division",
+    ]) {
+      expect(check(text, "IE", "MATH 2374", "MATH 2142", "IE 3521").met).toBe(true);
+      expect(check(text, "IE", "MATH 2374", "MATH 2142").missing).toBe("IE 3521 or STAT 3021");
+    }
+    // A list keeps the subject before the comma: "CSCI 1913, 1933" is CSCI 1933 for a MATH course too.
+    expect(check("CSCI 1913, 1933", "MATH", "CSCI 1913", "CSCI 1933").met).toBe(true);
   });
 
   it("ARTS 3180: '… one of the following courses: 1101, 1102, 1103, OR 1107' is one list", () => {

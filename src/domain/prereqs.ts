@@ -12,7 +12,11 @@ export type PrereqNode =
   | { kind: "other"; text: string }
   | { kind: "and" | "or"; children: PrereqNode[] };
 
-type Token = { t: "(" | ")" | ";" | "," | "and" | "or" } | { t: "code"; code: string } | { t: "word"; text: string };
+/** `own`: the same number under the course's own subject, for a bare number that starts a comma part (see `combineClauses`). */
+type Token = { t: "(" | ")" | ";" | "," | "and" | "or" } | { t: "code"; code: string; own?: string } | { t: "word"; text: string };
+
+/** Course nodes read from a bare number that starts a comma part, and the code under the course's own subject. */
+const OWN_CODE = new WeakMap<PrereqNode, string>();
 
 const CODE = /^(?:([A-Za-z]{2,5})\s*)?(\d{4}[A-Za-z]{0,2})$/;
 /** English words that can sit right before a number ("in 6704", "of 1004") and aren't subject codes. */
@@ -30,6 +34,8 @@ function tokenize(text: string, defaultDept: string): Token[] {
   const tokens: Token[] = [];
   /** null after "… in 6704": the bare numbers that follow continue that corequisite list ("in 1061, 1071"). */
   let dept: string | null = defaultDept;
+  /** "next" right after a comma; true while bare numbers continue a run that started there. */
+  let ownRun: "next" | boolean = false;
   const parts = text
     .replace(/[[{]/g, "(")
     .replace(/[\]}]/g, ")")
@@ -47,6 +53,7 @@ function tokenize(text: string, defaultDept: string): Token[] {
     }
     if (part === "(" || part === ")" || part === ";" || part === ",") {
       if (part !== ",") dept ??= defaultDept; // a bracket or ";" ends a corequisite list
+      ownRun = part === "," ? "next" : false;
       tokens.push({ t: part });
     }
     else if (lower === "and" || part === "&") tokens.push({ t: "and" });
@@ -66,14 +73,19 @@ function tokenize(text: string, defaultDept: string): Token[] {
           }
           if (m[1]) dept = m[1].toUpperCase();
           if (dept === null) return [];
+          bare = !m[1];
           codes.push(`${dept} ${m[2].toUpperCase()}`);
         }
         return codes;
       };
+      let bare = false;
       let codes = readCodes(part);
       const graded = codes.length ? null : part.match(GRADE_THEN_CODE);
       if (graded) codes = readCodes(graded[1]);
-      if (codes.length === 1) tokens.push({ t: "code", code: codes[0] });
+      // "Math 2243 or Math 2373, 3331": a bare number right after a comma, and the bare numbers after it
+      // until a subject is named, may mean the course's own subject (ME 3331); `combineClauses` decides.
+      ownRun = codes.length === 1 && bare && ownRun !== false && dept !== defaultDept;
+      if (codes.length === 1) tokens.push({ t: "code", code: codes[0], ...(ownRun ? { own: `${defaultDept} ${codes[0].split(" ")[1]}` } : {}) });
       else if (codes.length > 1) {
         tokens.push({ t: "(" });
         codes.forEach((code, i) => {
@@ -117,7 +129,9 @@ function parseLevel(tokens: Token[], pos: { i: number }): PrereqNode {
       items.push(parseLevel(tokens, pos));
     } else if (tok.t === "code") {
       flushWords();
-      items.push({ kind: "course", code: tok.code });
+      const node: PrereqNode = { kind: "course", code: tok.code };
+      if (tok.own) OWN_CODE.set(node, tok.own);
+      items.push(node);
     } else if (tok.t === "word") words.push(tok.text);
     else if (tok.t === "and" || tok.t === "or" || tok.t === ",") {
       flushWords();
@@ -202,10 +216,19 @@ function clausesFit(items: Item[], parts: Item[][]): boolean {
   });
 }
 
+/**
+ * In a clause reading, a part that starts with a bare number names the course's own subject, not the
+ * subject before the comma: ME 3332 "Math 2243 or Math 2373, 3331" = (MATH 2243 or MATH 2373) and ME 3331
+ * (there is no MATH 3331); IE 3522 "…, 3521 or Stat 3021, …" = IE 3521 or STAT 3021 (#92 review). In a
+ * list reading ("CSCI 1913, 1933") the bare number keeps the subject before it.
+ */
 function combineClauses(parts: Item[][]): PrereqNode {
   let node: PrereqNode | null = null;
   for (const p of parts) {
-    const body = isOp(p[0]) ? p.slice(1) : p;
+    const raw = isOp(p[0]) ? p.slice(1) : p;
+    const first = raw[0];
+    const own = typeof first === "object" && OWN_CODE.has(first);
+    const body = own ? raw.map((x): Item => (typeof x === "object" && OWN_CODE.has(x) ? { kind: "course", code: OWN_CODE.get(x)! } : x)) : raw;
     if (!body.some((x) => !isOp(x))) continue;
     const part = combineList(body);
     node = node ? { kind: isOp(p[0]) ? p[0] : "and", children: [node, part] } : part;
