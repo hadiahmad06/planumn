@@ -48,7 +48,8 @@ export interface ApasComparison {
   planumnOnly: { id: string; name: string }[];
   /**
    * APAS requirements left unpaired because two or more planu.mn names matched equally well (or two APAS
-   * titles matched one name equally well). Also listed in `apasOnly`.
+   * titles matched one name equally well, as two identical titles always do: they pair with nothing).
+   * Also listed in `apasOnly`.
    */
   ambiguous: ApasRequirement[];
   /** APAS entries without a status: section headings and lists such as "Courses That Do Not Earn Credit". */
@@ -152,6 +153,8 @@ export function compareApas(audit: Pick<ApasAudit, "requirements">, result: Prog
   const pairedTargets = new Set<number>();
   const blockedApas = new Set<number>();
   const blockedTargets = new Set<number>();
+  /** APAS titles that tied with another APAS title on one name (identical titles always do). */
+  const tiedApas = new Set<number>();
   const open = (c: Candidate) => !pairedApas.has(c.a) && !pairedTargets.has(c.t) && !blockedApas.has(c.a) && !blockedTargets.has(c.t);
   for (let i = 0; i < candidates.length; ) {
     let j = i;
@@ -161,7 +164,10 @@ export function compareApas(audit: Pick<ApasAudit, "requirements">, result: Prog
     const tied = tier.filter((c) => count("a", c.a) > 1 || count("t", c.t) > 1);
     for (const c of tied) {
       if (count("a", c.a) > 1) blockedApas.add(c.a);
-      if (count("t", c.t) > 1) blockedTargets.add(c.t);
+      if (count("t", c.t) > 1) {
+        blockedTargets.add(c.t);
+        tiedApas.add(c.a);
+      }
     }
     for (const c of tier) {
       if (!open(c)) continue;
@@ -183,7 +189,7 @@ export function compareApas(audit: Pick<ApasAudit, "requirements">, result: Prog
   return {
     pairs,
     apasOnly: apas.filter((_, a) => !pairedApas.has(a)),
-    ambiguous: apas.filter((_, a) => blockedApas.has(a) && !pairedApas.has(a)),
+    ambiguous: apas.filter((_, a) => (blockedApas.has(a) || tiedApas.has(a)) && !pairedApas.has(a)),
     planumnOnly: result.requirements.filter((r) => !touched.has(r.requirement.id)).map((r) => ({ id: r.requirement.id, name: r.requirement.name })),
     ignored,
     disagreements: pairs.filter((p) => p.verdict === "disagree").length,
