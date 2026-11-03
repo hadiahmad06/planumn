@@ -1,7 +1,7 @@
 "use client";
 
 import { useDndMonitor, useDraggable, useDroppable } from "@dnd-kit/core";
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { courseCode, formatCredits, type CourseSummary } from "@/domain/course";
 import { cn } from "@/components/ui/cn";
 import { useSearchShortcut } from "@/features/theme/useSearchShortcut";
@@ -11,6 +11,7 @@ import { CANCEL_DROP_ID, externalId, type DragData, type DropData } from "@/feat
 import { useCourseSearch } from "./useCourseSearch";
 import { SearchFilterBar } from "./SearchFilterBar";
 import { useDepartments } from "./useDepartments";
+import { useSearchRequest } from "./searchRequest";
 import { parseNaturalQuery } from "@/domain/naturalQuery";
 import { hasFilters, type SearchFilters } from "@/domain/searchFilters";
 import { useRequirementOptions } from "@/features/requirements/requirementOptions";
@@ -109,6 +110,20 @@ export function SearchBox() {
   const inputRef = useRef<HTMLInputElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   useSearchShortcut(inputRef);
+  // C3: the requirements rail can open this search with a department and level set.
+  useEffect(
+    () =>
+      useSearchRequest.subscribe((s, prev) => {
+        if (!s.request || s.request.seq === prev.request?.seq) return;
+        setQuery("");
+        setFilters(s.request.filters);
+        setRequirementKey(null);
+        setShowFilters(true);
+        setActive(0);
+        inputRef.current?.focus();
+      }),
+    [],
+  );
   const listId = useId();
   const requirements = useRequirementOptions(usePlanStore((s) => s.plan));
   // A requirement whose program was removed from the plan simply stops filtering.
