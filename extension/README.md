@@ -49,14 +49,14 @@ Dev-build note: Firefox match patterns can't contain a port (`http://localhost:3
 
 > Added by **Hadi's Claude**, 2026-11-03.
 
-In the app: import the audit on `/plan/apas`, then open the plan (or any plan with that program) **in the same tab**. The requirements rail shows "APAS says: …" on requirements it could pair by name, and the number of disagreements under the program name. Nothing is stored, so a reload clears it.
+In the app: import the audit on `/plan/apas`, then open the plan (or any plan with that program) **in the same tab**. The requirements rail shows "APAS says: …" on requirements it could pair by name, and the number of disagreements under the program name. Nothing is stored, so a reload, signing out or in, a new or failed import, or Discard clears it. planu.mn's side uses the plan's courses that are also on the audit, so a course on the audit that the plan lacks shows as a disagreement.
 
 From the command line, for a report saved with **Save a copy (.html)**:
 
 ```bash
 npm run dev                                                   # another terminal; the script uses its API
 node scripts/apas-compare.ts ~/Downloads/apas-report-2026-11-03.html 019627107   # CourseDog program id (CS B.S.)
-node scripts/apas-compare.ts report.html 019627107 --base http://localhost:3220   # dev server on another port
+node scripts/apas-compare.ts apas-report-2026-11-03.html 019627107 --base http://localhost:3220   # dev server on another port
 ```
 
 It prints each pair (agree, disagree or unchecked), the APAS requirements with no planu.mn match and the planu.mn requirements with no APAS match. The report is read from disk and parsed locally. Only course codes and catalog ids go to the local dev server, and nothing is written. **Never commit a real report or paste its output into a PR**: summarize mismatches by requirement name instead.
