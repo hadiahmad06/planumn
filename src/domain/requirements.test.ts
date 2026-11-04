@@ -148,3 +148,65 @@ describe("programListsCourse (B11 honors)", () => {
     expect(programListsCourse(ids, codes, 9996, null)).toBe(false);
   });
 });
+
+describe("catalog-text counting (C2/C3, Hadi 2026-11-03: counts once C4 agrees with APAS)", () => {
+  const text = (kind: "total" | "min" | "max" | "dept", credits: number, scope?: string) => ({ kind, credits, scope, source: "text" as const, sentence: "" });
+  const coded = (id: number, code: string) => ({ groupId: String(id), courseId: id, code, title: null, credits: null });
+  const ee = { terms: [{ subjects: ["EE"], levels: [4, 5] }], exceptSubjects: [], exclude: [], include: [], forms: [], sentences: [] };
+  // Technical electives: 12 credits in all, from a listed pool capped at 4 and EE 4xxx/5xxx courses the text names.
+  const electives: Rule = {
+    kind: "allOf",
+    id: "te",
+    name: "Technical Electives",
+    notes: null,
+    constraints: [text("total", 12)],
+    children: [
+      { kind: "courses", id: "pool", name: "Business", notes: null, constraints: [text("max", 4)], choices: [{ options: [coded(1, "MGMT 3001")] }, { options: [coded(2, "MGMT 3002")] }], minCourses: 0, minCredits: 0 },
+      { kind: "text", id: "ee", name: "4xxx/5xxx EE", notes: null, text: "Complete additional 4xxx/5xxx EE courses.", pattern: ee },
+    ],
+  };
+  const program = (id: string): Program => ({ id, name: "P", type: "Major", requirements: [{ id: "r", name: "Electives", notes: null, rules: [electives] }] });
+  const planned = [
+    { courseId: 1, credits: 4, code: "MGMT 3001" },
+    { courseId: 2, credits: 4, code: "MGMT 3002" },
+    { courseId: 3, credits: 4, code: "EE 4111" },
+  ];
+
+  it("shows readings without counting them by default (a program C4 hasn't checked)", () => {
+    const r = evaluateProgram(program("unchecked"), planned);
+    expect(r.catalogTextCounted).toBe(false);
+    expect(r.requirements[0]).toMatchObject({ units: 0, filled: 0, satisfied: false });
+    expect(r.requirements[0].rules[0].catalogTextCounted).toBeUndefined();
+    expect(r.requirements[0].courseIds).not.toContain(3);
+  });
+
+  it("counts a total as one more unit, with pattern courses in it and the pool capped", () => {
+    const r = evaluateProgram(program("p"), planned, { catalogText: "count" });
+    const rule = r.requirements[0].rules[0];
+    // 8 pool credits capped at 4, plus EE 4111 (4) = 8 of 12.
+    expect(rule.constraints?.[0]).toMatchObject({ planned: 8, met: false });
+    expect(rule).toMatchObject({ units: 1, filled: 0, satisfied: false, catalogTextCounted: true });
+    expect(r.requirements[0].courseIds).toContain(3);
+    const done = evaluateProgram(program("p"), [...planned, { courseId: 4, credits: 4, code: "EE 5111" }], { catalogText: "count" });
+    expect(done.requirements[0]).toMatchObject({ units: 1, filled: 1, satisfied: true });
+  });
+
+  it("checks a max reading on the uncapped sum, and never fails a rule with it", () => {
+    const pool = evaluateProgram(program("p"), planned, { catalogText: "count" }).requirements[0].rules[0].children![0];
+    expect(pool.constraints?.[0]).toMatchObject({ planned: 8, met: false });
+    expect(pool).toMatchObject({ units: 0, satisfied: true });
+  });
+
+  it("adds nothing for a reading it can't check, so counting never marks a rule met", () => {
+    const rule: Rule = { ...courses("c", [[1]], 1), constraints: [text("min", 6, "Some list nobody names")] };
+    const r = evaluateRule(rule, [p(1)], true);
+    expect(r.constraints?.[0].met).toBeNull();
+    expect(r).toMatchObject({ units: 1, filled: 1, satisfied: true });
+    expect(evaluateRule({ ...rule, constraints: [text("total", 8)] }, [p(1)], true)).toMatchObject({ units: 2, filled: 1, satisfied: false });
+  });
+
+  it("counts by default only for programs in CATALOG_TEXT_COUNTED (EE B.E.E. after the 2026-11-03 check)", () => {
+    expect(evaluateProgram(program("026421707"), planned).catalogTextCounted).toBe(true);
+    expect(evaluateProgram(program("026421707"), planned, { catalogText: "show" }).requirements[0].units).toBe(0);
+  });
+});

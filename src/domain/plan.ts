@@ -1,5 +1,5 @@
 import type { CourseId } from "./course";
-import { defaultStartTerm, termRange, type TermCode } from "./terms";
+import { defaultStartTerm, termRange, type TermCode } from "./terms.ts";
 
 /**
  * Persisted plan shape. Field names match the 2025 Supabase `plans` table on purpose,

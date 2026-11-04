@@ -164,18 +164,43 @@ function RuleDescription({ text }: { text: string }) {
 }
 
 /**
- * C2: credit constraints planu.mn read from the catalog's wording. Hadi, 2026-10-28: show first; they
- * don't count toward progress until C4 checks them against APAS.
+ * The heading of a C2/C3 box. Hadi, 2026-11-03: readings count once C4 agrees with APAS, always with a
+ * disclaimer that planu.mn isn't UMN's official audit. Counted readings say so and carry the disclaimer
+ * visibly; the rest stay "not counted in progress".
  */
-function CreditConstraints({ items }: { items: ConstraintProgress[] }) {
-  return (
-    <div className="rounded-row border border-dashed border-border px-2 py-1.5 text-micro">
+function CatalogTextLabel({ counted, what }: { counted?: boolean; what: string }) {
+  if (!counted)
+    return (
       <p
         className="text-text-tertiary"
-        title="planu.mn read these limits from the catalog's wording, so they may be off. They aren't counted in your progress yet; APAS or your advisor has the final word."
+        title={`planu.mn read ${what} from the catalog's wording, so it may be off. It isn't counted in your progress yet; APAS or your advisor has the final word.`}
       >
         Read from catalog text · not counted in progress
       </p>
+    );
+  return (
+    <>
+      <p
+        className="text-text-tertiary"
+        title={`planu.mn read ${what} from the catalog's wording and checked it against real APAS reports for this program, so it counts in your progress. The wording can still be misread, and the catalog can change.`}
+      >
+        Read from catalog text · counted in progress
+      </p>
+      <p className="text-text-tertiary">
+        planu.mn is a student-made planner, not UMN&apos;s official degree audit. Run APAS or ask your advisor before relying on this.
+      </p>
+    </>
+  );
+}
+
+/**
+ * C2: credit constraints planu.mn read from the catalog's wording. Hadi, 2026-10-28: show first; they
+ * count toward progress only for programs C4 checked against APAS (`CATALOG_TEXT_COUNTED`).
+ */
+function CreditConstraints({ items, counted }: { items: ConstraintProgress[]; counted?: boolean }) {
+  return (
+    <div className="rounded-row border border-dashed border-border px-2 py-1.5 text-micro">
+      <CatalogTextLabel counted={counted} what="these credit limits" />
       <ul>
         {items.map((p, i) => (
           <li key={i} title={p.constraint.sentence} className="flex items-baseline gap-2">
@@ -193,19 +218,14 @@ function CreditConstraints({ items }: { items: ConstraintProgress[] }) {
 
 /**
  * C3: a course pattern planu.mn read from the catalog's wording for a rule that lists no courses
- * ("4xxx/5xxx EE, excluding EE 4981H"). Hadi, 2026-10-28: show first; matching planned courses are listed,
- * not counted, until C4 checks the readings against APAS.
+ * ("4xxx/5xxx EE, excluding EE 4981H"). Hadi, 2026-10-28: show first; matching planned courses count
+ * (toward the credit limits around them) only for programs C4 checked against APAS.
  */
-function CoursePatternBox({ pattern, matches }: { pattern: CoursePattern; matches: PatternMatch[] }) {
+function CoursePatternBox({ pattern, matches, counted }: { pattern: CoursePattern; matches: PatternMatch[]; counted?: boolean }) {
   const searches = patternSearchLinks(pattern);
   return (
     <div className="flex flex-col gap-0.5 rounded-row border border-dashed border-border px-2 py-1.5 text-micro">
-      <p
-        className="text-text-tertiary"
-        title="planu.mn read this course pattern from the catalog's wording, so it may be off. Matching courses aren't counted in your progress yet; APAS or your advisor has the final word."
-      >
-        Read from catalog text · not counted in progress
-      </p>
+      <CatalogTextLabel counted={counted} what="this course pattern" />
       <p className="text-text-secondary" title={pattern.sentences.join("\n")}>
         Courses matching {describePattern(pattern)}
       </p>
@@ -275,8 +295,8 @@ function RuleView({ result, depth, hideTitle, apas }: { result: RuleResult; dept
       )}
       {apasPair && <ApasSaysLine pair={apasPair} />}
       {rule.description && <RuleDescription text={rule.description} />}
-      {result.constraints?.length ? <CreditConstraints items={result.constraints} /> : null}
-      {rule.pattern && <CoursePatternBox pattern={rule.pattern} matches={result.patternMatches ?? []} />}
+      {result.constraints?.length ? <CreditConstraints items={result.constraints} counted={result.catalogTextCounted} /> : null}
+      {rule.pattern && <CoursePatternBox pattern={rule.pattern} matches={result.patternMatches ?? []} counted={result.catalogTextCounted} />}
       {rule.notes && <Notes text={rule.notes} />}
       {rule.kind === "numberOf" && (
         <p className="text-micro text-text-secondary">
@@ -344,7 +364,7 @@ export function RequirementItem({ result, defaultOpen, apas }: { result: Require
       {open && (
         <div className="flex flex-col gap-3 border-t border-border px-3 py-2.5">
           {requirement.notes && <Notes text={requirement.notes} />}
-          {result.constraints?.length ? <CreditConstraints items={result.constraints} /> : null}
+          {result.constraints?.length ? <CreditConstraints items={result.constraints} counted={result.catalogTextCounted} /> : null}
           {result.rules.map((r) => (
             <RuleView key={r.rule.id} result={r} depth={0} hideTitle={single} apas={apas?.rules} />
           ))}

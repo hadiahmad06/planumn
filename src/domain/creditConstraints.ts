@@ -251,19 +251,42 @@ export function findPart(scope: string, parts: ConstraintPart[]): ConstraintPart
   return outer.length === 1 ? loose.find((p) => norm(p.name) === outer[0]) : undefined;
 }
 
+/** A cap on the credits one part may add to a total ("up to 12 credits of additional approved technical electives"). */
+export interface ConstraintCap {
+  courseIds: Set<CourseId>;
+  credits: number;
+}
+
 /**
  * Planned credits against each constraint. `listed` = every course the rule lists; `planned` = the
- * plan's courses with the credits the audit counts. Only courses the rule lists ever count.
+ * plan's courses with the credits the audit counts. Only courses the rule lists ever count. `caps` limit
+ * what a part adds to total, min and dept sums (Phase C, 2026-11-03): smallest part first, and credits
+ * over a cap are dropped from the part's last planned courses, so nested caps aren't subtracted twice.
+ * A max constraint itself is always checked on the uncapped sum.
  */
 export function constraintProgress(
   constraints: CreditConstraint[],
   listed: ListedCourse[],
   parts: ConstraintPart[],
   planned: { courseId: CourseId; credits: number }[],
+  caps: ConstraintCap[] = [],
 ): ConstraintProgress[] {
   const byId = new Map(listed.map((c) => [c.courseId, c]));
   const counted = [...new Map(planned.filter((p) => byId.has(p.courseId)).map((p) => [p.courseId, p])).values()];
-  const sum = (keep: (id: CourseId) => boolean) => counted.filter((p) => keep(p.courseId)).reduce((n, p) => n + p.credits, 0);
+  const capped = new Map(counted.map((p) => [p.courseId, p.credits]));
+  for (const cap of [...caps].sort((a, b) => a.courseIds.size - b.courseIds.size)) {
+    let over = counted.filter((p) => cap.courseIds.has(p.courseId)).reduce((n, p) => n + (capped.get(p.courseId) ?? 0), 0) - cap.credits;
+    for (const p of [...counted].reverse()) {
+      if (over <= 0) break;
+      if (!cap.courseIds.has(p.courseId)) continue;
+      const cut = Math.min(over, capped.get(p.courseId) ?? 0);
+      capped.set(p.courseId, (capped.get(p.courseId) ?? 0) - cut);
+      over -= cut;
+    }
+  }
+  const sum = (keep: (id: CourseId) => boolean, credits = (id: CourseId) => capped.get(id) ?? 0) =>
+    counted.filter((p) => keep(p.courseId)).reduce((n, p) => n + credits(p.courseId), 0);
+  const raw = (id: CourseId) => counted.find((p) => p.courseId === id)?.credits ?? 0;
   return constraints.map((constraint) => {
     let planned: number | null = null;
     if (constraint.kind === "total") planned = sum(() => true);
@@ -271,8 +294,11 @@ export function constraintProgress(
       const subject = constraint.scope?.toUpperCase();
       planned = sum((id) => byId.get(id)?.code?.split(" ")[0]?.toUpperCase() === subject);
     }
-    if (constraint.kind === "max" && !constraint.scope) planned = sum(() => true);
-    else if (constraint.kind === "min" || constraint.kind === "max") {
+    if (constraint.kind === "max" && !constraint.scope) planned = sum(() => true, raw);
+    else if (constraint.kind === "max") {
+      const part = constraint.scope ? findPart(constraint.scope, parts) : undefined;
+      if (part) planned = sum((id) => part.courseIds.has(id), raw);
+    } else if (constraint.kind === "min") {
       const part = constraint.scope ? findPart(constraint.scope, parts) : undefined;
       if (part) planned = sum((id) => part.courseIds.has(id));
     }

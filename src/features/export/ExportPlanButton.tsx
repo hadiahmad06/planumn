@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { plannedCourseIds } from "@/domain/plan";
 import { evaluateProgram } from "@/domain/requirements";
-import type { CourseDetails } from "@/domain/course";
+import { courseCode, type CourseDetails } from "@/domain/course";
 import { usePlanStore } from "@/features/plan-editor/store";
 import { useCourseCache } from "@/features/catalog/courseCache";
 import { useProgramStore } from "@/features/requirements/programStore";
@@ -41,6 +41,8 @@ export function ExportPlanButton() {
       const planned = plannedCourseIds(snapshot).map((id) => ({
         courseId: id,
         credits: courses[id]?.credits.min ?? 0,
+        // C3 patterns match by code, so the PDF counts what the rail counts.
+        code: courses[id] ? courseCode(courses[id]) : null,
       }));
       const audits = snapshot.programs.flatMap((id) => {
         const entry = entries[id];
