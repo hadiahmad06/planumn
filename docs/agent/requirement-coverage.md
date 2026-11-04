@@ -12,8 +12,8 @@
 | Conditions the normalizer has no case for | 0 | 0 |
 | `freeformText` rules (prose only, nothing checkable) | 103 | 65 |
 | Credit counts only in `description`/notes (no `minCredits`/`maxCredits`/`credits`) | 235 | 119 |
-| Rules and requirements where C2 reads a credit constraint from text (counted, with ⚠) | 179 | 127 |
-| Rules listing no courses where C3 reads a course pattern from text (counted, with ⚠) | 36 | 28 |
+| Rules and requirements where C2 reads a credit constraint from text (shown with ⚠; counted, tentatively, for APAS-checked programs) | 179 | 127 |
+| Rules listing no courses where C3 reads a course pattern from text (shown with ⚠; counted, tentatively, for APAS-checked programs) | 36 | 28 |
 | Course rules that normalize to **no options** | 9 | 7 |
 | Programs with an unresolved course id | — | 15 |
 

@@ -55,7 +55,9 @@ Hadi, 2026-10-27 (transcribed by Hadi's Claude):
 - "Let's redirect our focus to making our program requirements more accurate. Right now, I see that some of the requirements aren't met course by course." Examples: Electrical Engineering B.E.E.'s breadth and depth technical electives list no courses, and CS's departmental technical-elective credit counts aren't listed.
 - Hadi approved Hadi's Claude's plan (C0 coverage report, C1 stop dropping data, C2 credit constraints, C3 pattern rules, C4 validation against APAS) and said to start with C1. Details: `docs/agent/phase-c-plan.md`.
 - C2 credit constraints read from catalog text: **"Show first"**: shown, labelled "read from catalog text", and not counted toward progress until C4 agrees with APAS (Hadi, 2026-10-28, answering Hadi's Claude's question).
-- Hadi, 2026-11-04, verbatim, on whether C2/C3 readings count toward progress once C4 agrees with APAS: "I'm wary about this. I know i said earlier that you can run with this, but i think we should count them, but be clear about how many of the requirements are full, maybe put a little warning icon with a number". Hadi's Claude's reading and what it changes: `docs/agent/phase-c-plan.md`.
+- Hadi, 2026-11-04, verbatim, on whether C2/C3 readings count toward progress once C4 agrees with APAS: "I'm wary about this. I know i said earlier that you can run with this, but i think we should count them, but be clear about how many of the requirements are full, maybe put a little warning icon with a number". Hadi's Claude's reading and what it changes: `docs/agent/phase-c-plan.md`. That first reading is superseded by Hadi's two later messages below.
+  - Hadi, 2026-11-04 (transcribed by Hadi's Claude), verbatim: "lets count whatever you seem fit for now, but make it all tentative. this is not hard "human approved" just temporary"
+  - Hadi, 2026-11-04 (transcribed by Hadi's Claude), verbatim, clarifying: "i told you in a rewinded message to only count for APAS-checked programs"
 
 ## Course preview, add and move controls
 

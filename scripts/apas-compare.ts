@@ -12,9 +12,9 @@
  * nothing is written; the comparison is only printed. Never commit a real report.
  *
  * Each report is compared with the program's C2/C3 catalog-text readings counted, then shown only. The
- * readings count for every program (Hadi, 2026-11-04); a program is **eligible** for
- * `CATALOG_TEXT_COUNTED` (src/domain/catalogTextCounting.ts, which now only changes wording) when the
- * counted comparison has no disagreement and every reading is checked: the pair nearest to the rule
+ * app counts them, tentatively, only for programs in `CATALOG_TEXT_COUNTED` (src/domain/catalogTextCounting.ts;
+ * Hadi, 2026-11-04: "only count for APAS-checked programs"). A program is **eligible** to be listed when
+ * the counted comparison has no disagreement and every reading is checked: the pair nearest to the rule
  * holding it (its own, else its nearest paired ancestor's) agrees (`uncheckedReadings`).
  *
  * The program is built the way src/server/programs/getProgram.ts builds it, minus the live CourseDog
