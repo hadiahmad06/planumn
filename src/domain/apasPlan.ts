@@ -7,9 +7,9 @@ import {
   type Plan,
   type PlannedCourse,
   type Semester,
-} from "./plan";
-import { addPriorCredit } from "./planOps";
-import { compareTerms, nextTerm, termRange, type TermCode } from "./terms";
+} from "./plan.ts";
+import { addPriorCredit } from "./planOps.ts";
+import { compareTerms, nextTerm, termRange, type TermCode } from "./terms.ts";
 
 /**
  * Turn a parsed APAS audit into a new plan (B1, after the parser). Written by Hadi's Claude.

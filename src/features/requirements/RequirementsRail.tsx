@@ -12,6 +12,7 @@ import { loadProgram, usePrograms } from "./programStore";
 import { programName } from "./programOptions";
 import { apasPairIndex } from "@/domain/apasCompare";
 import { AdmissionChecklist } from "./AdmissionChecklist";
+import { catalogTextMode, ProgramCatalogTextBadge } from "./CatalogTextWarning";
 import { ApasProgramSummary } from "./ApasSays";
 import { DoubleDipFinder } from "./DoubleDipFinder";
 import { ProgramPicker } from "./ProgramPicker";
@@ -88,10 +89,14 @@ export function RequirementsRail({ plan }: { plan: Plan }) {
         const index = compared && apasPairIndex(compared.comparison);
         const apasFor = (requirementId: string): RequirementApas | undefined =>
           index && { requirement: index.requirements.get(requirementId), rules: index.rules.get(requirementId) ?? new Map() };
+        // Hadi, 2026-11-04: ⚠ N = requirements that aren't "full", on every program; only APAS-checked
+        // programs count their catalog-text readings, tentatively.
+        const mode = result && catalogTextMode(result);
         return (
           <section key={id} className="flex flex-col gap-2">
             <div className="flex items-baseline gap-2">
               <h3 className="min-w-0 flex-1 font-semibold">{result?.program.name ?? programName(id)}</h3>
+              {result && <ProgramCatalogTextBadge result={result} />}
               {result && (
                 <span className="shrink-0 text-micro text-text-secondary">
                   {result.filled}/{result.units}
@@ -121,10 +126,16 @@ export function RequirementsRail({ plan }: { plan: Plan }) {
             )}
             {compared && <ApasProgramSummary audit={compared.audit} comparison={compared.comparison} />}
             {result && <AdmissionChecklist plan={plan} result={result} />}
-            {result && (
+            {result && mode && (
               <ul className="flex flex-col gap-1.5">
                 {shown.map((r) => (
-                  <RequirementItem key={r.requirement.id} result={r} defaultOpen={query.trim().length > 0} apas={apasFor(r.requirement.id)} />
+                  <RequirementItem
+                    key={r.requirement.id}
+                    result={r}
+                    defaultOpen={query.trim().length > 0}
+                    apas={apasFor(r.requirement.id)}
+                    mode={mode}
+                  />
                 ))}
                 {shown.length === 0 && <li className="text-text-tertiary">{query ? "No matching requirements" : "All requirements completed"}</li>}
               </ul>

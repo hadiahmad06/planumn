@@ -12,6 +12,8 @@ import {
   nameMatch,
   nameWords,
   plannedOnRecord,
+  uncheckedReadings,
+  type ApasPair,
 } from "./apasCompare";
 import { evaluateProgram, type CoursesRule, type PlannedForAudit, type Program, type Requirement, type Rule } from "./requirements";
 
@@ -256,5 +258,38 @@ describe("describeApasStatus", () => {
     expect(describeApasStatus(r("CSCITELEC"))).toBe("not complete, needs 10 credits, 2 sub-requirements");
     // No totals on the requirement: the open sub-requirement's needs.
     expect(describeApasStatus(r("THEMES"))).toBe("not complete, needs 1 group");
+  });
+});
+
+describe("uncheckedReadings (C4 eligibility, review fix after #93)", () => {
+  const total12 = [{ kind: "total" as const, credits: 12, source: "text" as const, sentence: "Take 12 credits." }];
+  const pairOf = (level: "requirement" | "rule", id: string, verdict: ApasPair["verdict"]): ApasPair => ({
+    apas: audit.requirements[0],
+    target: { level, requirementId: "te", id, name: id, satisfied: true, units: 1, filled: 1 },
+    match: "exact",
+    verdict,
+  });
+  const reading: Rule = { ...courses("b", "Electives with a reading", [3]), constraints: total12 };
+  const te = req("te", "Technical Electives", [
+    courses("a", "Required lab", [1]),
+    { kind: "allOf", id: "g", name: "Electives group", notes: null, children: [reading] },
+  ]);
+
+  it("doesn't count another rule's agreement as checking a reading APAS never saw (the probe)", () => {
+    expect(uncheckedReadings(te, [pairOf("rule", "a", "agree")])).toEqual(["Electives with a reading"]);
+  });
+
+  it("checks a reading through its own pair or its nearest paired ancestor", () => {
+    expect(uncheckedReadings(te, [pairOf("rule", "b", "agree")])).toEqual([]);
+    expect(uncheckedReadings(te, [pairOf("rule", "g", "agree")])).toEqual([]);
+    expect(uncheckedReadings(te, [pairOf("requirement", "te", "agree")])).toEqual([]);
+    // The nearest pair wins: an unchecked group under an agreeing requirement leaves the reading unchecked.
+    expect(uncheckedReadings(te, [pairOf("requirement", "te", "agree"), pairOf("rule", "g", "unchecked")])).toEqual(["Electives with a reading"]);
+  });
+
+  it("checks the requirement's own readings only through the requirement's pair", () => {
+    const own = { ...req("te", "Technical Electives", [courses("a", "Required lab", [1])]), constraints: total12 };
+    expect(uncheckedReadings(own, [pairOf("rule", "a", "agree")])).toEqual(["Technical Electives"]);
+    expect(uncheckedReadings(own, [pairOf("requirement", "te", "agree")])).toEqual([]);
   });
 });

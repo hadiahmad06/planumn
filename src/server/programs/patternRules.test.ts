@@ -89,6 +89,9 @@ describe("pattern rules in the normalizer (C3)", () => {
       { courseId: 3, credits: 3, code: "HIST 5001" },
     ];
     expect(evaluateProgram(p, planned).requirements[0].rules[0].patternMatches?.map((m) => m.code)).toEqual(["HIST 3001"]);
+    // Architecture isn't in CATALOG_TEXT_COUNTED, so its matches are shown, not counted (Hadi, 2026-11-04).
+    expect(evaluateProgram(p, planned).requirements[0].courseIds).toEqual([]);
+    expect(evaluateProgram(p, planned, { catalogText: "count" }).requirements[0].courseIds).toEqual([2]);
   });
 
   it("skips the cap sentence and leaves rules that list courses alone", () => {
@@ -97,13 +100,13 @@ describe("pattern rules in the normalizer (C3)", () => {
     expect((rule("listed") as CoursesRule).choices).toHaveLength(1);
   });
 
-  it("lists planned EE 4111 under the pattern but keeps the requirement at 0/4 (show first)", () => {
+  it("lists planned EE 4111 under the pattern but keeps the requirement at 0/4 when shown only", () => {
     const planned = [
       { courseId: 4693, credits: 4, code: "EE 4111" },
       { courseId: 1266, credits: 2, code: "EE 4981H" },
       { courseId: 4763, credits: 4, code: "CSCI 4203" },
     ];
-    const [result, arch] = evaluateProgram(program, planned).requirements;
+    const [result, arch] = evaluateProgram(program, planned, { catalogText: "show" }).requirements;
     expect([result.filled, result.units, result.satisfied]).toEqual([0, 4, false]);
     const patternRule = result.rules.find((r) => r.rule.id === "pattern")!;
     expect(patternRule.patternMatches).toEqual([
@@ -114,20 +117,29 @@ describe("pattern rules in the normalizer (C3)", () => {
     // The requirement's planned courses are only the ones a listed rule matched.
     expect(result.courseIds).toEqual([]);
     // The empty 9-credit rule still counts as a unit and stays unmet, whatever matches its pattern.
-    const empty = evaluateProgram(program, [{ courseId: 7, credits: 9, code: "HIST 3001" }]).requirements[1].rules[0];
+    const empty = evaluateProgram(program, [{ courseId: 7, credits: 9, code: "HIST 3001" }], { catalogText: "show" }).requirements[1].rules[0];
     expect(empty.patternMatches).toEqual([{ courseId: 7, code: "HIST 3001", credits: 9 }]);
     expect([empty.units, empty.filled, empty.credits]).toEqual([1, 0, 0]);
     expect([arch.filled, arch.units]).toEqual([0, 1]);
   });
 
-  it("gives the same progress with or without pattern readings", () => {
+  it("counts matching courses in the requirement's courses once EE is checked against APAS (2026-11-03)", () => {
+    const planned = [{ courseId: 4693, credits: 4, code: "EE 4111" }];
+    const result = evaluateProgram(program, planned).requirements[0];
+    expect(result.rules.find((r) => r.rule.id === "pattern")?.catalogTextCounted).toBe(true);
+    expect(result.courseIds).toEqual([4693]);
+    // A pattern rule gets no unit of its own: the credit amount lives on its parent.
+    expect(result.units).toBe(evaluateProgram(program, planned, { catalogText: "show" }).requirements[0].units);
+  });
+
+  it("gives the same progress with or without pattern readings when shown only", () => {
     const planned = [{ courseId: 4693, credits: 4, code: "EE 4111" }];
     const strip = (p: typeof program) => ({
       ...p,
       requirements: p.requirements.map((r) => ({ ...r, rules: r.rules.map((x) => ({ ...x, pattern: undefined })) })),
     });
-    const a = evaluateProgram(program, planned);
-    const b = evaluateProgram(strip(program), planned);
+    const a = evaluateProgram(program, planned, { catalogText: "show" });
+    const b = evaluateProgram(strip(program), planned, { catalogText: "show" });
     expect([a.filled, a.units]).toEqual([b.filled, b.units]);
   });
 });

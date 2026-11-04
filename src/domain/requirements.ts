@@ -1,6 +1,7 @@
 import { equivalentCodes, type CourseId, type CreditRange } from "./course.ts";
 import { patternMatches, type CoursePattern, type PatternMatch } from "./coursePatterns.ts";
-import { constraintProgress, type ConstraintPart, type ConstraintProgress, type CreditConstraint, type ListedCourse } from "./creditConstraints.ts";
+import { countsCatalogText } from "./catalogTextCounting.ts";
+import { constraintProgress, findPart, type ConstraintCap, type ConstraintPart, type ConstraintProgress, type CreditConstraint, type ListedCourse } from "./creditConstraints.ts";
 
 /**
  * Program requirements, normalized from UMN's CourseDog catalog (src/server/programs/normalize.ts),
@@ -36,12 +37,14 @@ interface RuleBase {
   description?: string | null;
   /**
    * C2 (Phase C): credit constraints read from the rule's catalog text or a per-program override.
-   * **Shown, never counted** toward progress (Hadi, 2026-10-28: "show first").
+   * Shown everywhere; counted toward progress, tentatively, only for APAS-checked programs
+   * (`CATALOG_TEXT_COUNTED`; Hadi, 2026-11-04). Requirements holding any show ⚠ N (`catalogTextReadings`).
    */
   constraints?: CreditConstraint[];
   /**
    * C3 (Phase C): a subject-and-level pattern ("4xxx/5xxx EE, excluding EE 4981H") read from the catalog
-   * text of a leaf rule that lists no courses. **Shown, never counted** (Hadi, 2026-10-28: "show first").
+   * text of a leaf rule that lists no courses. Shown everywhere and counted like C2: where counted, matching
+   * courses join the rule's list for its own and its parents' constraints.
    */
   pattern?: CoursePattern;
 }
@@ -83,7 +86,7 @@ export interface Requirement {
   notes: string | null;
   rules: Rule[];
   level?: RequirementLevel;
-  /** C2: constraints read from the requirement's own notes ("Take 12 credits from the lists below"). Shown only. */
+  /** C2: constraints read from the requirement's own notes ("Take 12 credits from the lists below"). Shown, and counted like a rule's. */
   constraints?: CreditConstraint[];
 }
 
@@ -130,10 +133,12 @@ export interface RuleResult {
   /** numberOf only: children covered, each by a different planned course. */
   areas?: number;
   children?: RuleResult[];
-  /** C2: planned credits against `rule.constraints`. Display only; never affects `satisfied`/`filled`. */
+  /** C2: planned credits against `rule.constraints`. Changes `satisfied`/`units`/`filled` only when `catalogTextCounted`. */
   constraints?: ConstraintProgress[];
-  /** C3: planned courses matching `rule.pattern`. Display only; never affects `satisfied`/`filled`. */
+  /** C3: planned courses matching `rule.pattern`. Count toward constraints only when `catalogTextCounted`. */
   patternMatches?: PatternMatch[];
+  /** This rule's C2/C3 readings count toward progress (APAS-checked programs by default, tentatively; see `EvaluateOptions`). */
+  catalogTextCounted?: true;
 }
 
 export interface RequirementResult {
@@ -144,8 +149,9 @@ export interface RequirementResult {
   rules: RuleResult[];
   /** Every planned course that counts toward this requirement. */
   courseIds: CourseId[];
-  /** C2: planned credits against `requirement.constraints`. Display only. */
+  /** C2: planned credits against `requirement.constraints`. Counted only when `catalogTextCounted`. */
   constraints?: ConstraintProgress[];
+  catalogTextCounted?: true;
 }
 
 /**
@@ -200,52 +206,110 @@ function evaluateCourses(rule: CoursesRule, planned: PlannedForAudit[]): RuleRes
   };
 }
 
-export function evaluateRule(rule: Rule, planned: PlannedForAudit[]): RuleResult {
-  const result = evaluateRuleKind(rule, planned);
+export function evaluateRule(rule: Rule, planned: PlannedForAudit[], count = false): RuleResult {
+  const result = evaluateRuleKind(rule, planned, count);
   if (rule.pattern) result.patternMatches = patternMatches(rule.pattern, planned);
+  if (count && (rule.pattern || rule.constraints?.length)) result.catalogTextCounted = true;
   if (!rule.constraints?.length) return result;
   const children = rule.kind === "anyOf" || rule.kind === "allOf" || rule.kind === "numberOf" ? rule.children : [];
-  return { ...result, constraints: progressOf(rule.constraints, [rule], children, planned) };
+  const constraints = progressOf(rule, [rule], children, planned, count);
+  return count ? countConstraints({ ...result, constraints }) : { ...result, constraints };
 }
 
 /**
- * C2: constraint progress over the courses `rules` list. A constraint that names a part ("from the Core
- * Department Electives") is checked against the rule among `partRoots` and their descendants with that name.
+ * Counting C2 (Hadi, 2026-11-03): the checkable total, min and dept readings of a rule or requirement are
+ * one more unit, filled when all are met, and the rule is satisfied only when they are. A max reading
+ * never fails a rule; it caps what its part adds to totals instead. Readings planu.mn can't check
+ * ("can't check") add nothing. So counting can only add a check, never mark something met.
  */
-function progressOf(constraints: CreditConstraint[], rules: Rule[], partRoots: Rule[], planned: PlannedForAudit[]): ConstraintProgress[] {
+function countConstraints<T extends { satisfied: boolean; units: number; filled: number; constraints?: ConstraintProgress[] }>(r: T): T {
+  const checked = (r.constraints ?? []).filter((p) => p.constraint.kind !== "max" && p.met != null);
+  if (!checked.length) return r;
+  const met = checked.every((p) => p.met);
+  return { ...r, satisfied: (r.satisfied || r.units === 0) && met, units: r.units + 1, filled: r.filled + (met ? 1 : 0) };
+}
+
+const isGroup = (r: Rule): r is GroupRule => r.kind === "anyOf" || r.kind === "allOf" || r.kind === "numberOf";
+const leavesOf = (r: Rule): Rule[] => (isGroup(r) ? r.children.flatMap(leavesOf) : [r]);
+
+/**
+ * C2: progress of `self`'s constraints (a rule's or a requirement's) over the courses `rules` list. A
+ * constraint that names a part ("from the Core Department Electives") is checked against the rule among
+ * `partRoots` and their descendants with that name. Max readings cap what their part adds: those of
+ * `self` (named part only: an unscoped max on `self` doesn't cap its own total) and of every rule in
+ * `partRoots` and below (a named part, or the rule that states the cap). A requirement's top-level rules
+ * are such rules, exactly as an allOf's children are (review fix on #93). Only when counting: caps apply,
+ * and a C3 pattern rule lists the planned courses that match it. Shown only, the numbers stay exactly as
+ * before counting existed (uncapped, listed courses only).
+ *
+ * A cap limits only what its part adds (review fix on #93): a course that some list **under no cap**
+ * also lists (EE 5364 in both a capped "Additional" list and the Core 4xxx/5xxx EE pattern) counts there,
+ * so it keeps its credits and doesn't use up the cap. That uncapped list must lie in the scope being
+ * summed: the whole rule or requirement for a total or dept reading, the part itself for a min on a part,
+ * so a list outside "Core" never lifts a cap inside it (review fix on #94). A course listed only under
+ * caps stays subject to every cap whose part lists it, which can undercount but never overcounts.
+ */
+function progressOf(
+  self: { constraints?: CreditConstraint[] },
+  rules: Rule[],
+  partRoots: Rule[],
+  planned: PlannedForAudit[],
+  count: boolean,
+): ConstraintProgress[] {
+  const ids = (r: Rule) => new Set(listedCourses(r, planned, count).map((c) => c.courseId));
   const parts: ConstraintPart[] = [];
+  const partRule = new Map<ConstraintPart, Rule>();
+  const holders: { constraints?: CreditConstraint[]; rule?: Rule }[] = [{ constraints: self.constraints }];
   const visit = (r: Rule) => {
-    parts.push({ name: r.name, courseIds: new Set(listedCourseIds(r)) });
-    if (r.kind === "anyOf" || r.kind === "allOf" || r.kind === "numberOf") r.children.forEach(visit);
+    const part: ConstraintPart = { name: r.name, courseIds: ids(r) };
+    parts.push(part);
+    partRule.set(part, r);
+    holders.push({ constraints: r.constraints, rule: r });
+    if (isGroup(r)) r.children.forEach(visit);
   };
   partRoots.forEach(visit);
-  return constraintProgress(constraints, rules.flatMap(listedCourses), parts, planned);
+  const capped: { rule: Rule; credits: number }[] = [];
+  for (const { constraints, rule } of count ? holders : [])
+    for (const c of constraints ?? []) {
+      if (c.kind !== "max") continue;
+      const part = c.scope ? findPart(c.scope, parts) : undefined;
+      const on = part ? partRule.get(part) : c.scope ? undefined : rule;
+      if (on) capped.push({ rule: on, credits: c.credits });
+    }
+  const underCap = new Set(capped.flatMap((c) => leavesOf(c.rule)));
+  // Courses an uncapped list within `within` lists: they escape every cap when that scope is summed.
+  const freeIn = (within: Rule[]) => new Set(within.flatMap(leavesOf).flatMap((leaf) => (underCap.has(leaf) ? [] : [...ids(leaf)])));
+  // A min on a part frees a course only through an uncapped list inside that part (review fix on #94).
+  if (capped.length) for (const part of parts) part.free = freeIn([partRule.get(part)!]);
+  const caps: ConstraintCap[] = capped.map((c) => ({ courseIds: ids(c.rule), credits: c.credits }));
+  return constraintProgress(self.constraints ?? [], rules.flatMap((r) => listedCourses(r, planned, count)), parts, planned, caps, freeIn(rules));
 }
 
-function listedCourses(rule: Rule): ListedCourse[] {
+function listedCourses(rule: Rule, planned: PlannedForAudit[], count: boolean): ListedCourse[] {
+  const matched = count && rule.pattern ? patternMatches(rule.pattern, planned).map((m) => ({ courseId: m.courseId, code: m.code })) : [];
   if (rule.kind === "courses") {
-    return rule.choices.flatMap((c) => c.options).flatMap((o) => (o.courseId == null ? [] : [{ courseId: o.courseId, code: o.code }]));
+    return [...rule.choices.flatMap((c) => c.options).flatMap((o) => (o.courseId == null ? [] : [{ courseId: o.courseId, code: o.code }])), ...matched];
   }
-  if (rule.kind === "text") return [];
-  return rule.children.flatMap(listedCourses);
+  if (rule.kind === "text") return matched;
+  return rule.children.flatMap((c) => listedCourses(c, planned, count));
 }
 
-function evaluateRuleKind(rule: Rule, planned: PlannedForAudit[]): RuleResult {
+function evaluateRuleKind(rule: Rule, planned: PlannedForAudit[], count: boolean): RuleResult {
   switch (rule.kind) {
     case "courses":
       return evaluateCourses(rule, planned);
     case "text":
       return { rule, satisfied: false, units: 0, filled: 0 };
     case "allOf": {
-      const children = rule.children.map((c) => evaluateRule(c, planned));
+      const children = rule.children.map((c) => evaluateRule(c, planned, count));
       const units = children.reduce((n, c) => n + c.units, 0);
       const satisfied = children.every((c) => c.satisfied || c.units === 0);
       return { rule, satisfied, units, filled: children.reduce((n, c) => n + c.filled, 0), children };
     }
     case "numberOf":
-      return evaluateNumberOf(rule, planned);
+      return evaluateNumberOf(rule, planned, count);
     case "anyOf": {
-      const children = rule.children.map((c) => evaluateRule(c, planned));
+      const children = rule.children.map((c) => evaluateRule(c, planned, count));
       const required = children.some((c) => c.units > 0);
       const satisfied = children.some((c) => c.satisfied && c.units > 0) || !required;
       return { rule, satisfied, units: required ? 1 : 0, filled: required && satisfied ? 1 : 0, children };
@@ -259,8 +323,8 @@ function evaluateRuleKind(rule: Rule, planned: PlannedForAudit[]): RuleResult {
  * the same matching used for choices. The course total counts every planned course any child lists.
  * Children that aren't course lists count when satisfied on their own.
  */
-function evaluateNumberOf(rule: GroupRule, planned: PlannedForAudit[]): RuleResult {
-  const children = rule.children.map((c) => evaluateRule(c, planned));
+function evaluateNumberOf(rule: GroupRule, planned: PlannedForAudit[], count: boolean): RuleResult {
+  const children = rule.children.map((c) => evaluateRule(c, planned, count));
   const lists = rule.children.filter((c): c is CoursesRule => c.kind === "courses");
   const asChoices = lists.map((c) => ({ options: c.choices.flatMap((ch) => ch.options) }));
   const areas =
@@ -268,30 +332,33 @@ function evaluateNumberOf(rule: GroupRule, planned: PlannedForAudit[]): RuleResu
     children.filter((c) => c.rule.kind !== "courses" && c.satisfied && c.units > 0).length;
   const listed = new Set(lists.flatMap(listedCourseIds));
   const coursesCount = new Set(planned.map((p) => p.courseId).filter((id) => listed.has(id))).size;
-  const count = rule.count ?? 1;
-  const satisfied = areas >= count && coursesCount >= (rule.totalCourses ?? 0);
+  const needed = rule.count ?? 1;
+  const satisfied = areas >= needed && coursesCount >= (rule.totalCourses ?? 0);
   return { rule, satisfied, units: 1, filled: satisfied ? 1 : 0, children, areas, coursesCount };
 }
 
 function collectCourseIds(r: RuleResult, out: Set<CourseId>) {
   r.choiceMatches?.forEach((id) => id != null && out.add(id));
+  if (r.catalogTextCounted) r.patternMatches?.forEach((m) => out.add(m.courseId));
   r.children?.forEach((c) => collectCourseIds(c, out));
 }
 
-export function evaluateRequirement(requirement: Requirement, planned: PlannedForAudit[]): RequirementResult {
-  const rules = requirement.rules.map((r) => evaluateRule(r, planned));
+export function evaluateRequirement(requirement: Requirement, planned: PlannedForAudit[], count = false): RequirementResult {
+  const rules = requirement.rules.map((r) => evaluateRule(r, planned, count));
   const units = rules.reduce((n, r) => n + r.units, 0);
   const ids = new Set<CourseId>();
   rules.forEach((r) => collectCourseIds(r, ids));
-  return {
+  const result: RequirementResult = {
     requirement,
     satisfied: units > 0 && rules.every((r) => r.satisfied || r.units === 0),
     units,
     filled: rules.reduce((n, r) => n + r.filled, 0),
     rules,
     courseIds: [...ids],
-    ...(requirement.constraints?.length ? { constraints: progressOf(requirement.constraints, requirement.rules, requirement.rules, planned) } : {}),
   };
+  if (!requirement.constraints?.length) return result;
+  const constraints = progressOf(requirement, requirement.rules, requirement.rules, planned, count);
+  return count ? { ...countConstraints({ ...result, constraints }), catalogTextCounted: true } : { ...result, constraints };
 }
 
 export interface ProgramResult {
@@ -299,6 +366,18 @@ export interface ProgramResult {
   requirements: RequirementResult[];
   units: number;
   filled: number;
+  /** C2/C3 readings counted toward `units`/`filled` (see `EvaluateOptions.catalogText`). */
+  catalogTextCounted: boolean;
+}
+
+export interface EvaluateOptions {
+  /**
+   * "count": C2/C3 readings count toward progress; "show": display only, exactly as before counting
+   * existed. Default: count only for APAS-checked programs (`CATALOG_TEXT_COUNTED`), and only tentatively
+   * (Hadi, 2026-11-04: "make it all tentative. this is not hard "human approved" just temporary"; "only
+   * count for APAS-checked programs", superseding the brief "count everywhere" reading of the same day).
+   */
+  catalogText?: "count" | "show";
 }
 
 /**
@@ -306,13 +385,15 @@ export interface ProgramResult {
  * several requirements (CourseDog lists e.g. CSCI 3081W in both the core and the writing-intensive
  * requirement). Within one course rule, each planned course fills at most one choice.
  */
-export function evaluateProgram(program: Program, planned: PlannedForAudit[]): ProgramResult {
-  const requirements = program.requirements.filter((r) => r.rules.length > 0).map((r) => evaluateRequirement(r, planned));
+export function evaluateProgram(program: Program, planned: PlannedForAudit[], options: EvaluateOptions = {}): ProgramResult {
+  const count = options.catalogText ? options.catalogText === "count" : countsCatalogText(program.id);
+  const requirements = program.requirements.filter((r) => r.rules.length > 0).map((r) => evaluateRequirement(r, planned, count));
   return {
     program,
     requirements,
     units: requirements.reduce((n, r) => n + r.units, 0),
     filled: requirements.reduce((n, r) => n + r.filled, 0),
+    catalogTextCounted: count,
   };
 }
 

@@ -57,9 +57,9 @@ export interface ProgramCoverage {
   proseOnlyCredits: RuleFinding[];
   /** Normalized course rules with no options at all (data dropped somewhere). */
   emptyCourseRules: RuleFinding[];
-  /** C2: normalized rules and requirements carrying credit constraints read from text (shown, not counted). */
+  /** C2: normalized rules and requirements carrying credit constraints read from text (shown with ⚠; counted, tentatively, for APAS-checked programs). */
   readConstraints: number;
-  /** C3: leaf rules listing no courses that get a course pattern from their text (shown, not counted). Detail = the pattern. */
+  /** C3: leaf rules listing no courses that get a course pattern from their text (shown with ⚠; counted, tentatively, for APAS-checked programs). Detail = the pattern. */
   patternRules: (RuleFinding & { forms: PatternForm[] })[];
   ids: Record<IdStatus, number>;
   unresolvedIds: string[];

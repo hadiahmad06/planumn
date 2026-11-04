@@ -1,5 +1,14 @@
 import type { ApasAudit, ApasNeeds, ApasRequirement, ApasStatus } from "./apas.ts";
-import { evaluateProgram, type PlannedForAudit, type Program, type ProgramResult, type RuleResult } from "./requirements.ts";
+import {
+  evaluateProgram,
+  type EvaluateOptions,
+  type PlannedForAudit,
+  type Program,
+  type ProgramResult,
+  type Requirement,
+  type Rule,
+  type RuleResult,
+} from "./requirements.ts";
 
 /**
  * Phase C/C4: compare planu.mn's requirement results with APAS's own (Hadi's Claude, 2026-11-03).
@@ -7,7 +16,9 @@ import { evaluateProgram, type PlannedForAudit, type Program, type ProgramResult
  * APAS requirements are paired with CourseDog requirements, or rules inside them, **by name** (the
  * matching rule is in docs/agent/heuristics.md §4). planu.mn is evaluated on the courses the audit has
  * on record only, so a disagreement means the two read the same courses differently, not that the plan
- * holds future courses APAS hasn't seen. Display only: nothing here changes planu.mn's progress.
+ * holds future courses APAS hasn't seen. Display only: nothing here changes planu.mn's progress (which
+ * programs' C2/C3 readings were checked against APAS is recorded by hand in `catalogTextCounting.ts`, from
+ * the script; it changes wording only).
  *
  * Imports use relative `.ts` paths so `scripts/apas-compare.ts` can run this in plain Node.
  */
@@ -212,9 +223,14 @@ export function plannedOnRecord(planned: PlannedForAudit[], audit: Pick<ApasAudi
   return planned.filter((p) => p.code != null && codes.has(normCode(p.code)));
 }
 
-/** Evaluate `program` on the audit's courses only, then compare. */
-export function compareApasProgram(audit: Pick<ApasAudit, "requirements" | "courses">, program: Program, planned: PlannedForAudit[]): ApasComparison {
-  return compareApas(audit, evaluateProgram(program, plannedOnRecord(planned, audit)));
+/** Evaluate `program` on the audit's courses only, then compare. `options` as in `evaluateProgram`. */
+export function compareApasProgram(
+  audit: Pick<ApasAudit, "requirements" | "courses">,
+  program: Program,
+  planned: PlannedForAudit[],
+  options: EvaluateOptions = {},
+): ApasComparison {
+  return compareApas(audit, evaluateProgram(program, plannedOnRecord(planned, audit), options));
 }
 
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
@@ -252,4 +268,27 @@ export function apasPairIndex(comparison: ApasComparison): { requirements: Map<s
     else rules.set(p.target.requirementId, (rules.get(p.target.requirementId) ?? new Map()).set(p.target.id, p));
   }
   return { requirements, rules };
+}
+
+/** A catalog-text reading counting changes: a total, min or dept constraint, or a course pattern (a max only caps). */
+export const ownsCountedReading = (x: { constraints?: { kind: string }[]; pattern?: unknown }): boolean =>
+  !!x.pattern || (x.constraints?.some((k) => k.kind !== "max") ?? false);
+
+/**
+ * C4 eligibility for `CATALOG_TEXT_COUNTED` (review fix after #93): the requirement and the rules inside
+ * it that hold a counted reading, by name, whose reading APAS didn't check. A reading is checked when the
+ * pair nearest to it, its own or its nearest paired ancestor's (up to the requirement), agrees. Another
+ * rule agreeing elsewhere in the same requirement doesn't check it.
+ */
+export function uncheckedReadings(requirement: Requirement, pairs: ApasPair[]): string[] {
+  const verdicts = new Map(pairs.filter((p) => p.target.requirementId === requirement.id).map((p) => [`${p.target.level}:${p.target.id}`, p.verdict]));
+  const own = verdicts.get(`requirement:${requirement.id}`);
+  const out: string[] = ownsCountedReading(requirement) && own !== "agree" ? [requirement.name] : [];
+  const visit = (rule: Rule, inherited: ApasVerdict | undefined) => {
+    const nearest = verdicts.get(`rule:${rule.id}`) ?? inherited;
+    if (ownsCountedReading(rule) && nearest !== "agree") out.push(rule.name);
+    if (rule.kind === "anyOf" || rule.kind === "allOf" || rule.kind === "numberOf") rule.children.forEach((c) => visit(c, nearest));
+  };
+  requirement.rules.forEach((r) => visit(r, own));
+  return out;
 }

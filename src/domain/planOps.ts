@@ -1,6 +1,6 @@
 import type { CourseId, CreditRange } from "./course";
-import { isPriorCredit, MAX_PLACEHOLDERS_PER_SEMESTER, type LockState, type Plan, type PlannedCourse, type Semester, type SemesterKind } from "./plan";
-import { academicYear, defaultStartTerm, nextTerm, previousTerm, seasonOf, toTermCode, type Season, type TermCode } from "./terms";
+import { isPriorCredit, MAX_PLACEHOLDERS_PER_SEMESTER, type LockState, type Plan, type PlannedCourse, type Semester, type SemesterKind } from "./plan.ts";
+import { academicYear, defaultStartTerm, nextTerm, previousTerm, seasonOf, toTermCode, type Season, type TermCode } from "./terms.ts";
 
 /**
  * Pure plan edits. Each returns a new Plan (or the same object when nothing changes).
