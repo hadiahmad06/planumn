@@ -3,7 +3,7 @@ import { catalogTextReadings, requirementsNotFull } from "./catalogTextReadings"
 import type { CreditConstraint } from "./creditConstraints";
 import { evaluateProgram, type CoursesRule, type Program, type Requirement, type Rule } from "./requirements";
 
-// Hadi, 2026-11-04: count catalog-text readings, and say how many requirements aren't "full".
+// Hadi, 2026-11-04: say how many requirements aren't "full", on every program (shown-only programs here).
 const text = (kind: CreditConstraint["kind"], credits: number, scope?: string): CreditConstraint => ({ kind, credits, scope, source: "text", sentence: "" });
 const ee = { terms: [{ subjects: ["EE"], levels: [4, 5] }], exceptSubjects: [], exclude: [], include: [], forms: [], sentences: [] };
 const list = (id: string, extra: Partial<CoursesRule> = {}): CoursesRule => ({

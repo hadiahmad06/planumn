@@ -65,13 +65,14 @@ describe("credit constraints in the normalizer (C2)", () => {
     expect(rule("anycr").constraints?.map((c) => [c.kind, c.credits])).toEqual([["total", 12]]);
     expect(rule("varcr") as CoursesRule).toMatchObject({ minCredits: 0 });
     expect(rule("varcr").constraints?.map((c) => [c.kind, c.credits])).toEqual([["total", 12]]);
-    // Shown only, the anyOf reads satisfied with 4 credits, and the box says 4 of 12; counted (the default
-    // since 2026-11-04), the 12-credit reading is one more unit and keeps it unmet.
-    const anycr = (options?: { catalogText: "show" }) =>
+    // Shown only (the default for a program not checked against APAS), the anyOf reads satisfied with 4
+    // credits, and the box says 4 of 12; counted, the 12-credit reading is one more unit and keeps it unmet.
+    const anycr = (options?: { catalogText: "count" | "show" }) =>
       evaluateProgram(program, [{ courseId: 3, credits: 4 }], options).requirements[0].rules.find((r) => r.rule.id === "anycr")!;
     expect(anycr({ catalogText: "show" }).satisfied).toBe(true);
     expect(anycr({ catalogText: "show" }).constraints?.map((p) => [p.planned, p.met])).toEqual([[4, false]]);
-    expect(anycr()).toMatchObject({ satisfied: false, units: 2, filled: 1 });
+    expect(anycr()).toEqual(anycr({ catalogText: "show" }));
+    expect(anycr({ catalogText: "count" })).toMatchObject({ satisfied: false, units: 2, filled: 1 });
   });
 
   it("keeps a prose cap even when the raw rule has maxCredits, since the normalized rule has no maximum", () => {
@@ -110,14 +111,16 @@ describe("credit constraints in the normalizer (C2)", () => {
     expect((te.rule as GroupRule).kind).toBe("allOf");
   });
 
-  it("counts the readings by default for a program C4 never checked (Hadi, 2026-11-04)", () => {
+  it("shows, never counts, the readings of a program C4 never checked, as shown only (Hadi, 2026-11-04)", () => {
     const planned = [
       { courseId: 1, credits: 4 },
       { courseId: 3, credits: 4 },
     ];
     expect(catalogTextCheck("P")).toBeUndefined();
-    const counted = evaluateProgram(program, planned);
-    const shown = evaluateProgram(program, planned, { catalogText: "show" });
+    expect(evaluateProgram(program, planned)).toEqual(evaluateProgram(program, planned, { catalogText: "show" }));
+    const counted = evaluateProgram(program, planned, { catalogText: "count" });
+    const shown = evaluateProgram(program, planned);
+    expect(shown.catalogTextCounted).toBe(false);
     expect(counted.catalogTextCounted).toBe(true);
     // The 23-credit total and 11 CSCI credits are one more unit on "te", unmet with 8 credits.
     expect(counted.requirements[0].rules[0]).toMatchObject({ units: shown.requirements[0].rules[0].units + 1, satisfied: false });

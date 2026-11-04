@@ -149,7 +149,7 @@ describe("programListsCourse (B11 honors)", () => {
   });
 });
 
-describe("catalog-text counting (C2/C3; Hadi 2026-11-04: counts for every program)", () => {
+describe("catalog-text counting (C2/C3; Hadi 2026-11-04: tentatively, APAS-checked programs only)", () => {
   const text = (kind: "total" | "min" | "max" | "dept", credits: number, scope?: string) => ({ kind, credits, scope, source: "text" as const, sentence: "" });
   const coded = (id: number, code: string) => ({ groupId: String(id), courseId: id, code, title: null, credits: null });
   const ee = { terms: [{ subjects: ["EE"], levels: [4, 5] }], exceptSubjects: [], exclude: [], include: [], forms: [], sentences: [] };
@@ -205,13 +205,32 @@ describe("catalog-text counting (C2/C3; Hadi 2026-11-04: counts for every progra
     expect(evaluateRule({ ...rule, constraints: [text("total", 8)] }, [p(1)], true)).toMatchObject({ units: 2, filled: 1, satisfied: false });
   });
 
-  it("counts by default for every program, checked against APAS or not (Hadi, 2026-11-04)", () => {
-    for (const id of ["026421707", "unchecked"]) {
-      const r = evaluateProgram(program(id), planned);
-      expect(r.catalogTextCounted).toBe(true);
-      expect(r.requirements[0]).toMatchObject({ units: 1, filled: 0, satisfied: false });
-      expect(r.requirements[0].courseIds).toContain(3);
-    }
-    expect(evaluateProgram(program("026421707"), planned, { catalogText: "show" }).requirements[0].units).toBe(0);
+  it("counts by default for EE B.E.E. (APAS-checked), and its progress changes", () => {
+    const ee = evaluateProgram(program("026421707"), planned);
+    const shown = evaluateProgram(program("026421707"), planned, { catalogText: "show" });
+    expect(ee.catalogTextCounted).toBe(true);
+    expect(ee.requirements[0]).toMatchObject({ units: 1, filled: 0, satisfied: false });
+    expect(ee.requirements[0].courseIds).toContain(3);
+    expect([shown.units, shown.filled]).toEqual([0, 0]);
+    expect([ee.units, ee.filled]).not.toEqual([shown.units, shown.filled]);
+  });
+
+  it("doesn't count by default for a program not checked against APAS: exactly show mode", () => {
+    const other = evaluateProgram(program("unchecked"), planned);
+    expect(other.catalogTextCounted).toBe(false);
+    expect(other).toEqual(evaluateProgram(program("unchecked"), planned, { catalogText: "show" }));
+    expect(other.requirements[0]).toMatchObject({ units: 0, filled: 0, satisfied: false });
+    expect(other.requirements[0].courseIds).not.toContain(3);
+    // Still counted on request (C4's before/after comparison).
+    expect(evaluateProgram(program("unchecked"), planned, { catalogText: "count" }).requirements[0].units).toBe(1);
+  });
+
+  it("shows readings as before counting existed: no caps on totals, no pattern courses in them", () => {
+    const pool = planned.slice(0, 2);
+    const total = (catalogText: "count" | "show") => evaluateProgram(program("p"), pool, { catalogText }).requirements[0].rules[0].constraints?.[0];
+    // 8 pool credits: capped at 4 when counted, the uncapped 8 when shown only.
+    expect(total("count")).toMatchObject({ planned: 4, met: false });
+    expect(total("show")).toMatchObject({ planned: 8, met: false });
+    expect(evaluateProgram(program("p"), planned, { catalogText: "show" }).requirements[0].rules[0].constraints?.[0]).toMatchObject({ planned: 8 });
   });
 });

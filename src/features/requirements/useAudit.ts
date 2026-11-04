@@ -25,8 +25,8 @@ export function useAudit(plan: Plan | null): { results: ProgramResult[]; met: nu
         if (seen.has(c.id)) continue;
         seen.add(c.id);
         const known = courses[c.id] ?? summaries[c.id];
-        // The code lets C3's catalog-text patterns ("EE 4xxx") match the course; that counts toward progress
-        // for every program (Hadi, 2026-11-04).
+        // The code lets C3's catalog-text patterns ("EE 4xxx") match the course; that counts toward progress,
+        // tentatively, only for APAS-checked programs (Hadi, 2026-11-04).
         planned.push({ courseId: c.id, credits: known?.credits.min ?? 0, code: known ? courseCode(known) : null });
       }
     const results = plan.programs.flatMap((id) => {
