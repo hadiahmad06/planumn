@@ -222,6 +222,11 @@ export interface ListedCourse {
 export interface ConstraintPart {
   name: string;
   courseIds: Set<CourseId>;
+  /**
+   * Courses that escape every cap when this part's own credits are summed (a min reading on it): the ones
+   * an uncapped list **inside this part** lists (review fix on #94). Absent = the whole sum's `free`.
+   */
+  free?: Set<CourseId>;
 }
 
 export interface ConstraintProgress {
@@ -253,6 +258,7 @@ export function findPart(scope: string, parts: ConstraintPart[]): ConstraintPart
 
 /** A cap on the credits one part may add to a total ("up to 12 credits of additional approved technical electives"). */
 export interface ConstraintCap {
+  /** Every course the capped part lists. */
   courseIds: Set<CourseId>;
   credits: number;
 }
@@ -262,9 +268,10 @@ export interface ConstraintCap {
  * plan's courses with the credits the audit counts. Only courses the rule lists ever count. `caps` limit
  * what a part adds to total, min and dept sums (Phase C, 2026-11-03): smallest part first, and credits
  * over a cap are dropped from the part's courses with the highest catalog ids (not plan order), so nested
- * caps aren't subtracted twice. A cap's `courseIds` are only the courses that count through it alone
- * (`progressOf` leaves out courses some uncapped list also lists). A max constraint itself is always
- * checked on the uncapped sum.
+ * caps aren't subtracted twice. A course escapes the caps when an uncapped list in the scope being summed
+ * also lists it: `free` for total and dept sums (the whole rule or requirement), a part's own `free` for
+ * a min on that part, so an uncapped list outside the part never frees a course inside it (review fix on
+ * #94). A max constraint itself is always checked on the uncapped sum.
  */
 export function constraintProgress(
   constraints: CreditConstraint[],
@@ -272,25 +279,35 @@ export function constraintProgress(
   parts: ConstraintPart[],
   planned: { courseId: CourseId; credits: number }[],
   caps: ConstraintCap[] = [],
+  free: Set<CourseId> = new Set(),
 ): ConstraintProgress[] {
   const byId = new Map(listed.map((c) => [c.courseId, c]));
   const counted = [...new Map(planned.filter((p) => byId.has(p.courseId)).map((p) => [p.courseId, p])).values()];
-  const capped = new Map(counted.map((p) => [p.courseId, p.credits]));
   // Cut in catalog id order (highest first), never plan order, so results don't depend on plan order (#93 review).
   const cutOrder = [...counted].sort((a, b) => b.courseId - a.courseId);
-  for (const cap of [...caps].sort((a, b) => a.courseIds.size - b.courseIds.size)) {
-    let over = counted.filter((p) => cap.courseIds.has(p.courseId)).reduce((n, p) => n + (capped.get(p.courseId) ?? 0), 0) - cap.credits;
-    for (const p of cutOrder) {
-      if (over <= 0) break;
-      if (!cap.courseIds.has(p.courseId)) continue;
-      const cut = Math.min(over, capped.get(p.courseId) ?? 0);
-      capped.set(p.courseId, (capped.get(p.courseId) ?? 0) - cut);
-      over -= cut;
+  const cappedBy = new Map<Set<CourseId>, Map<CourseId, number>>();
+  /** Each course's credits after the caps, with the courses in `escape` exempt from them. */
+  const cappedFor = (escape: Set<CourseId>) => {
+    const known = cappedBy.get(escape);
+    if (known) return known;
+    const capped = new Map(counted.map((p) => [p.courseId, p.credits]));
+    const bound = caps.map((c) => ({ ids: new Set([...c.courseIds].filter((id) => !escape.has(id))), credits: c.credits }));
+    for (const cap of bound.sort((a, b) => a.ids.size - b.ids.size)) {
+      let over = counted.filter((p) => cap.ids.has(p.courseId)).reduce((n, p) => n + (capped.get(p.courseId) ?? 0), 0) - cap.credits;
+      for (const p of cutOrder) {
+        if (over <= 0) break;
+        if (!cap.ids.has(p.courseId)) continue;
+        const cut = Math.min(over, capped.get(p.courseId) ?? 0);
+        capped.set(p.courseId, (capped.get(p.courseId) ?? 0) - cut);
+        over -= cut;
+      }
     }
-  }
-  const sum = (keep: (id: CourseId) => boolean, credits = (id: CourseId) => capped.get(id) ?? 0) =>
-    counted.filter((p) => keep(p.courseId)).reduce((n, p) => n + credits(p.courseId), 0);
+    cappedBy.set(escape, capped);
+    return capped;
+  };
   const raw = (id: CourseId) => counted.find((p) => p.courseId === id)?.credits ?? 0;
+  const sum = (keep: (id: CourseId) => boolean, credits: (id: CourseId) => number = (id) => cappedFor(free).get(id) ?? 0) =>
+    counted.filter((p) => keep(p.courseId)).reduce((n, p) => n + credits(p.courseId), 0);
   return constraints.map((constraint) => {
     let planned: number | null = null;
     if (constraint.kind === "total") planned = sum(() => true);
@@ -304,7 +321,10 @@ export function constraintProgress(
       if (part) planned = sum((id) => part.courseIds.has(id), raw);
     } else if (constraint.kind === "min") {
       const part = constraint.scope ? findPart(constraint.scope, parts) : undefined;
-      if (part) planned = sum((id) => part.courseIds.has(id));
+      if (part) {
+        const capped = cappedFor(part.free ?? free);
+        planned = sum((id) => part.courseIds.has(id), (id) => capped.get(id) ?? 0);
+      }
     }
     const met =
       planned == null

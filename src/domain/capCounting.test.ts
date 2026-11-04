@@ -113,3 +113,88 @@ describe("a cap limits only its own part (bug 2, EE shape)", () => {
     }
   });
 });
+
+describe("a min on a part honours the caps inside it (bug 3, #94 review)", () => {
+  const items: [number, string][] = [
+    [11, "EE 4111"],
+    [12, "EE 4231"],
+    [13, "EE 4301"],
+  ];
+  const core: Rule = {
+    kind: "allOf",
+    id: "core",
+    name: "Core Department Electives",
+    notes: null,
+    children: [list("extra", "Core Extra", items, { constraints: [text("max", 4)] })],
+  };
+  // The same three courses, uncapped, outside Core.
+  const additional = list("add", "Additional Approved Technical Electives", items);
+  const requirement = (constraints: CreditConstraint[]): Requirement => ({ id: "te", name: "Technical Elective Program", notes: null, rules: [core, additional], constraints });
+
+  it("reads 4 of 12 from Core, not 12, when a list outside Core lists Core's capped courses", () => {
+    const r = one(requirement([text("min", 12, "Core Department Electives")]), at4(...items));
+    expect(r.constraints?.[0]).toMatchObject({ planned: 4, met: false });
+    expect(r.satisfied).toBe(false);
+  });
+
+  it("still frees the courses for the requirement's total, through the uncapped list outside Core", () => {
+    const r = one(requirement([text("total", 12), text("min", 12, "Core Department Electives")]), at4(...items));
+    expect(r.constraints?.map((p) => [p.planned, p.met])).toEqual([
+      [12, true],
+      [4, false],
+    ]);
+  });
+});
+
+describe("a part's counted sum never exceeds what it can hold under its own caps (property, fixed seed)", () => {
+  let seed = 94;
+  const random = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  const pick = (n: number) => Math.floor(random() * n);
+  const courses = Array.from({ length: 8 }, (_, i): [number, string] => [i + 1, `EE 4${i}01`]);
+
+  interface Node {
+    rule: Rule;
+    cap?: number;
+    children: Node[];
+    ids: number[];
+  }
+  let names = 0;
+  function node(depth: number): Node {
+    const name = `Part ${++names}`;
+    const cap = random() < 0.35 ? 1 + pick(8) : undefined;
+    const constraints = cap ? [text("max", cap)] : undefined;
+    if (depth < 3 && random() < 0.45) {
+      const children = Array.from({ length: 1 + pick(3) }, () => node(depth + 1));
+      return { rule: { kind: "allOf", id: name, name, notes: null, constraints, children: children.map((c) => c.rule) }, cap, children, ids: children.flatMap((c) => c.ids) };
+    }
+    const own = courses.filter(() => random() < 0.4);
+    const chosen = own.length ? own : [courses[pick(courses.length)]];
+    return { rule: list(name, name, chosen, { constraints }), cap, children: [], ids: chosen.map(([id]) => id) };
+  }
+  const flat = (n: Node): Node[] => [n, ...n.children.flatMap(flat)];
+
+  it("holds for 300 random requirements", () => {
+    for (let i = 0; i < 300; i++) {
+      names = 0;
+      const top = Array.from({ length: 1 + pick(3) }, () => node(0));
+      const credit = new Map(courses.map(([id]) => [id, 1 + pick(4)]));
+      const planned = courses.filter(() => random() < 0.7).map(([courseId, code]) => ({ courseId, code, credits: credit.get(courseId)! }));
+      const plannedCredits = (ids: Iterable<number>) => {
+        const set = new Set(ids);
+        return planned.filter((p) => set.has(p.courseId)).reduce((n, p) => n + p.credits, 0);
+      };
+      // Upper bound: the credits a part's lists hold, honouring every cap inside the part (its own included).
+      const bound = (n: Node): number =>
+        Math.min(n.cap ?? Infinity, n.children.length ? n.children.reduce((s, c) => s + bound(c), 0) : Infinity, plannedCredits(n.ids));
+      const parts = top.flatMap(flat);
+      const constraints = [text("total", 1), ...parts.map((n) => text("min", 1, n.rule.name))];
+      const r = one({ id: "r", name: "R", notes: null, rules: top.map((n) => n.rule), constraints }, planned);
+      const [total, ...mins] = r.constraints!;
+      expect(total.planned, `case ${i}, total`).toBeLessThanOrEqual(Math.min(top.reduce((s, n) => s + bound(n), 0), plannedCredits(parts.flatMap((n) => n.ids))));
+      parts.forEach((n, k) => {
+        expect(mins[k].planned, `case ${i}, ${n.rule.name}`).not.toBeNull();
+        expect(mins[k].planned!, `case ${i}, ${n.rule.name}`).toBeLessThanOrEqual(bound(n));
+      });
+    }
+  });
+});

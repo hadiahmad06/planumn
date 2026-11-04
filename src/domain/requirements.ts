@@ -244,8 +244,10 @@ const leavesOf = (r: Rule): Rule[] => (isGroup(r) ? r.children.flatMap(leavesOf)
  *
  * A cap limits only what its part adds (review fix on #93): a course that some list **under no cap**
  * also lists (EE 5364 in both a capped "Additional" list and the Core 4xxx/5xxx EE pattern) counts there,
- * so it keeps its credits and doesn't use up the cap. A course listed only under caps stays subject to
- * every cap whose part lists it, which can undercount but never overcounts.
+ * so it keeps its credits and doesn't use up the cap. That uncapped list must lie in the scope being
+ * summed: the whole rule or requirement for a total or dept reading, the part itself for a min on a part,
+ * so a list outside "Core" never lifts a cap inside it (review fix on #94). A course listed only under
+ * caps stays subject to every cap whose part lists it, which can undercount but never overcounts.
  */
 function progressOf(
   self: { constraints?: CreditConstraint[] },
@@ -259,7 +261,7 @@ function progressOf(
   const partRule = new Map<ConstraintPart, Rule>();
   const holders: { constraints?: CreditConstraint[]; rule?: Rule }[] = [{ constraints: self.constraints }];
   const visit = (r: Rule) => {
-    const part = { name: r.name, courseIds: ids(r) };
+    const part: ConstraintPart = { name: r.name, courseIds: ids(r) };
     parts.push(part);
     partRule.set(part, r);
     holders.push({ constraints: r.constraints, rule: r });
@@ -275,9 +277,12 @@ function progressOf(
       if (on) capped.push({ rule: on, credits: c.credits });
     }
   const underCap = new Set(capped.flatMap((c) => leavesOf(c.rule)));
-  const free = new Set(rules.flatMap(leavesOf).flatMap((leaf) => (underCap.has(leaf) ? [] : [...ids(leaf)])));
-  const caps: ConstraintCap[] = capped.map((c) => ({ courseIds: new Set([...ids(c.rule)].filter((id) => !free.has(id))), credits: c.credits }));
-  return constraintProgress(self.constraints ?? [], rules.flatMap((r) => listedCourses(r, planned, count)), parts, planned, caps);
+  // Courses an uncapped list within `within` lists: they escape every cap when that scope is summed.
+  const freeIn = (within: Rule[]) => new Set(within.flatMap(leavesOf).flatMap((leaf) => (underCap.has(leaf) ? [] : [...ids(leaf)])));
+  // A min on a part frees a course only through an uncapped list inside that part (review fix on #94).
+  if (capped.length) for (const part of parts) part.free = freeIn([partRule.get(part)!]);
+  const caps: ConstraintCap[] = capped.map((c) => ({ courseIds: ids(c.rule), credits: c.credits }));
+  return constraintProgress(self.constraints ?? [], rules.flatMap((r) => listedCourses(r, planned, count)), parts, planned, caps, freeIn(rules));
 }
 
 function listedCourses(rule: Rule, planned: PlannedForAudit[], count: boolean): ListedCourse[] {
