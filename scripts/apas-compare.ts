@@ -11,10 +11,11 @@
  * requirement-coverage.ts writes, and courses come from data/catalog.db. Nothing is sent anywhere and
  * nothing is written; the comparison is only printed. Never commit a real report.
  *
- * Each report is compared with the program's C2/C3 catalog-text readings counted, then shown only. A
- * program is **eligible** to count them (src/domain/catalogTextCounting.ts) when the counted comparison
- * has no disagreement and every requirement holding a counted reading pairs with an APAS requirement
- * that agrees, so each reading was actually checked against APAS.
+ * Each report is compared with the program's C2/C3 catalog-text readings counted, then shown only. The
+ * readings count for every program (Hadi, 2026-11-04); a program is **eligible** for
+ * `CATALOG_TEXT_COUNTED` (src/domain/catalogTextCounting.ts, which now only changes wording) when the
+ * counted comparison has no disagreement and every reading is checked: the pair nearest to the rule
+ * holding it (its own, else its nearest paired ancestor's) agrees (`uncheckedReadings`).
  *
  * The program is built the way src/server/programs/getProgram.ts builds it, minus the live CourseDog
  * lookup of courses missing from the catalog: those can't be planned, so they never change a result.
@@ -25,7 +26,7 @@ import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { Window } from "happy-dom";
 import type { ApasAudit } from "../src/domain/apas.ts";
-import { compareApasProgram, apasRecordCodes, describeApasStatus, type ApasPair } from "../src/domain/apasCompare.ts";
+import { compareApasProgram, apasRecordCodes, describeApasStatus, ownsCountedReading, uncheckedReadings, type ApasPair } from "../src/domain/apasCompare.ts";
 import { apasProgramId } from "../src/domain/apasPlan.ts";
 import type { PlannedForAudit, Program, Rule } from "../src/domain/requirements.ts";
 import { parseApasReport } from "../src/features/apas/parseReport.ts";
@@ -122,10 +123,8 @@ function plannedFor(audit: ApasAudit) {
   return { codes, planned, missing };
 }
 
-/** A reading that counting changes: a total, min or dept constraint, or a course pattern (a max only caps). */
-const counts = (x: { constraints?: { kind: string }[] }) => x.constraints?.some((k) => k.kind !== "max") ?? false;
-const ruleHolds = (r: Rule): boolean => counts(r) || !!r.pattern || ("children" in r && r.children.some(ruleHolds));
-const holdsReading = (r: Program["requirements"][number]) => counts(r) || r.rules.some(ruleHolds);
+const ruleHolds = (r: Rule): boolean => ownsCountedReading(r) || ("children" in r && r.children.some(ruleHolds));
+const holdsReading = (r: Program["requirements"][number]) => ownsCountedReading(r) || r.rules.some(ruleHolds);
 
 const side = (p: ApasPair) =>
   `${p.target.name} [${p.target.level}, ${p.match} name]: ${p.target.units === 0 ? "nothing counted" : `${p.target.satisfied ? "met" : "not met"} ${p.target.filled}/${p.target.units}`}`;
@@ -162,9 +161,9 @@ for (const reportPath of reports) {
   const c = compareApasProgram(audit, program, planned, { catalogText: "count" });
   const shown = compareApasProgram(audit, program, planned, { catalogText: "show" });
   const verdictShown = new Map(shown.pairs.map((p) => [`${p.apas.id}|${p.target.id}`, p.verdict]));
-  const agreeing = new Set(c.pairs.filter((p) => p.verdict === "agree").map((p) => p.target.requirementId));
   const withReadings = program.requirements.filter((r) => r.rules.length > 0 && holdsReading(r));
-  const unchecked = withReadings.filter((r) => !agreeing.has(r.id));
+  const notChecked = new Map(withReadings.map((r) => [r.id, uncheckedReadings(r, c.pairs)]));
+  const unchecked = withReadings.filter((r) => notChecked.get(r.id)!.length > 0);
   const eligible = withReadings.length > 0 && c.disagreements === 0 && unchecked.length === 0;
 
   console.log(`\n=== ${name} ===`);
@@ -179,7 +178,10 @@ for (const reportPath of reports) {
     console.log(`${p.verdict.toUpperCase().padEnd(9)} APAS "${p.apas.title}": ${describeApasStatus(p.apas)}\n          ↔ ${side(p)}${changed}`);
   }
   console.log(`\nRequirements holding catalog-text readings (${withReadings.length}):`);
-  for (const r of withReadings) console.log(`  ${agreeing.has(r.id) ? "checked  " : "unchecked"} ${r.name}`);
+  for (const r of withReadings) {
+    const left = notChecked.get(r.id)!;
+    console.log(`  ${left.length ? "unchecked" : "checked  "} ${r.name}${left.length ? ` (not checked: ${left.join("; ")})` : ""}`);
+  }
   console.log(`\nOnly in APAS (${c.apasOnly.length}):`);
   for (const r of c.apasOnly)
     console.log(`  "${r.title}" (${r.id}): ${describeApasStatus(r)}${c.ambiguous.includes(r) ? " [left unpaired: several equally close planu.mn names]" : ""}`);
@@ -192,8 +194,8 @@ for (const reportPath of reports) {
     `${name}: ${program.name} (${program.id}): ${count("agree")} agree, ${c.disagreements} disagree, ${count("unchecked")} unchecked, ` +
       `${c.apasOnly.length} only in APAS (${c.ambiguous.length} ambiguous), ${c.planumnOnly.length} with no APAS match; ` +
       (eligible
-        ? "ELIGIBLE to count catalog text"
-        : `not eligible to count catalog text (${!withReadings.length ? "no readings" : [c.disagreements ? `${c.disagreements} disagreements` : "", unchecked.length ? `${unchecked.length} of ${withReadings.length} requirements with readings unchecked` : ""].filter(Boolean).join(", ")})`),
+        ? "ELIGIBLE for CATALOG_TEXT_COUNTED (readings checked against APAS)"
+        : `not eligible for CATALOG_TEXT_COUNTED (${!withReadings.length ? "no readings" : [c.disagreements ? `${c.disagreements} disagreements` : "", unchecked.length ? `${unchecked.length} of ${withReadings.length} requirements with readings unchecked` : ""].filter(Boolean).join(", ")})`),
   );
 }
 

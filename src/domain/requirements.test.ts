@@ -149,7 +149,7 @@ describe("programListsCourse (B11 honors)", () => {
   });
 });
 
-describe("catalog-text counting (C2/C3, Hadi 2026-11-03: counts once C4 agrees with APAS)", () => {
+describe("catalog-text counting (C2/C3; Hadi 2026-11-04: counts for every program)", () => {
   const text = (kind: "total" | "min" | "max" | "dept", credits: number, scope?: string) => ({ kind, credits, scope, source: "text" as const, sentence: "" });
   const coded = (id: number, code: string) => ({ groupId: String(id), courseId: id, code, title: null, credits: null });
   const ee = { terms: [{ subjects: ["EE"], levels: [4, 5] }], exceptSubjects: [], exclude: [], include: [], forms: [], sentences: [] };
@@ -172,8 +172,8 @@ describe("catalog-text counting (C2/C3, Hadi 2026-11-03: counts once C4 agrees w
     { courseId: 3, credits: 4, code: "EE 4111" },
   ];
 
-  it("shows readings without counting them by default (a program C4 hasn't checked)", () => {
-    const r = evaluateProgram(program("unchecked"), planned);
+  it("shows readings without counting them with catalogText: \"show\" (C4's before/after comparison)", () => {
+    const r = evaluateProgram(program("unchecked"), planned, { catalogText: "show" });
     expect(r.catalogTextCounted).toBe(false);
     expect(r.requirements[0]).toMatchObject({ units: 0, filled: 0, satisfied: false });
     expect(r.requirements[0].rules[0].catalogTextCounted).toBeUndefined();
@@ -205,8 +205,13 @@ describe("catalog-text counting (C2/C3, Hadi 2026-11-03: counts once C4 agrees w
     expect(evaluateRule({ ...rule, constraints: [text("total", 8)] }, [p(1)], true)).toMatchObject({ units: 2, filled: 1, satisfied: false });
   });
 
-  it("counts by default only for programs in CATALOG_TEXT_COUNTED (EE B.E.E. after the 2026-11-03 check)", () => {
-    expect(evaluateProgram(program("026421707"), planned).catalogTextCounted).toBe(true);
+  it("counts by default for every program, checked against APAS or not (Hadi, 2026-11-04)", () => {
+    for (const id of ["026421707", "unchecked"]) {
+      const r = evaluateProgram(program(id), planned);
+      expect(r.catalogTextCounted).toBe(true);
+      expect(r.requirements[0]).toMatchObject({ units: 1, filled: 0, satisfied: false });
+      expect(r.requirements[0].courseIds).toContain(3);
+    }
     expect(evaluateProgram(program("026421707"), planned, { catalogText: "show" }).requirements[0].units).toBe(0);
   });
 });

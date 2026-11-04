@@ -261,8 +261,10 @@ export interface ConstraintCap {
  * Planned credits against each constraint. `listed` = every course the rule lists; `planned` = the
  * plan's courses with the credits the audit counts. Only courses the rule lists ever count. `caps` limit
  * what a part adds to total, min and dept sums (Phase C, 2026-11-03): smallest part first, and credits
- * over a cap are dropped from the part's last planned courses, so nested caps aren't subtracted twice.
- * A max constraint itself is always checked on the uncapped sum.
+ * over a cap are dropped from the part's courses with the highest catalog ids (not plan order), so nested
+ * caps aren't subtracted twice. A cap's `courseIds` are only the courses that count through it alone
+ * (`progressOf` leaves out courses some uncapped list also lists). A max constraint itself is always
+ * checked on the uncapped sum.
  */
 export function constraintProgress(
   constraints: CreditConstraint[],
@@ -274,9 +276,11 @@ export function constraintProgress(
   const byId = new Map(listed.map((c) => [c.courseId, c]));
   const counted = [...new Map(planned.filter((p) => byId.has(p.courseId)).map((p) => [p.courseId, p])).values()];
   const capped = new Map(counted.map((p) => [p.courseId, p.credits]));
+  // Cut in catalog id order (highest first), never plan order, so results don't depend on plan order (#93 review).
+  const cutOrder = [...counted].sort((a, b) => b.courseId - a.courseId);
   for (const cap of [...caps].sort((a, b) => a.courseIds.size - b.courseIds.size)) {
     let over = counted.filter((p) => cap.courseIds.has(p.courseId)).reduce((n, p) => n + (capped.get(p.courseId) ?? 0), 0) - cap.credits;
-    for (const p of [...counted].reverse()) {
+    for (const p of cutOrder) {
       if (over <= 0) break;
       if (!cap.courseIds.has(p.courseId)) continue;
       const cut = Math.min(over, capped.get(p.courseId) ?? 0);

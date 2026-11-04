@@ -89,6 +89,9 @@ describe("pattern rules in the normalizer (C3)", () => {
       { courseId: 3, credits: 3, code: "HIST 5001" },
     ];
     expect(evaluateProgram(p, planned).requirements[0].rules[0].patternMatches?.map((m) => m.code)).toEqual(["HIST 3001"]);
+    // Architecture isn't in CATALOG_TEXT_COUNTED; since 2026-11-04 its matches count all the same (Hadi).
+    expect(evaluateProgram(p, planned).requirements[0].courseIds).toEqual([2]);
+    expect(evaluateProgram(p, planned, { catalogText: "show" }).requirements[0].courseIds).toEqual([]);
   });
 
   it("skips the cap sentence and leaves rules that list courses alone", () => {

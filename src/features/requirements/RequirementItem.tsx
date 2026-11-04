@@ -5,6 +5,8 @@ import { useId, useState } from "react";
 import { describePattern, patternSearchLinks, type CoursePattern, type PatternMatch } from "@/domain/coursePatterns";
 import { describeConstraint, type ConstraintProgress } from "@/domain/creditConstraints";
 import type { ApasPair } from "@/domain/apasCompare";
+import { describeCatalogTextCheck, type CatalogTextCheck } from "@/domain/catalogTextCounting";
+import { catalogTextReadings } from "@/domain/catalogTextReadings";
 import type { CourseChoice, CourseOption, RequirementResult, RuleResult } from "@/domain/requirements";
 import { cn } from "@/components/ui/cn";
 import { ProgressRing } from "@/components/ui/ProgressRing";
@@ -18,6 +20,7 @@ import { hoverCourse, usePlanStore } from "@/features/plan-editor/store";
 import { AddToSemesterButton } from "@/features/plan-editor/AddToSemesterButton";
 import { openSearchWith } from "@/features/search/searchRequest";
 import { ApasSaysLine } from "./ApasSays";
+import { CatalogTextBadge, requirementWarning } from "./CatalogTextWarning";
 
 const MAX_CHOICES = 8;
 
@@ -164,25 +167,20 @@ function RuleDescription({ text }: { text: string }) {
 }
 
 /**
- * The heading of a C2/C3 box. Hadi, 2026-11-03: readings count once C4 agrees with APAS, always with a
- * disclaimer that planu.mn isn't UMN's official audit. Counted readings say so and carry the disclaimer
- * visibly; the rest stay "not counted in progress".
+ * The heading of a C2/C3 box. Hadi, 2026-11-03: counted readings carry a visible disclaimer that planu.mn
+ * isn't UMN's official audit. Hadi, 2026-11-04: they count for every program; `check` (a program in
+ * `CATALOG_TEXT_COUNTED`) only adds that they agreed with a real APAS audit.
  */
-function CatalogTextLabel({ counted, what }: { counted?: boolean; what: string }) {
-  if (!counted)
-    return (
-      <p
-        className="text-text-tertiary"
-        title={`planu.mn read ${what} from the catalog's wording, so it may be off. It isn't counted in your progress yet; APAS or your advisor has the final word.`}
-      >
-        Read from catalog text · not counted in progress
-      </p>
-    );
+function CatalogTextLabel({ check, what }: { check?: CatalogTextCheck; what: string }) {
   return (
     <>
       <p
         className="text-text-tertiary"
-        title={`planu.mn read ${what} from the catalog's wording and checked it against real APAS reports for this program, so it counts in your progress. The wording can still be misread, and the catalog can change.`}
+        title={
+          check
+            ? `planu.mn read ${what} from the catalog's wording, and for this program it ${describeCatalogTextCheck(check)}. It counts in your progress. The wording can still be misread, and the catalog can change. Lines marked "can't check" add nothing.`
+            : `planu.mn read ${what} from the catalog's wording and counts it in your progress, but hasn't checked it against an APAS audit for this program, so it may be off. Lines marked "can't check" add nothing. APAS or your advisor has the final word.`
+        }
       >
         Read from catalog text · counted in progress
       </p>
@@ -194,13 +192,13 @@ function CatalogTextLabel({ counted, what }: { counted?: boolean; what: string }
 }
 
 /**
- * C2: credit constraints planu.mn read from the catalog's wording. Hadi, 2026-10-28: show first; they
- * count toward progress only for programs C4 checked against APAS (`CATALOG_TEXT_COUNTED`).
+ * C2: credit constraints planu.mn read from the catalog's wording. Hadi, 2026-11-04: they count toward
+ * progress for every program (superseding "show first" and the per-program gate).
  */
-function CreditConstraints({ items, counted }: { items: ConstraintProgress[]; counted?: boolean }) {
+function CreditConstraints({ items, check }: { items: ConstraintProgress[]; check?: CatalogTextCheck }) {
   return (
     <div className="rounded-row border border-dashed border-border px-2 py-1.5 text-micro">
-      <CatalogTextLabel counted={counted} what="these credit limits" />
+      <CatalogTextLabel check={check} what="these credit limits" />
       <ul>
         {items.map((p, i) => (
           <li key={i} title={p.constraint.sentence} className="flex items-baseline gap-2">
@@ -218,14 +216,14 @@ function CreditConstraints({ items, counted }: { items: ConstraintProgress[]; co
 
 /**
  * C3: a course pattern planu.mn read from the catalog's wording for a rule that lists no courses
- * ("4xxx/5xxx EE, excluding EE 4981H"). Hadi, 2026-10-28: show first; matching planned courses count
- * (toward the credit limits around them) only for programs C4 checked against APAS.
+ * ("4xxx/5xxx EE, excluding EE 4981H"). Matching planned courses count toward the credit limits around
+ * them, for every program (Hadi, 2026-11-04).
  */
-function CoursePatternBox({ pattern, matches, counted }: { pattern: CoursePattern; matches: PatternMatch[]; counted?: boolean }) {
+function CoursePatternBox({ pattern, matches, check }: { pattern: CoursePattern; matches: PatternMatch[]; check?: CatalogTextCheck }) {
   const searches = patternSearchLinks(pattern);
   return (
     <div className="flex flex-col gap-0.5 rounded-row border border-dashed border-border px-2 py-1.5 text-micro">
-      <CatalogTextLabel counted={counted} what="this course pattern" />
+      <CatalogTextLabel check={check} what="this course pattern" />
       <p className="text-text-secondary" title={pattern.sentences.join("\n")}>
         Courses matching {describePattern(pattern)}
       </p>
@@ -279,7 +277,19 @@ export interface RequirementApas {
   rules: Map<string, ApasPair>;
 }
 
-function RuleView({ result, depth, hideTitle, apas }: { result: RuleResult; depth: number; hideTitle?: boolean; apas?: Map<string, ApasPair> }) {
+function RuleView({
+  result,
+  depth,
+  hideTitle,
+  apas,
+  check,
+}: {
+  result: RuleResult;
+  depth: number;
+  hideTitle?: boolean;
+  apas?: Map<string, ApasPair>;
+  check?: CatalogTextCheck;
+}) {
   const [showAll, setShowAll] = useState(false);
   const { rule } = result;
   const status = ruleStatus(result);
@@ -295,8 +305,8 @@ function RuleView({ result, depth, hideTitle, apas }: { result: RuleResult; dept
       )}
       {apasPair && <ApasSaysLine pair={apasPair} />}
       {rule.description && <RuleDescription text={rule.description} />}
-      {result.constraints?.length ? <CreditConstraints items={result.constraints} counted={result.catalogTextCounted} /> : null}
-      {rule.pattern && <CoursePatternBox pattern={rule.pattern} matches={result.patternMatches ?? []} counted={result.catalogTextCounted} />}
+      {result.constraints?.length ? <CreditConstraints items={result.constraints} check={check} /> : null}
+      {rule.pattern && <CoursePatternBox pattern={rule.pattern} matches={result.patternMatches ?? []} check={check} />}
       {rule.notes && <Notes text={rule.notes} />}
       {rule.kind === "numberOf" && (
         <p className="text-micro text-text-secondary">
@@ -324,7 +334,7 @@ function RuleView({ result, depth, hideTitle, apas }: { result: RuleResult; dept
           {result.children.map((c, i) => (
             <div key={c.rule.id} className="flex flex-col gap-1">
               {rule.kind === "anyOf" && i > 0 && <span className="text-micro font-semibold tracking-wide text-text-tertiary uppercase">or</span>}
-              <RuleView result={c} depth={depth + 1} apas={apas} />
+              <RuleView result={c} depth={depth + 1} apas={apas} check={check} />
             </div>
           ))}
         </div>
@@ -333,9 +343,23 @@ function RuleView({ result, depth, hideTitle, apas }: { result: RuleResult; dept
   );
 }
 
-/** One requirement as an accordion item: progress ring, name, x/y; expands into its rules (A24–A25). */
-export function RequirementItem({ result, defaultOpen, apas }: { result: RequirementResult; defaultOpen?: boolean; apas?: RequirementApas }) {
+/**
+ * One requirement as an accordion item: progress ring, name, x/y; expands into its rules (A24–A25).
+ * ⚠ N = its parts read from catalog text (Hadi, 2026-11-04); `check` = how its program was checked against APAS.
+ */
+export function RequirementItem({
+  result,
+  defaultOpen,
+  apas,
+  check,
+}: {
+  result: RequirementResult;
+  defaultOpen?: boolean;
+  apas?: RequirementApas;
+  check?: CatalogTextCheck;
+}) {
   const [open, setOpen] = useState(defaultOpen ?? false);
+  const readings = catalogTextReadings(result);
   const { requirement } = result;
   const single = result.rules.length === 1 && result.rules[0].rule.name.trim() === requirement.name.trim();
   const inside = apas ? [...apas.rules.values()] : [];
@@ -346,6 +370,11 @@ export function RequirementItem({ result, defaultOpen, apas }: { result: Require
       <button type="button" onClick={() => setOpen(!open)} aria-expanded={open} className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left">
         <ProgressRing value={result.filled} total={result.units} />
         <span className="min-w-0 flex-1 font-medium">{requirement.name}</span>
+        <CatalogTextBadge
+          n={readings.count}
+          label={`${readings.count} part${readings.count === 1 ? "" : "s"} read from catalog text`}
+          title={requirementWarning(readings, check)}
+        />
         <span className="shrink-0 text-micro text-text-secondary">
           {result.filled}/{result.units}
         </span>
@@ -364,9 +393,9 @@ export function RequirementItem({ result, defaultOpen, apas }: { result: Require
       {open && (
         <div className="flex flex-col gap-3 border-t border-border px-3 py-2.5">
           {requirement.notes && <Notes text={requirement.notes} />}
-          {result.constraints?.length ? <CreditConstraints items={result.constraints} counted={result.catalogTextCounted} /> : null}
+          {result.constraints?.length ? <CreditConstraints items={result.constraints} check={check} /> : null}
           {result.rules.map((r) => (
-            <RuleView key={r.rule.id} result={r} depth={0} hideTitle={single} apas={apas?.rules} />
+            <RuleView key={r.rule.id} result={r} depth={0} hideTitle={single} apas={apas?.rules} check={check} />
           ))}
         </div>
       )}
