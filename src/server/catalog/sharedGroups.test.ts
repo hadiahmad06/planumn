@@ -1,13 +1,17 @@
-import { describe, expect, it } from "vitest";
-import { evaluateProgram, type Program } from "@/domain/requirements";
+import { beforeAll, describe, expect, it } from "vitest";
+import { evaluateProgram, type CourseOption, type Program } from "@/domain/requirements";
 import { catalogOption, findCourseRowsByGroupIds } from "./courses";
 import { catalog } from "./db";
 
 /** L11 (Hadi's Claude): requirement options against data/catalog.db's shared CourseDog group ids. */
 describe("shared CourseDog group ids in data/catalog.db (L11)", () => {
-  const rows = findCourseRowsByGroupIds(["0049451", "0031151"]);
-  const engw = catalogOption("0049451", rows.get("0049451") ?? []);
-  const chls = catalogOption("0031151", rows.get("0031151") ?? []);
+  let engw: CourseOption;
+  let chls: CourseOption;
+  beforeAll(async () => {
+    const rows = await findCourseRowsByGroupIds(["0049451", "0031151"]);
+    engw = catalogOption("0049451", rows.get("0049451") ?? []);
+    chls = catalogOption("0031151", rows.get("0031151") ?? []);
+  });
 
   it("resolves a group to every row, newest offering first", () => {
     expect(engw.rows.map((r) => r.code)).toEqual(["ENGW 1102W", "ENGW 1102"]);
@@ -34,15 +38,13 @@ describe("shared CourseDog group ids in data/catalog.db (L11)", () => {
     }
   });
 
-  it("suggests a row offered at least as recently as every other row of its group, for every shared group", () => {
-    const shared = catalog()
-      .prepare(
-        `SELECT courseGroupId AS g FROM classdistribution WHERE campus = 'UMNTC' AND courseGroupId IS NOT NULL
-         GROUP BY courseGroupId HAVING COUNT(*) > 1`,
-      )
-      .all() as { g: string }[];
+  it("suggests a row offered at least as recently as every other row of its group, for every shared group", async () => {
+    const shared = await (await catalog()).all<{ g: string }>(
+      `SELECT courseGroupId AS g FROM classdistribution WHERE campus = 'UMNTC' AND courseGroupId IS NOT NULL
+       GROUP BY courseGroupId HAVING COUNT(*) > 1`,
+    );
     expect(shared.length).toBeGreaterThan(100);
-    const all = findCourseRowsByGroupIds(shared.map((s) => s.g));
+    const all = await findCourseRowsByGroupIds(shared.map((s) => s.g));
     for (const { g } of shared) {
       const list = all.get(g)!;
       const option = catalogOption(g, list);
