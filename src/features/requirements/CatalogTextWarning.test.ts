@@ -10,7 +10,7 @@ import { RequirementItem } from "./RequirementItem";
 // every program shows ⚠ N.
 const EE = "026421707";
 const text = (kind: CreditConstraint["kind"], credits: number): CreditConstraint => ({ kind, credits, source: "text", sentence: "" });
-const coded = (id: number, code: string) => ({ groupId: String(id), courseId: id, code, title: null, credits: null });
+const coded = (id: number, code: string) => ({ groupId: String(id), courseId: id, code, title: null, credits: null, rows: [] });
 const electives: Rule = {
   kind: "courses",
   id: "te",

@@ -23,7 +23,7 @@ import { useAudit } from "./useAudit";
 /** Searchable text of a rule: its name, notes, and listed course codes/titles (not JSON keys or ids). */
 function ruleText(rule: Rule): string[] {
   const own = [rule.name, rule.notes ?? ""];
-  if (rule.kind === "courses") return [...own, ...rule.choices.flatMap((c) => c.options.flatMap((o) => [o.code ?? "", o.title ?? ""]))];
+  if (rule.kind === "courses") return [...own, ...rule.choices.flatMap((c) => c.options.flatMap((o) => [o.code ?? "", o.title ?? "", ...o.rows.map((r) => r.code)]))];
   if (rule.kind === "text") return [...own, rule.text];
   return [...own, ...rule.children.flatMap(ruleText)];
 }

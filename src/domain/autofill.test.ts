@@ -4,7 +4,7 @@ import { createEmptyPlan } from "./plan";
 import { addCourse } from "./planOps";
 import { evaluateProgram, type CoursesRule, type Program, type Rule } from "./requirements";
 
-const opt = (courseId: number) => ({ groupId: String(courseId), courseId, code: null, title: null, credits: null });
+const opt = (courseId: number) => ({ groupId: String(courseId), courseId, code: null, title: null, credits: null, rows: [] });
 const courses = (id: string, ids: number[][], minCourses: number, minCredits = 0): CoursesRule => ({
   kind: "courses",
   id,

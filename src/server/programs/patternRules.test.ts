@@ -59,7 +59,7 @@ const raw = {
 
 const resolve = (groupId: string) => {
   const c = CATALOG[groupId];
-  return { groupId, courseId: c?.courseId ?? null, code: c?.code ?? null, title: null, credits: c ? { min: c.credits, max: c.credits } : null };
+  return { groupId, courseId: c?.courseId ?? null, code: c?.code ?? null, title: null, credits: c ? { min: c.credits, max: c.credits } : null, rows: [] };
 };
 const program = normalizeProgram(raw, resolve, {}, new Set(["EE", "CSCI", "ARCH"]));
 const rule = (id: string) => program.requirements.flatMap((q) => q.rules).find((r) => r.id === id)!;

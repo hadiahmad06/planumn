@@ -118,7 +118,7 @@ export function analyzeProgram(raw: RawProgram, idStatus: (groupId: string) => I
     if (status === "unresolved") out.unresolvedIds.push(id);
   }
 
-  const program = normalizeProgram(raw, (groupId) => ({ groupId, courseId: null, code: null, title: null, credits: null }), undefined, subjects);
+  const program = normalizeProgram(raw, (groupId) => ({ groupId, courseId: null, code: null, title: null, credits: null, rows: [] }), undefined, subjects);
   const visitPatterns = (rule: Rule, requirement: string) => {
     if (rule.pattern) {
       const p = rule.pattern;

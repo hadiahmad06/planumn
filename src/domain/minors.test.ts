@@ -3,7 +3,7 @@ import { rankMinors } from "./minors";
 import type { CoursesRule, Program } from "./requirements";
 
 // Written by Ishaan's Claude (B14 minor finder).
-const opt = (courseId: number) => ({ groupId: String(courseId), courseId, code: `X ${courseId}`, title: null, credits: { min: 3, max: 3 } });
+const opt = (courseId: number) => ({ groupId: String(courseId), courseId, code: `X ${courseId}`, title: null, credits: { min: 3, max: 3 }, rows: [] });
 const rule = (id: string, ids: number[], minCourses: number): CoursesRule => ({
   id,
   name: id,

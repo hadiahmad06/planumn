@@ -35,6 +35,7 @@ const option = (c: (typeof COURSES)[keyof typeof COURSES]) => ({
   code: c.code,
   title: c.title,
   credits: { min: 4, max: 4 },
+  rows: [{ courseId: c.id, code: c.code, title: c.title, credits: { min: 4, max: 4 } }],
 });
 
 /** Stand-in for `GET /api/programs/:id` (normally CourseDog, normalized server-side). */

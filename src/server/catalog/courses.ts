@@ -1,6 +1,7 @@
 import "server-only";
 import type { CourseDetails, CourseId, CourseSummary, SrtMetric } from "@/domain/course";
 import { extractPrereqText } from "@/domain/prereqs";
+import { optionFromRows, type CourseOption } from "@/domain/requirements";
 import { catalog } from "./db";
 import { parseJson, toSummary, type CourseRow } from "./rows";
 
@@ -102,21 +103,43 @@ export function findCourseIdsByCode(codes: { dept: string; number: string }[]): 
   return out;
 }
 
-/** Twin Cities catalog courses keyed by CourseDog course group id (for program requirements). */
-export function findCoursesByGroupIds(groupIds: string[]): Map<string, CourseSummary> {
-  const out = new Map<string, CourseSummary>();
+/** A Twin Cities catalog row of a CourseDog course group, with its newest offering (L11). */
+export interface GroupRow extends CourseSummary {
+  /** Newest term with recorded grades ("1265"), or null if none. */
+  lastTerm: string | null;
+}
+
+/**
+ * Twin Cities catalog rows keyed by CourseDog course group id (for program requirements). L11: **every**
+ * row of a group, since a renumbered course keeps its group id (ENGW 1102 and ENGW 1102W share `0049451`);
+ * `optionFromRows` orders them (newest offering first).
+ */
+export function findCourseRowsByGroupIds(groupIds: string[]): Map<string, GroupRow[]> {
+  const out = new Map<string, GroupRow[]>();
   const unique = [...new Set(groupIds)];
   for (let i = 0; i < unique.length; i += 500) {
     const chunk = unique.slice(i, i + 500);
     const rows = catalog()
       .prepare(
-        `SELECT id, dept_abbr, course_num, class_desc, cred_min, cred_max, courseGroupId FROM classdistribution
-         WHERE campus = 'UMNTC' AND courseGroupId IN (${placeholders(chunk.length)}) ORDER BY id`,
+        `SELECT c.id, c.dept_abbr, c.course_num, c.class_desc, c.cred_min, c.cred_max, c.courseGroupId,
+                (SELECT MAX(t.term) FROM distribution d JOIN termdistribution t ON t.dist_id = d.id WHERE d.class_id = c.id) AS lastTerm
+         FROM classdistribution c
+         WHERE c.campus = 'UMNTC' AND c.courseGroupId IN (${placeholders(chunk.length)}) ORDER BY c.id`,
       )
-      .all(...chunk) as unknown as (CourseRow & { courseGroupId: string })[];
-    for (const r of rows) if (!out.has(r.courseGroupId)) out.set(r.courseGroupId, toSummary(r));
+      .all(...chunk) as unknown as (CourseRow & { courseGroupId: string; lastTerm: number | null })[];
+    for (const r of rows)
+      out.set(r.courseGroupId, [...(out.get(r.courseGroupId) ?? []), { ...toSummary(r), lastTerm: r.lastTerm == null ? null : String(r.lastTerm) }]);
   }
   return out;
+}
+
+
+/** L11: an option from a group's catalog rows (every row satisfies it; the newest offering is suggested). */
+export function catalogOption(groupId: string, rows: GroupRow[]): CourseOption {
+  return optionFromRows(
+    groupId,
+    rows.map((r) => ({ courseId: r.id, code: `${r.dept} ${r.number}`, title: r.title, credits: r.credits, lastTerm: r.lastTerm })),
+  );
 }
 
 let departments: { code: string; name: string }[] | null = null;

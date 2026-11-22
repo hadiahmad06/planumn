@@ -14,7 +14,7 @@ const req: Requirement = {
       notes: null,
       minCourses: 1,
       minCredits: 4,
-      choices: [{ options: [{ groupId: "0036921", courseId: 1, code: "MATH 1271", title: "Calculus I", credits: { min: 4, max: 4 } }] }],
+      choices: [{ options: [{ groupId: "0036921", courseId: 1, code: "MATH 1271", title: "Calculus I", credits: { min: 4, max: 4 }, rows: [] }] }],
     },
   ],
 };
