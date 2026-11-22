@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
-import { clientErrorReport, clientReference, sendClientErrorReport, serverDigest } from "./report";
+import { useEffect } from "react";
+import { clientErrorReport, pageReference, sendClientErrorReport, serverDigest } from "./report";
 
 const secondary =
   "rounded-row border border-border-strong px-4 py-2.5 text-center font-medium text-text-primary hover:bg-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
@@ -11,19 +11,27 @@ const secondary =
  * L6 (Hadi's Claude, 2026-11-22): the friendly page `error.tsx` and `global-error.tsx` show. It never
  * shows the error's message or stack, only a reference the student can quote (the server digest, or
  * a `c-…` reference for a client-side crash, which is reported to the server logs here).
+ *
+ * Reporting rule (N1 on #115): an error that carries a Next.js digest was logged on the server by
+ * `onRequestError` and is **not** reported again. A client crash is reported **once per page load**
+ * under one `c-…` reference; later crashes in the same page load show that same reference.
  */
 export function ErrorScreen({
   error,
   retry,
   fullReloadHome = false,
+  heading = "This page hit a snag",
+  body = "Plans that were already saved aren’t affected. Try again, and if it keeps happening, go back to the home page and reopen your plan.",
 }: {
   error: unknown;
   retry: () => void;
+  heading?: string;
+  body?: string;
   /** global-error: the root layout itself failed, so "home" is a full page load, not a client navigation. */
   fullReloadHome?: boolean;
 }) {
   const digest = serverDigest(error);
-  const [reference] = useState(() => digest ?? clientReference());
+  const reference = digest ?? pageReference();
 
   useEffect(() => {
     if (digest) return; // Already logged on the server by onRequestError.
@@ -32,6 +40,7 @@ export function ErrorScreen({
 
   return (
     <main className="flex min-h-dvh items-center justify-center bg-canvas px-4 py-10 text-text-primary">
+      <title>Something went wrong | planu.mn</title>
       <section
         role="alert"
         aria-labelledby="error-title"
@@ -39,12 +48,9 @@ export function ErrorScreen({
       >
         <p className="text-micro font-medium uppercase tracking-wide text-danger">Something went wrong</p>
         <h1 id="error-title" className="mt-2 text-2xl font-semibold">
-          This page hit a snag
+          {heading}
         </h1>
-        <p className="mt-3 text-text-secondary">
-          Plans that were already saved aren&apos;t affected. Try again, and if it keeps happening, go back to the
-          home page and reopen your plan.
-        </p>
+        <p className="mt-3 text-text-secondary">{body}</p>
         <div className="mt-6 flex flex-col gap-2 sm:flex-row">
           <button
             type="button"

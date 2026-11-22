@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-
-/** The message the error check throws (the e2e suite looks for it in the report). */
-export const ERROR_CHECK_MESSAGE = "planu.mn error check: test error thrown by a client component";
+import { ERROR_CHECK_MESSAGE } from "./checks";
 
 /** L6 (Hadi's Claude, 2026-11-22): see `src/app/info/error-check/page.tsx`. */
 export function ErrorCheck() {

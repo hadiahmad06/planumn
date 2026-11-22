@@ -78,7 +78,56 @@ export function errorLogEntry(input: {
 
 /** The exact line written to the log (prefixed so it's easy to filter on in Vercel). */
 export function errorLogLine(entry: ErrorLogEntry): string {
-  return `[planumn:error] ${JSON.stringify(entry)}`;
+  // JSON.stringify leaves U+2028/U+2029 (line/paragraph separators) raw; escape them too.
+  const json = JSON.stringify(entry).replace(/\u2028/g, "\\u2028").replace(/\u2029/g, "\\u2029");
+  return `[planumn:error] ${json}`;
+}
+
+// Greedy, per line: from the first quote to the last, so nested quotes (JSON) can't leave text behind.
+const QUOTED = /["'`].*["'`]/g;
+
+/**
+ * Client messages can quote what the browser was handling (V8's `JSON.parse` errors quote their input,
+ * which could be a plan). Everything from the first to the last quote on a line becomes `"[text]"` before a client report is logged.
+ */
+export function scrubQuoted(text: string): string {
+  return text.replace(QUOTED, '"[text]"');
+}
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * A client pathname as a route pattern, like the server lines (M3 on #115): `/plan/<uuid>` →
+ * `/plan/[planId]`; any other UUID or long number segment → `[id]`.
+ */
+export function routePattern(pathname: string): string {
+  const segments = routeOnly(pathname).split("/");
+  return segments
+    .map((segment, i) => {
+      if (UUID.test(segment)) return segments[i - 1] === "plan" ? "[planId]" : "[id]";
+      if (/^\d{4,}$/.test(segment)) return "[id]";
+      return segment;
+    })
+    .join("/");
+}
+
+/**
+ * Kill switch (M3 on #115): `CLIENT_ERROR_REPORTS=off` in the Vercel project's environment makes
+ * `/api/client-error` answer 204 without logging, and turns off `/info/error-check/server`.
+ * Read at request time, so changing it needs no rebuild (a redeploy picks up env changes on Vercel).
+ */
+export function clientErrorReportsEnabled(): boolean {
+  return process.env.CLIENT_ERROR_REPORTS?.trim().toLowerCase() !== "off";
+}
+
+/**
+ * N1 on #115: a client component that throws while the server renders its HTML (`server-rendering`)
+ * throws again in the browser, where the error page reports it under the `c-…` reference the student
+ * sees. Logging the server copy too would give one crash two references, so it's skipped. Server
+ * Component errors, actions, route handlers and proxy are always logged.
+ */
+export function shouldLogRequestError(context: { routeType?: string; renderSource?: string }): boolean {
+  return !(context.routeType === "render" && context.renderSource === "server-rendering");
 }
 
 export function writeErrorLog(entry: ErrorLogEntry): void {

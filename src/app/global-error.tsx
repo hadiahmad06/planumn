@@ -22,7 +22,6 @@ export default function GlobalError({ error, retry }: { error: unknown; retry: (
   return (
     <html lang="en" suppressHydrationWarning className="h-full antialiased">
       <body className="min-h-full">
-        <title>Something went wrong | planu.mn</title>
         <ErrorScreen error={error} retry={retry} fullReloadHome />
       </body>
     </html>
