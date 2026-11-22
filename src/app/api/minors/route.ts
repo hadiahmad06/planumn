@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
   } catch {
     return Response.json({ error: "The UMN catalog didn't respond. Try again in a minute." }, { status: 502 });
   }
-  const courses = getCourses(ids);
+  const courses = await getCourses(ids);
   const code = new Map(courses.map((c) => [c.id, `${c.dept} ${c.number}`]));
   const fits = rankMinors(
     programs,

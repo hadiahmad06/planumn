@@ -20,6 +20,8 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      # The Cloudflare Workers build (vinext; docs/agent/cloudflare.md).
+      - run: npm run build:vinext
 
   # A3 smoke suite (Hadi's Claude, 2026-11-22): Playwright against `next start`, signed out, with
   # CourseDog-backed routes stubbed (e2e/fixtures.ts). No secrets or network services needed.

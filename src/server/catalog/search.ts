@@ -21,7 +21,8 @@ export function parseQuery(raw: string): ParsedQuery {
   if (code) return { dept: code[1], number: code[2], words: [] };
   if (/^\d{1,4}[A-Z]?$/.test(q)) return { dept: null, number: q, words: [] };
   if (/^[A-Z]{2,4}$/.test(q)) return { dept: q, number: null, words: [q] };
-  return { dept: null, number: null, words: q.split(" ").filter(Boolean) };
+  // Capped so a query never nears D1's 100-bound-parameter limit.
+  return { dept: null, number: null, words: q.split(" ").filter(Boolean).slice(0, 12) };
 }
 
 /**
@@ -29,7 +30,12 @@ export function parseQuery(raw: string): ParsedQuery {
  * 1xxx course"). `libEdGroups` holds the CourseDog course group ids carrying `filters.libEd`,
  * resolved by the caller from the UMN catalog.
  */
-export function searchCourses(raw: string, limit = 50, filters: SearchFilters = {}, libEdGroups?: Set<string>): CourseSummary[] {
+export async function searchCourses(
+  raw: string,
+  limit = 50,
+  filters: SearchFilters = {},
+  libEdGroups?: Set<string>,
+): Promise<CourseSummary[]> {
   // SQLite treats a negative LIMIT as "no limit", so never pass one through.
   const safeLimit = Number.isInteger(limit) ? Math.min(Math.max(limit, 1), 100) : 50;
   const { dept, number, words } = parseQuery(raw);
@@ -69,18 +75,19 @@ export function searchCourses(raw: string, limit = 50, filters: SearchFilters = 
     }
   }
 
-  const rows = catalog()
-    .prepare(
-      `SELECT id, dept_abbr, course_num, class_desc, cred_min, cred_max, courseGroupId
+  const rows = await (await catalog()).all<CourseRow & { courseGroupId: string | null }>(
+    `SELECT id, dept_abbr, course_num, class_desc, cred_min, cred_max, courseGroupId
        FROM classdistribution
        WHERE ${where.join(" AND ")}
        ORDER BY ${priority ? `${priority}, ` : ""}dept_abbr, CAST(course_num AS INTEGER), course_num
        ${filtered ? "" : "LIMIT ?"}`,
-    )
-    .all(...params, ...priorityParams, ...(filtered ? [] : [safeLimit])) as unknown as (CourseRow & { courseGroupId: string | null })[];
+    ...params,
+    ...priorityParams,
+    ...(filtered ? [] : [safeLimit]),
+  );
   if (!filtered) return rows.map(toSummary);
 
-  const facts = courseFacts();
+  const facts = await courseFacts();
   const only = filters.courseIds ? new Set(filters.courseIds) : null;
   const out: CourseSummary[] = [];
   for (const r of rows) {

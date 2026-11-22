@@ -10,11 +10,10 @@ interface Row {
   grades: string;
 }
 /** Written by Michael's Codex. Instructor × term rows for one Twin Cities course, from the bundled catalog. */
-export function getInstructorInsights(courseId: number): InstructorInsight[] {
+export async function getInstructorInsights(courseId: number): Promise<InstructorInsight[]> {
   if (!Number.isSafeInteger(courseId) || courseId <= 0) return [];
-  const rows = catalog()
-    .prepare(
-      `
+  const rows = await (await catalog()).all<Row>(
+    `
     SELECT p.id, p.name, t.term, t.students, t.grades
     FROM classdistribution c
     JOIN distribution d ON d.class_id = c.id
@@ -23,8 +22,9 @@ export function getInstructorInsights(courseId: number): InstructorInsight[] {
     WHERE c.id = ? AND c.campus = ?
     ORDER BY lower(p.name), p.id, t.term
   `,
-    )
-    .all(courseId, CAMPUS) as unknown as Row[];
+    courseId,
+    CAMPUS,
+  );
   const found = new Map<number, InstructorInsight>();
   for (const row of rows) {
     const instructor = found.get(row.id) ?? {

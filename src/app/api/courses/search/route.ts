@@ -26,5 +26,5 @@ export async function GET(request: NextRequest) {
       return Response.json({ error: "The UMN catalog didn't respond. Try again in a minute." }, { status: 502 });
     }
   }
-  return Response.json(searchCourses(q, limit, filters, libEdGroups));
+  return Response.json(await searchCourses(q, limit, filters, libEdGroups));
 }

@@ -4,43 +4,41 @@ import { offeringHistory } from "@/domain/health";
 import { extractPrereqText } from "@/domain/prereqs";
 import type { CourseFacts } from "@/domain/searchFilters";
 import { averageGpa } from "@/domain/workload";
-import { CAMPUS, catalog } from "./db";
+import { CAMPUS, catalog, splitTerms } from "./db";
 import { parseJson } from "./rows";
 
-let facts: Map<CourseId, CourseFacts> | null = null;
+let facts: Promise<Map<CourseId, CourseFacts>> | null = null;
 
 /**
- * Filterable facts for every Twin Cities course (B8), built once per server process. The catalog is
- * read-only, so this never goes stale.
+ * Filterable facts for every Twin Cities course (B8), built once per server process (once per
+ * Worker isolate on Cloudflare). The catalog is read-only, so this never goes stale.
  */
-export function courseFacts(): Map<CourseId, CourseFacts> {
-  if (facts) return facts;
-  const db = catalog();
-  const terms = new Map<CourseId, string[]>();
-  for (const r of db
-    .prepare(
-      `SELECT DISTINCT d.class_id AS id, t.term AS term FROM distribution d
-       JOIN termdistribution t ON t.dist_id = d.id
-       JOIN classdistribution c ON c.id = d.class_id WHERE c.campus = ?`,
-    )
-    .all(CAMPUS) as unknown as { id: number; term: number }[]) {
-    terms.set(r.id, [...(terms.get(r.id) ?? []), String(r.term)]);
-  }
+export function courseFacts(): Promise<Map<CourseId, CourseFacts>> {
+  facts ??= loadFacts().catch((err) => {
+    facts = null;
+    throw err;
+  });
+  return facts;
+}
 
-  const rows = db
-    .prepare(`SELECT id, course_num, cred_min, cred_max, total_grades, onestop_desc FROM classdistribution WHERE campus = ?`)
-    .all(CAMPUS) as unknown as {
+async function loadFacts(): Promise<Map<CourseId, CourseFacts>> {
+  const rows = await (await catalog()).all<{
     id: number;
     course_num: string;
     cred_min: number | null;
     cred_max: number | null;
     total_grades: string;
     onestop_desc: string | null;
-  }[];
-  facts = new Map(
+    terms: string | null;
+  }>(
+    `SELECT c.id, c.course_num, c.cred_min, c.cred_max, c.total_grades, c.onestop_desc, t.terms
+     FROM classdistribution c LEFT JOIN course_terms t ON t.class_id = c.id WHERE c.campus = ?`,
+    CAMPUS,
+  );
+  return new Map(
     rows.map((r) => {
       const min = r.cred_min ?? r.cred_max ?? 0;
-      const offering = offeringHistory(terms.get(r.id) ?? []);
+      const offering = offeringHistory(splitTerms(r.terms));
       return [
         r.id,
         {
@@ -53,5 +51,4 @@ export function courseFacts(): Map<CourseId, CourseFacts> {
       ];
     }),
   );
-  return facts;
 }

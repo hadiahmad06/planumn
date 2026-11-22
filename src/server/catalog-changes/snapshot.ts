@@ -1,7 +1,7 @@
 import "server-only";
 import { createHash } from "node:crypto";
 import { cacheLife } from "next/cache";
-import { catalog, CAMPUS } from "@/server/catalog/db";
+import { catalog, CAMPUS, jsonList } from "@/server/catalog/db";
 import { fetchProgramVersions } from "@/server/programs/coursedog";
 import { pickCurrentVersion } from "@/server/programs/normalize";
 import type {
@@ -79,16 +79,16 @@ export async function catalogCheck(
     unavailable: string[] = [];
   const today = now.toISOString().slice(0, 10);
   const rows = courseIds.length
-    ? (catalog()
-        .prepare(
-          `SELECT id,courseGroupId,dept_abbr,course_num FROM classdistribution WHERE campus=? AND id IN (${courseIds.map(() => "?").join(",")})`,
-        )
-        .all(CAMPUS, ...courseIds) as unknown as {
+    ? await (await catalog()).all<{
         id: number;
         courseGroupId: string | null;
         dept_abbr: string;
         course_num: string;
-      }[])
+      }>(
+        `SELECT id,courseGroupId,dept_abbr,course_num FROM classdistribution WHERE campus=? AND id IN (SELECT value FROM json_each(?))`,
+        CAMPUS,
+        jsonList(courseIds),
+      )
     : [];
   const groups = [
     ...new Set(

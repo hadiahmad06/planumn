@@ -57,7 +57,7 @@ export async function fetchMinorPrograms(minorIds: string[]): Promise<Program[]>
     for (const r of await Promise.all(batches.slice(i, i + PARALLEL).map((b) => fetchBatch(b, today)))) raws.push(...r);
 
   const groupIds = [...new Set(raws.flatMap(collectGroupIds))];
-  const inCatalog = findCoursesByGroupIds(groupIds);
+  const inCatalog = await findCoursesByGroupIds(groupIds);
   // C1c (#80 follow-up, Hadi's Claude): some minors still list a course by its old 20-character id.
   // CourseDog's course search maps it to the current group id, which may be in the catalog.
   const old = groupIds.filter((id) => !inCatalog.has(id) && isOldCourseDogId(id));
@@ -70,7 +70,7 @@ export async function fetchMinorPrograms(minorIds: string[]): Promise<Program[]>
   } catch {
     // Without the lookup those options just stay unresolved, as before.
   }
-  const renamed = findCoursesByGroupIds([...byRequested.values()].map((c) => c.courseGroupId));
+  const renamed = await findCoursesByGroupIds([...byRequested.values()].map((c) => c.courseGroupId));
   return raws.map((raw) =>
     normalizeProgram(raw, (groupId) => {
       const c = inCatalog.get(groupId) ?? renamed.get(byRequested.get(groupId)?.courseGroupId ?? "");

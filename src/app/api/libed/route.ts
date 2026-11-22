@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   if (ids.length > MAX_IDS_PER_REQUEST)
     return Response.json({ error: `At most ${MAX_IDS_PER_REQUEST} ids per request` }, { status: 400 });
 
-  const groupOf = new Map(getCourses(ids).map((c) => [c.id, c.courseGroupId]));
+  const groupOf = new Map((await getCourses(ids)).map((c) => [c.id, c.courseGroupId]));
   const groups = [...new Set([...groupOf.values()].filter((g): g is string => Boolean(g)))].sort();
   try {
     const codes = groups.length ? await fetchLibEdCodes(groups) : {};

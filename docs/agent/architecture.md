@@ -19,7 +19,7 @@
 | UI primitives | Radix (`@radix-ui/react-*`) + our own components in `src/components/ui/` | Mantine was kept in 2026 only to avoid a migration. A rewrite has no migration cost |
 | Client state | zustand | Small stores with a clear contract between features |
 | Drag and drop | `@dnd-kit/core` + `@dnd-kit/sortable` | Supports grid layouts and one drag context for rail + search + schedule |
-| Course catalog | `data/catalog.db`, built from GopherGrades' `ProcessedData.db` by `scripts/build-catalog.ts` (D1, Hadi's Claude, 2026-11-22; source pin and counts in `data/catalog-build.json`), read with **`node:sqlite`** (no native deps), server-only | Course ids are what 2025 plans stored. The build fails if any 2025 id changes course, so old plans load. Data covers Spring 2017 – Summer 2026 |
+| Course catalog | `data/catalog.db`, built from GopherGrades' `ProcessedData.db` by `scripts/build-catalog.ts` (D1, Hadi's Claude, 2026-11-22; source pin and counts in `data/catalog-build.json`), read with **`node:sqlite`** (no native deps), server-only. **On Cloudflare Workers** the same data is the Cloudflare D1 database `planumn-catalog` (binding `CATALOG_DB`), exported by `scripts/export-d1.ts`; queries go through the async `catalog().all()` in `src/server/catalog/db.ts`, which picks D1 or the file (`cloudflare.md`, Hadi's Claude, 2026-11-22) | Course ids are what 2025 plans stored. The build fails if any 2025 id changes course, so old plans load. Data covers Spring 2017 – Summer 2026 |
 | Auth + plan storage | Supabase (same `plans` row shape as 2025) | Existing users' plans keep working |
 | Program requirements | UMN CourseDog API (fetched server-side, cached) | Same source as 2025 |
 | Tests | Vitest (pure logic + catalog queries) | |
