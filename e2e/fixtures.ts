@@ -1,4 +1,4 @@
-import { test as base, expect, type Page } from "@playwright/test";
+import { test as base, expect, type Browser, type Page } from "@playwright/test";
 import { createEmptyPlan, type Plan } from "../src/domain/plan";
 import type { Program } from "../src/domain/requirements";
 import { termLabel, type TermCode } from "../src/domain/terms";
@@ -11,6 +11,14 @@ import { AUTOSAVE_KEY } from "../src/features/plans/localRepository";
  * below, and any request to a host other than the app (Supabase, analytics, fonts) is aborted. Routes
  * that only read the bundled `data/catalog.db` (search, course details, departments, instructors) run
  * for real, so the suite exercises the actual catalog queries.
+ *
+ * Supabase guard (L13, Hadi's Claude, 2026-11-22): the suite must run against an app with no Supabase
+ * project. `NEXT_PUBLIC_SUPABASE_*` are inlined at build time, so blanking them on `next start` proves
+ * nothing about an existing `.next` (`E2E_SKIP_BUILD=1`), a `.env.local`, or `E2E_BASE_URL`. Two checks:
+ * - every test fails if its page sends any request or opens any websocket to a Supabase host;
+ * - each worker first loads `/plans` and fails every test it runs if a served script names a Supabase
+ *   host, or if the browser bundle's auth config is set (signed-out `/plans` then shows "Sign-in is
+ *   unavailable" only when `authConfig()` returned null, i.e. the inlined URL or key is empty).
  */
 
 /** Real catalog ids from `data/catalog.db`. */
@@ -63,12 +71,28 @@ export const PROGRAM_FIXTURE: Program = {
   ],
 };
 
-/** Stub every CourseDog-backed route and block other hosts. Call before the first navigation. */
+/** Hosts of Supabase projects (`<ref>.supabase.co`, and the older `.supabase.in`). */
+const SUPABASE_HOST = /(^|\.)supabase\.(co|in)$/i;
+/** The same, as it would appear inlined in a script. */
+const SUPABASE_IN_SCRIPT = /[a-z0-9-]+\.supabase\.(co|in)\b/i;
+
+/**
+ * Stub every CourseDog-backed route and block other hosts. Call before the first navigation.
+ * Returns the Supabase URLs the page tried to reach (blocked, and checked by the `stubbed` fixture).
+ */
 export async function stubBackends(page: Page, baseURL: string) {
   const origin = new URL(baseURL).origin;
+  const supabase: string[] = [];
+  page.on("websocket", (ws) => {
+    if (SUPABASE_HOST.test(new URL(ws.url()).hostname)) supabase.push(ws.url());
+  });
   await page.route(
     (url) => url.origin !== origin && /^https?:$/.test(url.protocol),
-    (route) => route.abort("blockedbyclient"),
+    (route) => {
+      const url = route.request().url();
+      if (SUPABASE_HOST.test(new URL(url).hostname)) supabase.push(url);
+      return route.abort("blockedbyclient");
+    },
   );
   await page.route("**/api/programs/*", (route) => {
     const id = decodeURIComponent(new URL(route.request().url()).pathname.split("/").pop() ?? "");
@@ -97,6 +121,34 @@ export async function stubBackends(page: Page, baseURL: string) {
       if (!page.isClosed() && !/disposed|closed|cancel/i.test(String(error))) throw error;
     }
   });
+  return supabase;
+}
+
+/** Fail if the app at `baseURL` was built or is served with a Supabase project (see the top of this file). */
+export async function expectNoSupabaseProject(browser: Browser, baseURL: string) {
+  const context = await browser.newContext({ baseURL });
+  try {
+    const page = await context.newPage();
+    const requests = await stubBackends(page, baseURL);
+    // Script URLs, fetched again below: a live response's body is gone once the page navigates.
+    const scripts = new Set<string>();
+    page.on("request", (r) => {
+      if (r.resourceType() === "script" && new URL(r.url()).origin === new URL(baseURL).origin) scripts.add(r.url());
+    });
+    await page.goto("/plans");
+    await expect(
+      page.getByText("Sign-in is unavailable. Please try again later."),
+      "the served browser bundle has a Supabase URL and key (built with NEXT_PUBLIC_SUPABASE_* set?)",
+    ).toBeVisible();
+    expect(scripts.size, "scripts served for /plans").toBeGreaterThan(0);
+    for (const url of scripts) {
+      const host = (await (await context.request.get(url)).text()).match(SUPABASE_IN_SCRIPT)?.[0];
+      expect(host, `${url} names a Supabase host`).toBeUndefined();
+    }
+    expect(requests, "requests to Supabase").toEqual([]);
+  } finally {
+    await context.close();
+  }
 }
 
 /** Terms of a fresh plan made today: Fall of this year, then 4 years of Fall/Spring/Summer. */
@@ -145,12 +197,21 @@ export function card(page: Page, term: TermCode, course: (typeof COURSES)[keyof 
   return semester(page, term).getByRole("button", { name: `${course.code}, ${course.title}`, exact: true });
 }
 
-export const test = base.extend<{ stubbed: Page }>({
+export const test = base.extend<{ stubbed: Page }, { noSupabaseProject: void }>({
+  // Once per worker, before its first test; a failure fails every test in that worker.
+  noSupabaseProject: [
+    async ({ browser }, provide, workerInfo) => {
+      await expectNoSupabaseProject(browser, workerInfo.project.use.baseURL ?? "http://localhost:3101");
+      await provide();
+    },
+    { scope: "worker", auto: true },
+  ],
   // `provide`, not `use`: the React hooks lint rule would read `use(page)` as a hook call.
   stubbed: async ({ page, baseURL }, provide) => {
-    await stubBackends(page, baseURL ?? "http://localhost:3101");
+    const supabase = await stubBackends(page, baseURL ?? "http://localhost:3101");
     await provide(page);
     await page.unrouteAll({ behavior: "ignoreErrors" });
+    expect(supabase, "the page tried to reach Supabase").toEqual([]);
   },
 });
 
