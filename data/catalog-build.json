@@ -1,0 +1,72 @@
+{
+  "builtBy": "scripts/build-catalog.ts (D1, #97)",
+  "builtOn": "2026-11-22",
+  "gophergrades": {
+    "repo": "https://github.com/samyok/gophergrades",
+    "commit": "4d9751e71193d75a3fd7612f19f3bbce3c6de166",
+    "sha256": "66be888fc0f7fc4e231f1c9cd7cd2da77869059299f95fdaba61150309a9be65"
+  },
+  "courseDogFetchedAt": "2026-11-22T02:09:57.402Z",
+  "grades": {
+    "firstTerm": "1175",
+    "lastTerm": "1265",
+    "dataThrough": "Summer 2026"
+  },
+  "courses": {
+    "total": 11278,
+    "twinCities": 9086,
+    "previous": 9731
+  },
+  "previousIds": {
+    "count": 9731,
+    "maxId": 9731,
+    "fingerprint": "913793c6ff66d80b93a601531e98b479bae7f11788f57b1af554a27951f01dda",
+    "changed": []
+  },
+  "courseGroupId": {
+    "before": {
+      "all": 9486,
+      "tc": 8339
+    },
+    "oldRowsAfter": {
+      "all": 9488,
+      "tc": 8341
+    },
+    "after": {
+      "all": 10355,
+      "tc": 8844
+    },
+    "twinCitiesByRule": {
+      "onestop": 8831,
+      "code": 13
+    },
+    "remapped": [
+      {
+        "id": 6056,
+        "code": "ECON 4960",
+        "from": "0073231",
+        "to": "8267601"
+      }
+    ]
+  },
+  "libEd": {
+    "before": {
+      "designations": 67,
+      "associations": 15435
+    },
+    "gophergrades": {
+      "designations": 17,
+      "associations": 2711
+    },
+    "after": {
+      "designations": 13,
+      "associations": 2444
+    },
+    "compareTwinCities": {
+      "both": 2372,
+      "onlyCourseDog": 72,
+      "onlyGopherGrades": 7
+    }
+  },
+  "titleChanges": 266
+}
