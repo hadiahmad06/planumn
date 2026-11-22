@@ -41,7 +41,7 @@ export function OptionChip({ option, primary, planned }: { option: CourseOption;
   const label = option.code ?? "Other approved course";
   // L11: the same CourseDog course under other catalog codes (renumbered: ENGW 1102 → ENGW 1102W) also counts.
   const others = option.rows.filter((r) => r.courseId !== id).map((r) => r.code);
-  const alsoCounts = others.length ? `${others.join(", ")} (the same course under another number) also counts` : undefined;
+  const alsoCounts = others.length ? `${others.join(", ")} (listed by CourseDog as the same course) also counts` : undefined;
 
   if (id == null) {
     return (

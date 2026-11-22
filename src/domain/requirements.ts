@@ -264,7 +264,45 @@ function evaluateCourses(rule: CoursesRule, planned: PlannedForAudit[]): RuleRes
   };
 }
 
+/** Every course option under these rules (L11). */
+export function optionsOf(rules: Rule[]): CourseOption[] {
+  return rules.flatMap((r) =>
+    r.kind === "courses" ? r.choices.flatMap((c) => c.options) : r.kind === "text" ? [] : optionsOf(r.children),
+  );
+}
+
+/**
+ * L11 review fix (#116): one course, counted once. When a student plans two catalog rows of one CourseDog
+ * group (ENGW 3102 and ENGW 3102W), only one of them is evaluated, everywhere: choices, `numberOf` areas
+ * and course counts, C2 credit sums and caps, C3 pattern matches. The one kept is the planned row with the
+ * most credits, then the one earlier in the option's `rows` (newest offering first). It keeps its own code,
+ * so dept readings use its subject. Every planned entry of the kept row stays (a repeated course is
+ * unchanged); planned courses outside shared groups pass through untouched.
+ */
+export function collapseSharedGroups(options: Iterable<CourseOption>, planned: PlannedForAudit[]): PlannedForAudit[] {
+  const group = new Map<CourseId, { key: CourseId; rank: number }>();
+  for (const o of options)
+    if (o.rows.length > 1) o.rows.forEach((row, rank) => group.has(row.courseId) || group.set(row.courseId, { key: o.rows[0].courseId, rank }));
+  if (group.size === 0) return planned;
+  const kept = new Map<CourseId, PlannedForAudit>();
+  for (const p of planned) {
+    const g = group.get(p.courseId);
+    if (!g) continue;
+    const cur = kept.get(g.key);
+    if (!cur || p.credits > cur.credits || (p.credits === cur.credits && g.rank < group.get(cur.courseId)!.rank)) kept.set(g.key, p);
+  }
+  return planned.filter((p) => {
+    const g = group.get(p.courseId);
+    return !g || kept.get(g.key)!.courseId === p.courseId;
+  });
+}
+
+/** Evaluate one rule. L11: planned rows of one CourseDog group count once (`collapseSharedGroups`). */
 export function evaluateRule(rule: Rule, planned: PlannedForAudit[], count = false): RuleResult {
+  return evalRule(rule, collapseSharedGroups(optionsOf([rule]), planned), count);
+}
+
+function evalRule(rule: Rule, planned: PlannedForAudit[], count: boolean): RuleResult {
   const result = evaluateRuleKind(rule, planned, count);
   if (rule.pattern) result.patternMatches = patternMatches(rule.pattern, planned);
   if (count && (rule.pattern || rule.constraints?.length)) result.catalogTextCounted = true;
@@ -363,7 +401,7 @@ function evaluateRuleKind(rule: Rule, planned: PlannedForAudit[], count: boolean
     case "text":
       return { rule, satisfied: false, units: 0, filled: 0 };
     case "allOf": {
-      const children = rule.children.map((c) => evaluateRule(c, planned, count));
+      const children = rule.children.map((c) => evalRule(c, planned, count));
       const units = children.reduce((n, c) => n + c.units, 0);
       const satisfied = children.every((c) => c.satisfied || c.units === 0);
       return { rule, satisfied, units, filled: children.reduce((n, c) => n + c.filled, 0), children };
@@ -371,7 +409,7 @@ function evaluateRuleKind(rule: Rule, planned: PlannedForAudit[], count: boolean
     case "numberOf":
       return evaluateNumberOf(rule, planned, count);
     case "anyOf": {
-      const children = rule.children.map((c) => evaluateRule(c, planned, count));
+      const children = rule.children.map((c) => evalRule(c, planned, count));
       const required = children.some((c) => c.units > 0);
       const satisfied = children.some((c) => c.satisfied && c.units > 0) || !required;
       return { rule, satisfied, units: required ? 1 : 0, filled: required && satisfied ? 1 : 0, children };
@@ -386,7 +424,7 @@ function evaluateRuleKind(rule: Rule, planned: PlannedForAudit[], count: boolean
  * Children that aren't course lists count when satisfied on their own.
  */
 function evaluateNumberOf(rule: GroupRule, planned: PlannedForAudit[], count: boolean): RuleResult {
-  const children = rule.children.map((c) => evaluateRule(c, planned, count));
+  const children = rule.children.map((c) => evalRule(c, planned, count));
   const lists = rule.children.filter((c): c is CoursesRule => c.kind === "courses");
   const asChoices = lists.map((c) => ({ options: c.choices.flatMap((ch) => ch.options) }));
   const areas =
@@ -406,7 +444,11 @@ function collectCourseIds(r: RuleResult, out: Set<CourseId>) {
 }
 
 export function evaluateRequirement(requirement: Requirement, planned: PlannedForAudit[], count = false): RequirementResult {
-  const rules = requirement.rules.map((r) => evaluateRule(r, planned, count));
+  return evalRequirement(requirement, collapseSharedGroups(optionsOf(requirement.rules), planned), count);
+}
+
+function evalRequirement(requirement: Requirement, planned: PlannedForAudit[], count: boolean): RequirementResult {
+  const rules = requirement.rules.map((r) => evalRule(r, planned, count));
   const units = rules.reduce((n, r) => n + r.units, 0);
   const ids = new Set<CourseId>();
   rules.forEach((r) => collectCourseIds(r, ids));
@@ -449,7 +491,9 @@ export interface EvaluateOptions {
  */
 export function evaluateProgram(program: Program, planned: PlannedForAudit[], options: EvaluateOptions = {}): ProgramResult {
   const count = options.catalogText ? options.catalogText === "count" : countsCatalogText(program.id);
-  const requirements = program.requirements.filter((r) => r.rules.length > 0).map((r) => evaluateRequirement(r, planned, count));
+  // L11: collapse once per program, so every requirement keeps the same row of a shared group.
+  const collapsed = collapseSharedGroups(optionsOf(program.requirements.flatMap((r) => r.rules)), planned);
+  const requirements = program.requirements.filter((r) => r.rules.length > 0).map((r) => evalRequirement(r, collapsed, count));
   return {
     program,
     requirements,

@@ -133,7 +133,6 @@ export function findCourseRowsByGroupIds(groupIds: string[]): Map<string, GroupR
   return out;
 }
 
-
 /** L11: an option from a group's catalog rows (every row satisfies it; the newest offering is suggested). */
 export function catalogOption(groupId: string, rows: GroupRow[]): CourseOption {
   return optionFromRows(

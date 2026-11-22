@@ -3,6 +3,7 @@ import { pickCourses } from "./autofill";
 import { doubleDipCandidates, findDoubleDips } from "./doubleDip";
 import { rankMinors } from "./minors";
 import {
+  collapseSharedGroups,
   evaluateProgram,
   listedCourseIds,
   optionAsRow,
@@ -13,6 +14,7 @@ import {
   suggestedCourseId,
   type CourseOption,
   type CoursesRule,
+  type GroupRule,
   type Program,
 } from "./requirements";
 
@@ -83,6 +85,46 @@ describe("options backed by a shared CourseDog id (L11)", () => {
     const r = evaluateProgram(program("P", [["two", rule("two", [[ENGW], [single(5, "ENGL 1001")]], 2)]]), planned(703, 8090));
     expect(r.requirements[0].satisfied).toBe(false);
     expect(r.requirements[0].rules[0].coursesCount).toBe(1);
+  });
+
+  describe("two codes of one course count once everywhere (review fix on #116)", () => {
+    const both = planned(703, 8090);
+    const x = single(5, "ENGL 1001");
+    const total = (credits: number): CoursesRule => ({
+      ...rule("r", [[ENGW], [x]], 0),
+      constraints: [{ kind: "total", credits, source: "text", sentence: `${credits} credits` }],
+    });
+    const evalRule = (r: CoursesRule | GroupRule, catalogText: "count" | "show" = "show") =>
+      evaluateProgram({ ...program("P", []), requirements: [{ id: "q", name: "q", notes: null, rules: [r] }] }, both, { catalogText }).requirements[0];
+
+    it("a counted 6-credit total isn't met by ENGW 1102 + 1102W", () => {
+      const q = evalRule(total(6), "count");
+      expect(q.rules[0].constraints?.[0]).toMatchObject({ planned: 3, met: false });
+      expect(q.satisfied).toBe(false);
+    });
+
+    it("a 3-credit max sees 3 credits", () => {
+      const capped: CoursesRule = { ...rule("r", [[ENGW]], 0), constraints: [{ kind: "max", credits: 3, source: "text", sentence: "3 at most" }] };
+      expect(evalRule(capped).rules[0].constraints?.[0]).toMatchObject({ planned: 3, met: true });
+    });
+
+    it("the two codes fill only one of two choices that both list the course", () => {
+      expect(evalRule(rule("r", [[ENGW], [ENGW, x]], 2)).rules[0]).toMatchObject({ coursesCount: 1, satisfied: false });
+    });
+
+    it("numberOf: one area and one course", () => {
+      const areas: GroupRule = { kind: "numberOf", id: "n", name: "n", notes: null, count: 2, children: [rule("a", [[ENGW]]), rule("b", [[ENGW]])] };
+      expect(evalRule(areas).rules[0]).toMatchObject({ areas: 1, satisfied: false });
+      const courses: GroupRule = { ...areas, count: 1, totalCourses: 2, children: [rule("a", [[ENGW]]), rule("b", [[x]])] };
+      expect(evalRule(courses).rules[0]).toMatchObject({ coursesCount: 1, satisfied: false });
+    });
+
+    it("keeps the row with the most credits, then the newest offering, and the rail shows it", () => {
+      expect(evalRule(rule("r", [[ENGW]])).courseIds).toEqual([8090]);
+      const heavier = evaluateProgram(program("P", [["r", rule("r", [[ENGW]])]]), [{ courseId: 703, credits: 4 }, { courseId: 8090, credits: 3 }]);
+      expect(heavier.requirements[0].courseIds).toEqual([703]);
+      expect(collapseSharedGroups([ENGW], [...both, { courseId: 5, credits: 3 }]).map((p) => p.courseId)).toEqual([8090, 5]);
+    });
   });
 
   it("counts each row under its own subject for a dept credit reading", () => {
