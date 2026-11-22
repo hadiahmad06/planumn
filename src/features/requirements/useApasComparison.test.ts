@@ -124,11 +124,24 @@ describe("useApasComparisons and the APAS import flag", () => {
     expect(run("0").size).toBe(0);
   });
 
-  it("leaves requirement progress the same either way", () => {
+  // Reviewer C on #103: evaluate progress under each flag value, in freshly imported modules (so a flag read at
+  // module load counts too), and compare. Checked by adding the flag to `evaluateProgram`'s `filled`: this fails.
+  it("leaves requirement progress the same either way", async () => {
+    const evaluateWith = async (value: string) => {
+      vi.stubEnv("NEXT_PUBLIC_APAS_IMPORT", value);
+      vi.resetModules();
+      const fresh = await import("@/domain/requirements");
+      return [cs, acct, other].map((p) => fresh.evaluateProgram(p, planned));
+    };
+    const on = await evaluateWith("1");
+    const off = await evaluateWith("0");
+    expect(on).toEqual(off);
+    expect(on.map((r) => r.filled)).toEqual(results.map((r) => r.filled));
+
+    // Rendering "APAS says" with the flag on, then off, leaves the results it was given untouched.
     const before = structuredClone(results);
     run("1");
     run("0");
     expect(results).toEqual(before);
-    expect([cs, acct, other].map((p) => evaluateProgram(p, planned))).toEqual(before);
   });
 });

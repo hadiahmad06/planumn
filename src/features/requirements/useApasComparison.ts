@@ -41,6 +41,8 @@ export function useApasComparisons(results: ProgramResult[], planned: PlannedFor
   const audits = useImportedAudit((s) => s.audits);
   return useMemo(
     () => (apasImportEnabled() ? apasComparisons(audits, results, planned) : NONE),
+    // The flag isn't a dep on purpose: `NEXT_PUBLIC_APAS_IMPORT` is inlined at build time, so it can't
+    // change while the app runs.
     [audits, results, planned],
   );
 }

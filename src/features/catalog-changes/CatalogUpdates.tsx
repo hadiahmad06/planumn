@@ -124,7 +124,8 @@ export function CatalogUpdates() {
             setPending(false);
           }
         }}
-        title="Catalog updates & APAS"
+        // Reviewer D on #103: "& APAS" only while the APAS import section below is shown.
+        title={apasImportEnabled() ? "Catalog updates & APAS" : "Catalog updates"}
         description="Compare public catalog data with your last remembered check in this browser. Verify differences against APAS for your catalog year; public responses may be cached."
       >
         {/* A2 (#100), Hadi's Claude: the B21 APAS reminder and its link only show while the APAS import
