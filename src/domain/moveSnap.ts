@@ -23,6 +23,8 @@ export interface SnapTarget {
   offeringKnown: boolean;
   /** Set for a limited history: "limited history (2 terms): seen in Fall". */
   limitedNote?: string;
+  /** The same, short enough for a menu item: "seen Fall, Spring (2 terms, a guess)". */
+  limitedShort?: string;
 }
 
 export function snapMove(
@@ -51,7 +53,13 @@ export function snapMove(
     if (semester?.courses.some((c) => c.id === courseId)) continue;
     if (offering.limited) {
       const seen = offering.seasons.map((x) => x[0].toUpperCase() + x.slice(1)).join(", ");
-      return { term: t, offeringKnown: false, limitedNote: `${limitedHistoryLabel(offering)}: seen in ${seen}` };
+      const n = offering.termCount;
+      return {
+        term: t,
+        offeringKnown: false,
+        limitedNote: `${limitedHistoryLabel(offering)}: seen in ${seen}`,
+        limitedShort: `seen ${seen} (${n} term${n === 1 ? "" : "s"}, a guess)`,
+      };
     }
     return { term: t, offeringKnown: seasons !== null };
   }

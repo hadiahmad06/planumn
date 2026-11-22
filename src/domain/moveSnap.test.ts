@@ -29,11 +29,13 @@ describe("snapMove (‹ › arrows)", () => {
       term: "1283",
       offeringKnown: false,
       limitedNote: "limited history (1 term): seen in Fall",
+      limitedShort: "seen Fall (1 term, a guess)",
     });
     expect(snapMove(base(), "1279", 7, "later", ["1259", "1269"])).toEqual({
       term: "1283",
       offeringKnown: false,
       limitedNote: "limited history (2 terms): seen in Fall",
+      limitedShort: "seen Fall (2 terms, a guess)",
     });
     expect(snapMove(base(), "1279", 7, "later", ["1259", "1269", "1279"])).toEqual({ term: "1289", offeringKnown: true });
   });

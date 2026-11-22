@@ -13,7 +13,7 @@ export function Menu({ trigger, children, align = "end" }: { trigger: ReactNode;
         <DropdownMenu.Content
           align={align}
           sideOffset={4}
-          className="z-50 min-w-44 rounded-card border border-border bg-surface p-1 shadow-overlay"
+          className="z-50 min-w-44 max-w-[calc(100vw-2rem)] rounded-card border border-border bg-surface p-1 shadow-overlay"
         >
           {children}
         </DropdownMenu.Content>
@@ -22,13 +22,14 @@ export function Menu({ trigger, children, align = "end" }: { trigger: ReactNode;
   );
 }
 
-export function MenuItem({ children, onSelect, danger, disabled }: { children: ReactNode; onSelect: () => void; danger?: boolean; disabled?: boolean }) {
+export function MenuItem({ children, onSelect, danger, disabled, ariaLabel }: { children: ReactNode; onSelect: () => void; danger?: boolean; disabled?: boolean; ariaLabel?: string }) {
   return (
     <DropdownMenu.Item
       disabled={disabled}
       onSelect={onSelect}
+      aria-label={ariaLabel}
       className={cn(
-        "cursor-default rounded-row px-2 py-1.5 text-body outline-none select-none data-[disabled]:opacity-40 data-[highlighted]:bg-sunken",
+        "cursor-default rounded-row px-2 break-words py-1.5 text-body outline-none select-none data-[disabled]:opacity-40 data-[highlighted]:bg-sunken",
         danger ? "text-danger" : "text-text-primary",
       )}
     >
@@ -42,13 +43,13 @@ export function MenuSeparator() {
 }
 
 /** Same items as ContextMenu, opened by a trigger (used for tap menus on mobile). */
-export function ActionMenu({ trigger, actions, align = "start" }: { trigger: ReactNode; actions: { label: string; run: () => void; danger?: boolean; separated?: boolean }[]; align?: "start" | "end" }) {
+export function ActionMenu({ trigger, actions, align = "start" }: { trigger: ReactNode; actions: { label: string; run: () => void; danger?: boolean; separated?: boolean; ariaLabel?: string }[]; align?: "start" | "end" }) {
   return (
     <Menu trigger={trigger} align={align}>
       {actions.map((a) => (
         <div key={a.label}>
           {a.separated && <MenuSeparator />}
-          <MenuItem onSelect={a.run} danger={a.danger}>
+          <MenuItem onSelect={a.run} danger={a.danger} ariaLabel={a.ariaLabel}>
             {a.label}
           </MenuItem>
         </div>

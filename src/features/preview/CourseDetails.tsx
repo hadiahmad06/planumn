@@ -95,10 +95,15 @@ function Facts({ course }: { course: Details }) {
       {seasons.length > 0 && (
         <li
           title={offeringNote(offering)}
-          className={cn("rounded-full border border-border px-2 py-0.5 text-text-secondary", limited && "border-dashed")}
+          className={cn("rounded-full border border-border px-2 py-0.5 text-text-secondary", limited && "border-dashed border-border-strong")}
         >
           Offered {seasons.map((s) => s[0].toUpperCase() + s.slice(1)).join(" · ")}
-          {limited && <span className="text-text-tertiary"> · {limited}, a guess</span>}
+          {limited && (
+            <>
+              <span> · {limited}, a guess</span>
+              <span className="sr-only">. {offeringNote(offering)}</span>
+            </>
+          )}
         </li>
       )}
       {libEds.map((d) => (

@@ -27,12 +27,11 @@ import { AddToSemesterButton } from "@/features/plan-editor/AddToSemesterButton"
  */
 function LimitedHistory({ terms }: { terms?: number }) {
   if (!terms) return null;
+  const why = `Matched on only ${terms} recorded term${terms === 1 ? "" : "s"}: a guess, not a schedule. Check Class Search.`;
   return (
-    <span
-      title={`Matched on only ${terms} recorded term${terms === 1 ? "" : "s"}: a guess, not a schedule. Check Class Search.`}
-      className="shrink-0 rounded-full border border-dashed border-border px-1.5 text-micro text-text-tertiary"
-    >
+    <span title={why} className="shrink-0 rounded-full border border-dashed border-border-strong px-1.5 text-micro text-text-secondary">
       limited history ({terms} term{terms === 1 ? "" : "s"})
+      <span className="sr-only">. {why}</span>
     </span>
   );
 }
