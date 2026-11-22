@@ -140,7 +140,8 @@ function AutofillReview({ plan, onDone }: { plan: Plan; onDone: () => void }) {
           <li>Terms: only after the current one, at most the credit limit above, no leave semesters, summers only if ticked.</li>
           <li>Seasons come from past grade records through {CATALOG_DATA_THROUGH} (3+ terms needed); a course may run differently now. A course with only 1–2 recorded terms (&ldquo;limited history&rdquo;) goes in a season it was seen in when one fits, otherwise in any term, and says so.</li>
           <li>Prerequisites are read from catalog text, which can be incomplete. Ones in your plan are placed first; ones outside it don&apos;t block and are noted.</li>
-          <li>Placement is greedy: the earliest term that fits, so later terms may come out lighter.</li>
+          <li>Placement is greedy: the earliest term that fits, so later terms may come out lighter. The exception is a course with limited history, which goes in a season it was seen in first when one fits in time.</li>
+          <li>A course always goes before any course in your plan that needs it as a prerequisite. If no term before that one fits, it&apos;s listed under &ldquo;Couldn&apos;t place&rdquo;.</li>
         </ul>
         <p className="mt-1">It&apos;s a starting point: check it with your advisor and APAS.</p>
       </details>
