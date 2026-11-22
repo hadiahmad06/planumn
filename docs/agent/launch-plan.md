@@ -39,7 +39,7 @@ Launch tickets are numbered **L1–L10** (not D/A/B, which already name Hadi's d
 | L4 | #100 | A | Production gate: hide APAS import until the extension is published and the UMN policy check is done | APAS | Requirements ("APAS says" in the rail) | — |
 | L5 | #101 | A | End-to-end smoke tests (Playwright) of the main flows, in CI | Editor & UI | Plans & accounts | — |
 | L6 | — | A | Error reporting | Plans & accounts | Editor & UI | Hadi: which service (default on #16: Vercel logs + a React error boundary, no new vendor) |
-| L7 | — | A | Beta deploy: the existing `planumn` Vercel project (its bot already comments "Ignored Build Step"), env, Supabase redirect URL, `data/catalog.db` in the server bundle | Hadi + Plans & accounts | — | Hadi (Supabase keys and Vercel settings) |
+| L7 | — | A | Beta deploy (default: a fresh plans table, chosen before the beta writes rows): the existing `planumn` Vercel project (its bot already comments "Ignored Build Step"), env, Supabase redirect URL, `data/catalog.db` in the server bundle | Hadi + Plans & accounts | — | Hadi (Supabase keys and Vercel settings) |
 | L8 | — | A | Human QA pass on a checklist | Hadi (Michael if he agrees) | — | L7 |
 | L9 | — | B | APAS-check the 10–20 most common majors. Student APAS reports follow C4's rule: run locally, never committed (they hold names, IDs, GPAs) | Requirements | APAS | Student APAS reports |
 | L10 | — | B | Publish the extension (store accounts, listings, review) | APAS | Plans & accounts | UMN policy check (Phase Y) |
@@ -48,7 +48,7 @@ Launch tickets are numbered **L1–L10** (not D/A/B, which already name Hadi's d
 
 ## Next.js advisory
 
-Next.js 16.4.3 has a published security advisory. When a coding agent runs `next build`, 16.4.3 stops once with `SecurityFatalError` and continues on a retry within 5 minutes (`node_modules/next/dist/lib/upgrade/nudge.js`); CI and Vercel aren't affected (CI on this PR passed). Hadi asked for the upgrade on 2026-11-22. **Fixed by #102** (16.4.6, merged 2026-11-22): `npm audit --omit=dev` reports no Next.js advisory.
+Next.js 16.4.3 has a published security advisory. When a coding agent runs `next build`, 16.4.3 stops once with `SecurityFatalError` and continues on a retry within 5 minutes (`node_modules/next/dist/lib/upgrade/nudge.js`); CI and Vercel aren't affected (CI on this PR passed). Hadi asked for the upgrade on 2026-11-22; Hadi's Claude reads his "forget the previous autoignore command" as withdrawing his earlier "No" (`docs/human/roadmap.md`). **Fixed by #102** (16.4.6, merged 2026-11-22): `npm audit --omit=dev` reports no Next.js advisory.
 
 ## Breaking changes allowed (2026-11-22)
 
@@ -57,5 +57,5 @@ Next.js 16.4.3 has a published security advisory. When a coding agent runs `next
 Hadi: "backwards compatibility does not matter. Breaking changes are fully permitted." (`docs/human/roadmap.md`, "Launch"). So:
 - v2 doesn't have to open plans saved by the 2025 app, and the `plans` row shape, course ids and `data/catalog.db` tables may change. Changes still go under **Contract change** in the PR.
 - L1 no longer has to keep every old course id; it reports id changes (the L5 suite in #105 relies on CSCI 1933, 2011 and 2041 keeping ids 94, 77 and 1473).
-- **At the bar A switch, 2025 cloud plans are a hazard, not just unreadable.** `serverRepository.ts` doesn't validate rows on `list()`/`get()`, so a 2025 row with a null title or a course without `lock` opens in the editor and then every save fails ("The plan is invalid"), losing the student's edits (#107 review). Only the browser autosave shows "could not be read". **Proposed default (L7, posted on #16):** v2 uses a fresh plans table, and the 2025 `plans` table is left untouched and unused. Deleting the old rows is Hadi's call.
-- Contract changes to the plan row shape also change snapshot links (`src/features/sharing/`): the PR that changes the shape names it under **Contract change**, and the Plans & accounts reviewer checks the snapshot codec.
+- **At the bar A switch, 2025 cloud plans are a hazard, not just unreadable.** `serverRepository.ts` doesn't validate rows on `list()`/`get()`, so a 2025 row with a null title or a course without `lock` opens in the editor and then every save fails ("The plan is invalid"); the edits stay in the tab until it closes or another plan opens, then they are gone (#107 review). Only the browser autosave shows "could not be read". **Proposed default (L7, posted on #16):** v2 uses a fresh plans table, and the 2025 `plans` table is left untouched and unused. Deleting the old rows is Hadi's call. The table must be chosen **before the beta writes any v2 rows**, or beta testers' plans are stranded at the switch. It needs the same RLS policies and `now_plus_30_days` behaviour, and `serverRepository.ts` hard-codes `plans` today.
+- Snapshot links (`src/features/sharing/`) pack only `title`, `programs` and, per term, course ids, locks, placeholders and term kind. A change to those fields, or to course ids (L1), changes what old `v1.` links decode to; the PR names it under **Contract change**. Other row columns don't affect them.
