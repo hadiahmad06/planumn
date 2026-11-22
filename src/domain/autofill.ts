@@ -1,5 +1,5 @@
 import { courseLevel, equivalentCodes, type CourseId } from "./course";
-import { currentTerm, offeringHistory } from "./health";
+import { currentTerm, limitedHistoryLabel, offeringHistory } from "./health";
 import type { Plan } from "./plan";
 import { checkPrereqs, parsePrereqs, type PrereqNode } from "./prereqs";
 import { suggestedCourseId, type ProgramResult, type RuleResult } from "./requirements";
@@ -18,6 +18,9 @@ import { academicYear, compareTerms, seasonOf, type Season, type TermCode } from
  *    Hidden seasons and non-regular semesters (leave, prior credit) are skipped. Prerequisites outside
  *    the plan don't block; they're noted. Upper-division (3xxx+) courses aren't suggested for the plan's
  *    first academic year, since many list "upper division standing" as text the parser can't check.
+ *    L12: a course with a limited history (1–2 recorded terms) tries the terms in the seasons it was
+ *    seen in first, then any other term, so it is never dropped for its season alone. Either way the
+ *    placement carries a "limited history" note (`offeringNote`), since the season is a guess.
  */
 export interface Pick {
   courseId: CourseId;
@@ -109,6 +112,8 @@ export interface Placement {
   note?: string;
   /** The year-one rule moved it later than it could otherwise go. */
   heldUpperDivision?: boolean;
+  /** L12: the season is a guess from a limited history, e.g. "limited history (1 term): seen in Fall". */
+  offeringNote?: string;
 }
 
 export interface PlaceResult {
@@ -140,6 +145,8 @@ function prune(n: PrereqNode, relevant: (code: string) => boolean): PrereqNode {
   if (n.kind === "or" && children.some(has)) return { kind: "or", children: children.filter(has) };
   return { kind: n.kind, children };
 }
+
+const SEASON_LABEL: Record<Season, string> = { fall: "Fall", spring: "Spring", summer: "Summer" };
 
 export function placeCourses({ plan, picks, course, hiddenSeasons = [], maxCredits = 15, useSummer = false, holdUpperDivision = true, now = new Date() }: PlaceInput): PlaceResult {
   const from = currentTerm(now);
@@ -191,7 +198,10 @@ export function placeCourses({ plan, picks, course, hiddenSeasons = [], maxCredi
     let placed = false;
     const upper = holdUpperDivision && courseLevel(c.code.split(" ")[1] ?? "") >= 3000;
     let held = false;
-    for (const t of terms) {
+    // L12: a limited history prefers the seasons seen, then falls back to the rest (in term order).
+    const seen = offering.limited ? offering.seasons : null;
+    const tryTerms = seen ? [...terms.filter((t) => seen.includes(seasonOf(t))), ...terms.filter((t) => !seen.includes(seasonOf(t)))] : terms;
+    for (const t of tryTerms) {
       if (upper && semesters.length && academicYear(t) === academicYear(semesters[0].index)) {
         held = true;
         continue;
@@ -218,6 +228,9 @@ export function placeCourses({ plan, picks, course, hiddenSeasons = [], maxCredi
         term: t,
         ...(strict && !strict.met && !strict.hasOtherPaths ? { note: `Needs ${strict.missing}` } : {}),
         ...(held ? { heldUpperDivision: true } : {}),
+        ...(offering.limited
+          ? { offeringNote: `${limitedHistoryLabel(offering)}: ${offering.seasons.includes(seasonOf(t)) ? "seen" : "not seen"} in ${SEASON_LABEL[seasonOf(t)]}, a guess` }
+          : {}),
       });
       placed = true;
       break;

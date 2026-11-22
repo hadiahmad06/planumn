@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { filtersToParams, hasFilters, levelOf, matchesFilters, parseFilters, type CourseFacts } from "./searchFilters";
 
-const course: CourseFacts = { number: "3081W", credits: { min: 3, max: 4 }, seasons: ["fall", "spring"], gpa: 3.4, hasPrereqs: true };
+const course: CourseFacts = { number: "3081W", credits: { min: 3, max: 4 }, seasons: ["fall", "spring"], limitedTerms: null, gpa: 3.4, hasPrereqs: true };
 
 describe("search filters (B8)", () => {
   it("round-trips through query params", () => {
@@ -40,6 +40,9 @@ describe("search filters (B8)", () => {
     expect(matchesFilters(course, { season: "spring" })).toBe(true);
     expect(matchesFilters(course, { season: "summer" })).toBe(false);
     expect(matchesFilters({ ...course, seasons: null }, { season: "fall" })).toBe(false);
+    // L12: a limited history matches on the seasons seen.
+    expect(matchesFilters({ ...course, seasons: ["fall"], limitedTerms: 1 }, { season: "fall" })).toBe(true);
+    expect(matchesFilters({ ...course, seasons: ["fall"], limitedTerms: 1 }, { season: "spring" })).toBe(false);
     expect(matchesFilters(course, { minGpa: 3.25 })).toBe(true);
     expect(matchesFilters(course, { minGpa: 3.5 })).toBe(false);
     expect(matchesFilters({ ...course, gpa: null }, { minGpa: 2 })).toBe(false);

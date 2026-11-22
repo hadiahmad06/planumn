@@ -119,6 +119,26 @@ describe("autofill (B24)", () => {
     expect(placeCourses({ plan, picks: [{ courseId: 5, reasons: [] }], course, now: NOW, holdUpperDivision: false }).placements[0].term).toBe("1269");
   });
 
+  it("L12: a 1- or 2-term course prefers the seasons seen, falls back to any term, and says so", () => {
+    const cat: Record<number, AutofillCourse> = {
+      11: { id: 11, code: "CSCI 1115", dept: "CSCI", credits: 4, termsOffered: ["1263"], prereqText: null }, // Spring only, 1 term
+      12: { id: 12, code: "CSCI 1116", dept: "CSCI", credits: 4, termsOffered: ["1263", "1273"], prereqText: null }, // Spring, 2 terms
+      13: { id: 13, code: "CSCI 1117", dept: "CSCI", credits: 4, termsOffered: ["1253", "1263", "1273"], prereqText: null }, // Spring, 3 terms
+    };
+    const plan = createEmptyPlan(NOW);
+    const place = (id: number, maxCredits = 15) =>
+      placeCourses({ plan, picks: [{ courseId: id, reasons: [] }], course: (x) => cat[x], now: NOW, maxCredits });
+    // Fall 2026 is the first open term, but Spring 2027 is the season seen.
+    expect(place(11).placements[0]).toMatchObject({ term: "1273", offeringNote: "limited history (1 term): seen in Spring, a guess" });
+    expect(place(12).placements[0]).toMatchObject({ term: "1273", offeringNote: "limited history (2 terms): seen in Spring, a guess" });
+    expect(place(13).placements[0]).toEqual({ courseId: 13, reasons: [], term: "1273" });
+    // No room in any spring: a limited course still goes in (the earliest fall), a known one is not placed.
+    const springsFull = { ...plan, semesters: plan.semesters.map((s) => (s.index.endsWith("3") ? { ...s, placeholders: [{ key: `p${s.index}`, label: "Full", credits: 15 }] } : s)) };
+    const full = (id: number) => placeCourses({ plan: springsFull, picks: [{ courseId: id, reasons: [] }], course: (x) => cat[x], now: NOW });
+    expect(full(11).placements[0]).toMatchObject({ term: "1269", offeringNote: "limited history (1 term): not seen in Fall, a guess" });
+    expect(full(13).placements).toEqual([]);
+  });
+
   it("reports courses with no offered term left", () => {
     const plan = createEmptyPlan(NOW);
     // In Fall 2029 that term is in progress, and no later fall is left in the plan.

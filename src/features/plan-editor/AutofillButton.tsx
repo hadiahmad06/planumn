@@ -106,6 +106,7 @@ function AutofillReview({ plan, onDone }: { plan: Plan; onDone: () => void }) {
                         For {p.reasons.join(", ")}
                         {p.note && <span className="text-warning"> · {p.note}</span>}
                         {p.heldUpperDivision && <span> · Held to year two: upper-division</span>}
+                        {p.offeringNote && <span> · {p.offeringNote}</span>}
                       </span>
                     </span>
                   </label>
@@ -137,7 +138,7 @@ function AutofillReview({ plan, onDone }: { plan: Plan; onDone: () => void }) {
           <li>Courses come from what your programs list for requirements you haven&apos;t met; a course that counts twice is preferred. &ldquo;Choose one of&rdquo; groups take the first option that works.</li>
           <li>Requirements that count 0 toward progress (e.g. optional elective credits) are left out.</li>
           <li>Terms: only after the current one, at most the credit limit above, no leave semesters, summers only if ticked.</li>
-          <li>Seasons come from past grade records through {CATALOG_DATA_THROUGH} (3+ terms needed); a course may run differently now.</li>
+          <li>Seasons come from past grade records through {CATALOG_DATA_THROUGH} (3+ terms needed); a course may run differently now. A course with only 1–2 recorded terms (&ldquo;limited history&rdquo;) goes in a season it was seen in when one fits, otherwise in any term, and says so.</li>
           <li>Prerequisites are read from catalog text, which can be incomplete. Ones in your plan are placed first; ones outside it don&apos;t block and are noted.</li>
           <li>Placement is greedy: the earliest term that fits, so later terms may come out lighter.</li>
         </ul>

@@ -1,5 +1,5 @@
 import type { CourseId } from "./course";
-import { offeringHistory } from "./health";
+import { limitedHistoryLabel, offeringHistory } from "./health";
 import type { Plan } from "./plan";
 import { compareTerms, nextTerm, previousTerm, seasonOf, type Season, type TermCode } from "./terms";
 
@@ -11,11 +11,18 @@ import { compareTerms, nextTerm, previousTerm, seasonOf, type Season, type TermC
  * absence semesters and terms that already hold the course are skipped. Moves stay within the plan's
  * first and last semester (add a year to go further). With too little offering history, every season
  * counts, and the caller says so.
+ *
+ * L12 (Hadi's Claude): a limited history (1–2 recorded terms) also allows every season. One or two
+ * terms can't show that a course skips a season, and snapping on them would jump over terms the course
+ * may well run in (a new course seen once in Fall would skip every Spring). The label names what was
+ * seen instead, so the student can choose.
  */
 export interface SnapTarget {
   term: TermCode;
   /** False when the course's offering pattern is unknown, so any season was allowed. */
   offeringKnown: boolean;
+  /** Set for a limited history: "limited history (2 terms): seen in Fall". */
+  limitedNote?: string;
 }
 
 export function snapMove(
@@ -42,6 +49,10 @@ export function snapMove(
     const semester = plan.semesters.find((s) => s.index === t);
     if (semester?.kind === "leave") continue;
     if (semester?.courses.some((c) => c.id === courseId)) continue;
+    if (offering.limited) {
+      const seen = offering.seasons.map((x) => x[0].toUpperCase() + x.slice(1)).join(", ");
+      return { term: t, offeringKnown: false, limitedNote: `${limitedHistoryLabel(offering)}: seen in ${seen}` };
+    }
     return { term: t, offeringKnown: seasons !== null };
   }
   return null;

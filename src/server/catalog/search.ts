@@ -95,7 +95,7 @@ export async function searchCourses(
     if (filters.libEd && !(r.courseGroupId && libEdGroups?.has(r.courseGroupId))) continue;
     const f = facts.get(r.id);
     if (!f || !matchesFilters(f, filters)) continue;
-    out.push(toSummary(r));
+    out.push(filters.season && f.limitedTerms !== null ? { ...toSummary(r), limitedHistory: f.limitedTerms } : toSummary(r));
     if (out.length === safeLimit) break;
   }
   return out;

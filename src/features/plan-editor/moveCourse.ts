@@ -34,7 +34,8 @@ export function moveTargets(term: TermCode, id: CourseId, hiddenSeasons: readonl
 
 export function moveLabel(direction: "earlier" | "later", target: SnapTarget | null): string {
   if (!target) return direction === "earlier" ? "No earlier offered term in your plan" : "No later offered term in your plan";
-  return `Move ${direction} to ${termLabel(target.term)}${target.offeringKnown ? "" : " (offering pattern unknown)"}`;
+  const note = target.offeringKnown ? "" : target.limitedNote ? ` (${target.limitedNote}, a guess)` : " (offering pattern unknown)";
+  return `Move ${direction} to ${termLabel(target.term)}${note}`;
 }
 
 /** Move, announce, and keep keyboard focus on the moved card in its new semester. */

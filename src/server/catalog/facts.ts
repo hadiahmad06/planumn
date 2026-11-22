@@ -1,6 +1,6 @@
 import "server-only";
 import type { CourseId } from "@/domain/course";
-import { offeringHistory } from "@/domain/health";
+import { offeringHistory, seenSeasons } from "@/domain/health";
 import { extractPrereqText } from "@/domain/prereqs";
 import type { CourseFacts } from "@/domain/searchFilters";
 import { averageGpa } from "@/domain/workload";
@@ -44,7 +44,8 @@ async function loadFacts(): Promise<Map<CourseId, CourseFacts>> {
         {
           number: r.course_num,
           credits: { min, max: r.cred_max ?? min },
-          seasons: offering.known ? offering.seasons : null,
+          seasons: offering.known || offering.limited ? seenSeasons(offering) : null,
+          limitedTerms: offering.limited ? offering.termCount : null,
           gpa: averageGpa(parseJson<Record<string, number>>(r.total_grades, {})),
           hasPrereqs: extractPrereqText(r.onestop_desc) !== null,
         },

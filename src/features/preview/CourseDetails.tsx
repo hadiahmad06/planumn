@@ -3,7 +3,7 @@
 import { useId, useState } from "react";
 import type { CourseDetails as Details } from "@/domain/course";
 import { courseCode, formatCredits } from "@/domain/course";
-import { offeringHistory, offeringNote } from "@/domain/health";
+import { limitedHistoryLabel, offeringHistory, offeringNote, seenSeasons } from "@/domain/health";
 import { TWIN_CITIES_LIBED } from "@/domain/libed";
 import { termLabel } from "@/domain/terms";
 import { CATALOG_DATA_THROUGH } from "@/domain/dataSources";
@@ -87,12 +87,18 @@ function Facts({ course }: { course: Details }) {
   const { codes } = useLibEd([course.id]);
   const libEds = TWIN_CITIES_LIBED.filter((d) => codes[course.id]?.includes(d.code));
   const offering = offeringHistory(course.termsOffered);
-  const seasons = offering.known ? (["fall", "spring", "summer"] as const).filter((s) => offering.seasons.includes(s)) : [];
+  const seasons = seenSeasons(offering);
+  // L12: 1–2 recorded terms show the seasons seen, marked as a guess (dashed, "limited history").
+  const limited = limitedHistoryLabel(offering);
   return (
     <ul className="flex flex-wrap gap-1.5 text-micro" aria-label="Course facts">
       {seasons.length > 0 && (
-        <li title={offeringNote(offering)} className="rounded-full border border-border px-2 py-0.5 text-text-secondary">
+        <li
+          title={offeringNote(offering)}
+          className={cn("rounded-full border border-border px-2 py-0.5 text-text-secondary", limited && "border-dashed")}
+        >
           Offered {seasons.map((s) => s[0].toUpperCase() + s.slice(1)).join(" · ")}
+          {limited && <span className="text-text-tertiary"> · {limited}, a guess</span>}
         </li>
       )}
       {libEds.map((d) => (

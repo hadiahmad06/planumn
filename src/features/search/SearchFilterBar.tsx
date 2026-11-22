@@ -15,15 +15,18 @@ function FilterSelect({
   value,
   onChange,
   children,
+  title,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   children: ReactNode;
+  title?: string;
 }) {
   return (
     <select
       aria-label={label}
+      title={title}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       className={cn(
@@ -100,7 +103,12 @@ export function SearchFilterBar({
           </option>
         ))}
       </FilterSelect>
-      <FilterSelect label="Offered in" value={filters.season ?? ""} onChange={(v) => set("season", (v || undefined) as Season | undefined)}>
+      <FilterSelect
+        label="Offered in"
+        value={filters.season ?? ""}
+        onChange={(v) => set("season", (v || undefined) as Season | undefined)}
+        title="From past grade records. Courses with only 1–2 recorded terms are included and marked “limited history”: a guess."
+      >
         <option value="">Offered: any term</option>
         {SEASONS.map((s) => (
           <option key={s} value={s}>

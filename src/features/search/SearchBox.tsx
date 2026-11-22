@@ -23,6 +23,21 @@ import { hoverCourse, planActions, useEditorUi, usePlanStore } from "@/features/
 import { AddToSemesterButton } from "@/features/plan-editor/AddToSemesterButton";
 
 /**
+ * L12: a season-filtered result that matched on only 1–2 recorded terms. The season is a guess, so say so.
+ */
+function LimitedHistory({ terms }: { terms?: number }) {
+  if (!terms) return null;
+  return (
+    <span
+      title={`Matched on only ${terms} recorded term${terms === 1 ? "" : "s"}: a guess, not a schedule. Check Class Search.`}
+      className="shrink-0 rounded-full border border-dashed border-border px-1.5 text-micro text-text-tertiary"
+    >
+      limited history ({terms} term{terms === 1 ? "" : "s"})
+    </span>
+  );
+}
+
+/**
  * Mobile tap-to-add (A32): tapping a result expands an inline "Add to which semester?" picker.
  * Inline rather than a popup menu, so focus stays in the search box and the dropdown stays open.
  */
@@ -36,6 +51,7 @@ function MobileResultRow({ course, id, expanded, onToggle }: { course: CourseSum
       <button type="button" onClick={onToggle} aria-expanded={expanded} className={cn("flex w-full items-baseline gap-3 rounded-row px-3 py-2 text-left", expanded && "bg-sunken")}>
         <span className="w-24 shrink-0 font-semibold">{courseCode(course)}</span>
         <span className="min-w-0 flex-1 truncate text-text-secondary">{course.title}</span>
+        <LimitedHistory terms={course.limitedHistory} />
       </button>
       {added && <p className="px-3 pb-1 text-micro text-success">Added to {added}</p>}
       {expanded && (
@@ -84,6 +100,7 @@ function ResultRow({ course, active, id }: { course: CourseSummary; active: bool
     >
       <span className="w-24 shrink-0 font-semibold">{courseCode(course)}</span>
       <span className="min-w-0 flex-1 truncate text-text-secondary">{course.title}</span>
+      <LimitedHistory terms={course.limitedHistory} />
       <span className="shrink-0 text-micro text-text-tertiary">{formatCredits(course.credits)} cr</span>
       <span onClick={(e) => e.stopPropagation()} className="self-center">
         <AddToSemesterButton courseId={course.id} code={courseCode(course)} />
