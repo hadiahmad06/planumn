@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     const terms = transcriptCourses(await extractTranscriptText(buffer));
     const result = transcriptPlan(
       terms,
-      findCourseIdsByCode([...terms.values()].flat()),
+      await findCourseIdsByCode([...terms.values()].flat()),
     );
     return Response.json(result, { headers });
   } catch (error) {

@@ -11,7 +11,7 @@ export async function getProgram(programGroupId: string): Promise<Program | null
   if (!raw) return null;
 
   const groupIds = collectGroupIds(raw);
-  const inCatalog = findCoursesByGroupIds(groupIds);
+  const inCatalog = await findCoursesByGroupIds(groupIds);
   // 7-digit CourseDog ids, and the older 20-character ids some programs still use (C1c).
   const missing = groupIds.filter((id) => !inCatalog.has(id) && isCourseDogId(id));
   let byRequested = new Map<string, CourseDogCourse>();
@@ -21,7 +21,7 @@ export async function getProgram(programGroupId: string): Promise<Program | null
     // Names for not-in-catalog courses are a nicety; the rail still works without them.
   }
   // Old ids resolve to the course's current group id, which may be in the catalog.
-  const renamed = findCoursesByGroupIds([...byRequested.values()].map((c) => c.courseGroupId));
+  const renamed = await findCoursesByGroupIds([...byRequested.values()].map((c) => c.courseGroupId));
 
   const resolve: ResolveOption = (groupId) => {
     const c = inCatalog.get(groupId) ?? renamed.get(byRequested.get(groupId)?.courseGroupId ?? "");
@@ -38,7 +38,7 @@ export async function getProgram(programGroupId: string): Promise<Program | null
     };
   };
   // C3: only the catalog's own subject codes are read from pattern text ("4xxx/5xxx EE").
-  const program = normalizeProgram(raw, resolve, undefined, new Set(listDepartments().map((d) => d.code)));
+  const program = normalizeProgram(raw, resolve, undefined, new Set((await listDepartments()).map((d) => d.code)));
   const samplePlan = samplePlanUrl(raw); // B17
   return samplePlan ? { ...program, samplePlanUrl: samplePlan } : program;
 }

@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     },
   );
   return Response.json(
-    { ids: Object.fromEntries(findCourseIdsByCode(parsed)) },
+    { ids: Object.fromEntries(await findCourseIdsByCode(parsed)) },
     { headers },
   );
 }

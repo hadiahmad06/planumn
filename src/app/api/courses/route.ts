@@ -10,5 +10,5 @@ export async function GET(request: NextRequest) {
   if (ids.length > MAX_IDS_PER_REQUEST) {
     return Response.json({ error: `At most ${MAX_IDS_PER_REQUEST} ids per request` }, { status: 400 });
   }
-  return Response.json(getCourses(ids));
+  return Response.json(await getCourses(ids));
 }

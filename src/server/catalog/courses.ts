@@ -1,7 +1,7 @@
 import "server-only";
 import type { CourseDetails, CourseId, CourseSummary, SrtMetric } from "@/domain/course";
 import { extractPrereqText } from "@/domain/prereqs";
-import { catalog } from "./db";
+import { catalog, jsonList, splitTerms } from "./db";
 import { parseJson, toSummary, type CourseRow } from "./rows";
 
 interface DetailsRow extends CourseRow {
@@ -28,44 +28,34 @@ export function parseSrt(raw: string | null): Record<string, SrtMetric> {
   return srt;
 }
 
-function placeholders(n: number) {
-  return Array.from({ length: n }, () => "?").join(",");
-}
-
-export function getCourses(ids: CourseId[]): CourseDetails[] {
+export async function getCourses(ids: CourseId[]): Promise<CourseDetails[]> {
   const unique = [...new Set(ids)].slice(0, MAX_IDS_PER_REQUEST);
   if (unique.length === 0) return [];
-  const db = catalog();
-  const ph = placeholders(unique.length);
+  const db = await catalog();
+  const list = jsonList(unique);
 
-  const rows = db
-    .prepare(
+  const [rows, libEdRows, termRows] = await Promise.all([
+    db.all<DetailsRow>(
       `SELECT id, dept_abbr, course_num, class_desc, cred_min, cred_max, onestop, onestop_desc,
               total_students, total_grades, srt_vals, courseGroupId
-       FROM classdistribution WHERE id IN (${ph})`,
-    )
-    .all(...unique) as unknown as DetailsRow[];
+       FROM classdistribution WHERE id IN (SELECT value FROM json_each(?))`,
+      list,
+    ),
+    // libedAssociationTable: left_id → libed.id, right_id → classdistribution.id
+    db.all<{ id: number; name: string }>(
+      `SELECT a.right_id AS id, l.name AS name FROM libedAssociationTable a
+       JOIN libed l ON l.id = a.left_id WHERE a.right_id IN (SELECT value FROM json_each(?)) ORDER BY l.name`,
+      list,
+    ),
+    db.all<{ id: number; terms: string }>(
+      `SELECT class_id AS id, terms FROM course_terms WHERE class_id IN (SELECT value FROM json_each(?))`,
+      list,
+    ),
+  ]);
 
   const libEds = new Map<number, string[]>();
-  for (const r of db
-    .prepare(
-      // libedAssociationTable: left_id → libed.id, right_id → classdistribution.id
-      `SELECT a.right_id AS id, l.name AS name FROM libedAssociationTable a
-       JOIN libed l ON l.id = a.left_id WHERE a.right_id IN (${ph}) ORDER BY l.name`,
-    )
-    .all(...unique) as unknown as { id: number; name: string }[]) {
-    libEds.set(r.id, [...(libEds.get(r.id) ?? []), r.name]);
-  }
-
-  const terms = new Map<number, string[]>();
-  for (const r of db
-    .prepare(
-      `SELECT DISTINCT d.class_id AS id, t.term AS term FROM distribution d
-       JOIN termdistribution t ON t.dist_id = d.id WHERE d.class_id IN (${ph}) ORDER BY t.term`,
-    )
-    .all(...unique) as unknown as { id: number; term: number }[]) {
-    terms.set(r.id, [...(terms.get(r.id) ?? []), String(r.term)]);
-  }
+  for (const r of libEdRows) libEds.set(r.id, [...(libEds.get(r.id) ?? []), r.name]);
+  const terms = new Map(termRows.map((r) => [r.id, splitTerms(r.terms)]));
 
   const byId = new Map(rows.map((r) => [r.id, r]));
   return unique.flatMap((id) => {
@@ -90,41 +80,53 @@ export function getCourses(ids: CourseId[]): CourseDetails[] {
 }
 
 /** Look up courses by code, e.g. for transcript import: [{dept:"CSCI", number:"2041"}]. */
-export function findCourseIdsByCode(codes: { dept: string; number: string }[]): Map<string, CourseId> {
+export async function findCourseIdsByCode(codes: { dept: string; number: string }[]): Promise<Map<string, CourseId>> {
   const out = new Map<string, CourseId>();
-  const stmt = catalog().prepare(
-    `SELECT id FROM classdistribution WHERE campus = 'UMNTC' AND dept_abbr = ? AND course_num = ? LIMIT 1`,
+  const wanted = [...new Set(codes.map(({ dept, number }) => `${dept.toUpperCase()} ${number.toUpperCase()}`))];
+  if (wanted.length === 0) return out;
+  const pairs = wanted.map((code) => code.split(" "));
+  // One indexed lookup per code; the lowest id wins when a code repeats.
+  const rows = await (await catalog()).all<{ code: string; id: number }>(
+    `SELECT c.dept_abbr || ' ' || c.course_num AS code, MIN(c.id) AS id
+     FROM json_each(?) j JOIN classdistribution c
+       ON c.campus = 'UMNTC' AND c.dept_abbr = json_extract(j.value, '$[0]') AND c.course_num = json_extract(j.value, '$[1]')
+     GROUP BY c.dept_abbr, c.course_num`,
+    JSON.stringify(pairs),
   );
-  for (const { dept, number } of codes) {
-    const row = stmt.get(dept.toUpperCase(), number.toUpperCase()) as { id: number } | undefined;
-    if (row) out.set(`${dept.toUpperCase()} ${number.toUpperCase()}`, row.id);
-  }
+  for (const r of rows) out.set(r.code, r.id);
   return out;
 }
 
 /** Twin Cities catalog courses keyed by CourseDog course group id (for program requirements). */
-export function findCoursesByGroupIds(groupIds: string[]): Map<string, CourseSummary> {
+export async function findCoursesByGroupIds(groupIds: string[]): Promise<Map<string, CourseSummary>> {
   const out = new Map<string, CourseSummary>();
   const unique = [...new Set(groupIds)];
-  for (let i = 0; i < unique.length; i += 500) {
-    const chunk = unique.slice(i, i + 500);
-    const rows = catalog()
-      .prepare(
-        `SELECT id, dept_abbr, course_num, class_desc, cred_min, cred_max, courseGroupId FROM classdistribution
-         WHERE campus = 'UMNTC' AND courseGroupId IN (${placeholders(chunk.length)}) ORDER BY id`,
-      )
-      .all(...chunk) as unknown as (CourseRow & { courseGroupId: string })[];
+  const db = await catalog();
+  // Chunked so each statement stays well under D1's 100 KB statement limit.
+  for (let i = 0; i < unique.length; i += 1000) {
+    const rows = await db.all<CourseRow & { courseGroupId: string }>(
+      `SELECT id, dept_abbr, course_num, class_desc, cred_min, cred_max, courseGroupId FROM classdistribution
+       WHERE campus = 'UMNTC' AND courseGroupId IN (SELECT value FROM json_each(?)) ORDER BY id`,
+      jsonList(unique.slice(i, i + 1000)),
+    );
     for (const r of rows) if (!out.has(r.courseGroupId)) out.set(r.courseGroupId, toSummary(r));
   }
   return out;
 }
 
-let departments: { code: string; name: string }[] | null = null;
+let departments: Promise<{ code: string; name: string }[]> | null = null;
 
 /** Twin Cities departments (code + name), e.g. { code: "CSCI", name: "Computer Science" } (B27). */
-export function listDepartments(): { code: string; name: string }[] {
+export function listDepartments(): Promise<{ code: string; name: string }[]> {
   departments ??= catalog()
-    .prepare(`SELECT dept_abbr AS code, dept_name AS name FROM departmentdistribution WHERE campus = 'UMNTC' ORDER BY dept_abbr`)
-    .all() as unknown as { code: string; name: string }[];
+    .then((db) =>
+      db.all<{ code: string; name: string }>(
+        `SELECT dept_abbr AS code, dept_name AS name FROM departmentdistribution WHERE campus = 'UMNTC' ORDER BY dept_abbr`,
+      ),
+    )
+    .catch((err) => {
+      departments = null;
+      throw err;
+    });
   return departments;
 }

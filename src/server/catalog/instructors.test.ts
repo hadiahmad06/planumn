@@ -4,8 +4,8 @@ import { instructorGradeSummary } from "@/features/preview/instructor";
 import { GET } from "@/app/api/courses/[courseId]/instructors/route";
 
 describe("historical instructor insights", () => {
-  it("aggregates a known instructor across terms for the requested Twin Cities course", () => {
-    const instructors = getInstructorInsights(77);
+  it("aggregates a known instructor across terms for the requested Twin Cities course", async () => {
+    const instructors = (await getInstructorInsights(77));
     const kathryn = instructors.find(
       (instructor) => instructor.name === "Kathryn Jensen",
     )!;
@@ -20,11 +20,11 @@ describe("historical instructor insights", () => {
       ),
     );
   });
-  it("does not expose another campus or unknown/invalid course ids", () => {
+  it("does not expose another campus or unknown/invalid course ids", async () => {
     for (const id of [8272, 999999999, -1, 1.5, NaN])
-      expect(getInstructorInsights(id)).toEqual([]);
+      expect((await getInstructorInsights(id))).toEqual([]);
   });
-  it("uses only letter grades for GPA and suppresses small samples", () => {
+  it("uses only letter grades for GPA and suppresses small samples", async () => {
     expect(instructorGradeSummary({ A: 10, B: 10, S: 100, W: 5 })).toEqual({
       total: 125,
       letters: 20,

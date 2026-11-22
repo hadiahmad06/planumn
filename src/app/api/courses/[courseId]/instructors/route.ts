@@ -12,7 +12,7 @@ export async function GET(
       { status: 400 },
     );
   try {
-    return Response.json(getInstructorInsights(id));
+    return Response.json(await getInstructorInsights(id));
   } catch {
     return Response.json(
       { error: "Instructor history could not be loaded. Please try again." },

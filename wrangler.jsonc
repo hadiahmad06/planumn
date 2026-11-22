@@ -1,0 +1,32 @@
+// Cloudflare Worker for planu.mn (Hadi's Claude; see docs/agent/cloudflare.md).
+// No secrets or account ids here: deploys get them from Cloudflare (Workers Builds) or the API token.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "planumn",
+  "compatibility_date": "2026-11-22",
+  // node:crypto (catalog fingerprints), Buffer (transcript import) and process.env (Supabase keys).
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "vinext/server/fetch-handler",
+  // Keep the Supabase variables and secret set in the dashboard when a deploy runs.
+  "keep_vars": true,
+  "observability": { "enabled": true },
+  "d1_databases": [
+    {
+      // Read-only course catalog, loaded from data/catalog.db by scripts/export-d1.ts.
+      "binding": "CATALOG_DB",
+      "database_name": "planumn-catalog",
+      "database_id": "73f616c6-52d4-4cf9-85af-ed7f29fef8e8"
+    }
+  ],
+  "assets": {
+    "directory": "dist/client",
+    "html_handling": "none",
+    "not_found_handling": "none",
+    "binding": "ASSETS",
+    "run_worker_first": [
+      "/*",
+      "!/_next/static/*",
+      "!/*/_next/static/*"
+    ]
+  }
+}
