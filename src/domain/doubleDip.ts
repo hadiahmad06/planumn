@@ -1,6 +1,6 @@
 import type { CourseId } from "./course";
 import { TWIN_CITIES_LIBED, type LibEdLookup } from "./libed";
-import { listedCourseIds, type ProgramResult } from "./requirements";
+import { suggestedCourseId, type ProgramResult, type Rule } from "./requirements";
 
 /**
  * Double-dip finder (Phase B: B12). Written by Hadi's Claude.
@@ -36,12 +36,21 @@ export interface DoubleDipResult {
   pending: number;
 }
 
+/**
+ * L11: the course each listed option suggests: its newest catalog row, and none when any row of its
+ * CourseDog group is planned (a planned ENGW 1102 means ENGW 1102W isn't suggested).
+ */
+function suggestedIds(rule: Rule, planned: ReadonlySet<CourseId>): CourseId[] {
+  if (rule.kind === "courses") return rule.choices.flatMap((c) => c.options.flatMap((o) => suggestedCourseId(o, planned) ?? []));
+  if (rule.kind === "text") return [];
+  return rule.children.flatMap((c) => suggestedIds(c, planned));
+}
+
 /** Candidate courses: everything an unsatisfied requirement lists that isn't planned yet. */
 export function doubleDipCandidates(results: ProgramResult[], planned: ReadonlySet<CourseId>): CourseId[] {
   const ids = new Set<CourseId>();
   for (const p of results)
-    for (const r of p.requirements)
-      if (!r.satisfied && r.units > 0) for (const rule of r.requirement.rules) for (const id of listedCourseIds(rule)) if (!planned.has(id)) ids.add(id);
+    for (const r of p.requirements) if (!r.satisfied && r.units > 0) for (const rule of r.requirement.rules) for (const id of suggestedIds(rule, planned)) ids.add(id);
   return [...ids];
 }
 
@@ -50,9 +59,8 @@ export function findDoubleDips({ results, planned, libEd, coveredLibEd }: Double
   for (const p of results)
     for (const r of p.requirements) {
       if (r.satisfied || r.units === 0) continue;
-      const ids = new Set(r.requirement.rules.flatMap(listedCourseIds));
+      const ids = new Set(r.requirement.rules.flatMap((rule) => suggestedIds(rule, planned)));
       for (const id of ids) {
-        if (planned.has(id)) continue;
         const list = targets.get(id) ?? [];
         list.push({ kind: "requirement", programId: p.program.id, programName: p.program.name, requirementId: r.requirement.id, name: r.requirement.name });
         targets.set(id, list);

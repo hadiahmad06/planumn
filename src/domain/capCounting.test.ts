@@ -5,7 +5,7 @@ import { evaluateProgram, type CoursesRule, type PlannedForAudit, type Requireme
 // Regressions for the two cap bugs Claude reviewer A found on #93 (built from the review's shapes), under
 // counting (Hadi, 2026-11-04: catalog-text readings count, tentatively, for APAS-checked programs).
 const text = (kind: CreditConstraint["kind"], credits: number, scope?: string): CreditConstraint => ({ kind, credits, scope, source: "text", sentence: "" });
-const coded = (id: number, code: string) => ({ groupId: String(id), courseId: id, code, title: null, credits: null });
+const coded = (id: number, code: string) => ({ groupId: String(id), courseId: id, code, title: null, credits: null, rows: [] });
 const list = (id: string, name: string, items: [number, string][], extra: Partial<CoursesRule> = {}): CoursesRule => ({
   kind: "courses",
   id,

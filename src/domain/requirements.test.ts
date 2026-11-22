@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { evaluateProgram, evaluateRule, programCourseIds, type CoursesRule, type Program, type Rule } from "./requirements";
 
-const opt = (courseId: number | null, groupId = String(courseId)) => ({ groupId, courseId, code: null, title: null, credits: null });
+const opt = (courseId: number | null, groupId = String(courseId)) => ({ groupId, courseId, code: null, title: null, credits: null, rows: [] });
 const courses = (id: string, choices: (number | null)[][], minCourses: number, minCredits = 0): CoursesRule => ({
   kind: "courses",
   id,
@@ -151,7 +151,7 @@ describe("programListsCourse (B11 honors)", () => {
 
 describe("catalog-text counting (C2/C3; Hadi 2026-11-04: tentatively, APAS-checked programs only)", () => {
   const text = (kind: "total" | "min" | "max" | "dept", credits: number, scope?: string) => ({ kind, credits, scope, source: "text" as const, sentence: "" });
-  const coded = (id: number, code: string) => ({ groupId: String(id), courseId: id, code, title: null, credits: null });
+  const coded = (id: number, code: string) => ({ groupId: String(id), courseId: id, code, title: null, credits: null, rows: [] });
   const ee = { terms: [{ subjects: ["EE"], levels: [4, 5] }], exceptSubjects: [], exclude: [], include: [], forms: [], sentences: [] };
   // Technical electives: 12 credits in all, from a listed pool capped at 4 and EE 4xxx/5xxx courses the text names.
   const electives: Rule = {

@@ -12,6 +12,7 @@ const program = normalizeProgram(raw, (groupId) => ({
   code: null,
   title: null,
   credits: { min: 4, max: 4 },
+  rows: [],
 }));
 const req = (name: string) => program.requirements.find((r) => r.name === name)!;
 

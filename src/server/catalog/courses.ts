@@ -1,6 +1,7 @@
 import "server-only";
 import type { CourseDetails, CourseId, CourseSummary, SrtMetric } from "@/domain/course";
 import { extractPrereqText } from "@/domain/prereqs";
+import { optionFromRows, type CourseOption } from "@/domain/requirements";
 import { catalog, jsonList, splitTerms } from "./db";
 import { parseJson, toSummary, type CourseRow } from "./rows";
 
@@ -97,21 +98,44 @@ export async function findCourseIdsByCode(codes: { dept: string; number: string 
   return out;
 }
 
-/** Twin Cities catalog courses keyed by CourseDog course group id (for program requirements). */
-export async function findCoursesByGroupIds(groupIds: string[]): Promise<Map<string, CourseSummary>> {
-  const out = new Map<string, CourseSummary>();
+/** A Twin Cities catalog row of a CourseDog course group, with its newest offering (L11). */
+export interface GroupRow extends CourseSummary {
+  /** Newest term with recorded grades ("1265", from `course_terms`), or null if none. */
+  lastTerm: string | null;
+}
+
+/**
+ * Twin Cities catalog rows keyed by CourseDog course group id (for program requirements). L11: **every**
+ * row of a group, since a renumbered course keeps its group id (ENGW 1102 and ENGW 1102W share `0049451`);
+ * `optionFromRows` orders them (newest offering first).
+ */
+export async function findCourseRowsByGroupIds(groupIds: string[]): Promise<Map<string, GroupRow[]>> {
+  const out = new Map<string, GroupRow[]>();
   const unique = [...new Set(groupIds)];
   const db = await catalog();
   // Chunked so each statement stays well under D1's 100 KB statement limit.
   for (let i = 0; i < unique.length; i += 1000) {
-    const rows = await db.all<CourseRow & { courseGroupId: string }>(
-      `SELECT id, dept_abbr, course_num, class_desc, cred_min, cred_max, courseGroupId FROM classdistribution
-       WHERE campus = 'UMNTC' AND courseGroupId IN (SELECT value FROM json_each(?)) ORDER BY id`,
+    const rows = await db.all<CourseRow & { courseGroupId: string; terms: string | null }>(
+      `SELECT c.id, c.dept_abbr, c.course_num, c.class_desc, c.cred_min, c.cred_max, c.courseGroupId, t.terms
+       FROM classdistribution c LEFT JOIN course_terms t ON t.class_id = c.id
+       WHERE c.campus = 'UMNTC' AND c.courseGroupId IN (SELECT value FROM json_each(?)) ORDER BY c.id`,
       jsonList(unique.slice(i, i + 1000)),
     );
-    for (const r of rows) if (!out.has(r.courseGroupId)) out.set(r.courseGroupId, toSummary(r));
+    for (const r of rows) {
+      const terms = splitTerms(r.terms);
+      const lastTerm = terms.length ? terms.reduce((a, b) => (b > a ? b : a)) : null;
+      out.set(r.courseGroupId, [...(out.get(r.courseGroupId) ?? []), { ...toSummary(r), lastTerm }]);
+    }
   }
   return out;
+}
+
+/** L11: an option from a group's catalog rows (every row satisfies it; the newest offering is suggested). */
+export function catalogOption(groupId: string, rows: GroupRow[]): CourseOption {
+  return optionFromRows(
+    groupId,
+    rows.map((r) => ({ courseId: r.id, code: `${r.dept} ${r.number}`, title: r.title, credits: r.credits, lastTerm: r.lastTerm })),
+  );
 }
 
 let departments: Promise<{ code: string; name: string }[]> | null = null;

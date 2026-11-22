@@ -3,7 +3,7 @@ import { admissionChecklist } from "./admission";
 import type { Semester } from "./plan";
 import { evaluateProgram, type CoursesRule, type Program } from "./requirements";
 
-const opt = (courseId: number) => ({ groupId: String(courseId), courseId, code: null, title: null, credits: null });
+const opt = (courseId: number) => ({ groupId: String(courseId), courseId, code: null, title: null, credits: null, rows: [] });
 const courses = (id: string, ids: number[], minCourses: number): CoursesRule => ({
   kind: "courses",
   id,

@@ -11,7 +11,7 @@ const list = (id: string, extra: Partial<CoursesRule> = {}): CoursesRule => ({
   id,
   name: id,
   notes: null,
-  choices: [{ options: [{ groupId: "1", courseId: 1, code: "EE 4111", title: null, credits: null }] }],
+  choices: [{ options: [{ groupId: "1", courseId: 1, code: "EE 4111", title: null, credits: null, rows: [] }] }],
   minCourses: 1,
   minCredits: 0,
   ...extra,

@@ -8,6 +8,7 @@
  * only for what's missing (delete the folder to refresh). Course ids are looked up in data/catalog.db
  * first, then in batches through CourseDog's course search (which also matches old 20-character ids).
  */
+import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
@@ -66,7 +67,9 @@ async function fetchCourses(ids: string[], batch: number): Promise<FoundCourse[]
   const url =
     `${BASE}/courses/search/%24filters?courseGroupIds=${ids.map(encodeURIComponent).join(",")}` +
     `&limit=${ids.length * 3 + 20}&columns=courseGroupId,deprecatedCourseGroupId`;
-  const body = await cachedJson<{ data?: FoundCourse[] }>(path.join(CACHE, "courses", `${batch}-${ids[0]}.json`), url);
+  // Keyed by the whole batch (L11; reviewer K): `${batch}-${ids[0]}` served a stale batch after the catalog changed which ids it holds.
+  const key = createHash("sha256").update(ids.join(",")).digest("hex").slice(0, 16);
+  const body = await cachedJson<{ data?: FoundCourse[] }>(path.join(CACHE, "courses", `${batch}-${key}.json`), url);
   return body.data ?? [];
 }
 

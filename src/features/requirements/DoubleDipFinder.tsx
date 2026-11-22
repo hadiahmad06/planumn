@@ -81,6 +81,7 @@ export function DoubleDipFinder({ plan, results }: { plan: Plan; results: Progra
                 code: c ? `${c.dept} ${c.number}` : null,
                 title: c?.title ?? null,
                 credits: null,
+                rows: [],
               };
               return (
                 <li key={d.courseId} className="flex flex-col gap-1">
