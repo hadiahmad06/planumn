@@ -85,11 +85,11 @@ Hadi, 2026-11-03 (transcribed by Hadi's Claude):
 - Hadi answered the plan's open decisions D1–D4, verbatim: "D1, D2: yes. D3: yes, push v2/hadi/* and open PRs. D4: it was. but now its pushed to origin". The questions and what each answer changes are in `docs/agent/delegation-plan.md`.
 - Asked "should a second Claude reviewer count when Michael's Codex is away?", Hadi answered: "Yes."
 
-## Launch: beta now, switch at bar A
+## Launch
 
-Hadi, 2026-11-22 (transcribed by Hadi's Claude), answering Hadi's Claude's launch estimate (`docs/agent/launch-plan.md`):
+Hadi, 2026-11-22 (transcribed by Hadi's Claude), answering Hadi's Claude's launch estimate. The bars, the tickets and their wording are Hadi's Claude's, in `docs/agent/launch-plan.md`; only the quotes below are Hadi's.
 
-- "Yes I agree with A, then B. And Yes, for the "beta now, switch at A" call." Bar A: v2 replaces the live 2025 site once it is at least as good. Bar B: a product students can rely on (fresh course data, requirements checked against APAS on the most common majors, the extension published).
-- Course data, verbatim: "You can access https://github.com/samyok/gophergrades to get the new SQLITE .db file. I have permission from Social Coding UMN to do this. Just give them credit in the footer and info pages. In the original v1, we used python to extract and match data to the db file. If you feel that was done in a broken way, you may redo that."
-- On running Next.js's `next upgrade --agent=security`: "No. And default to no in the future. Still mention it, but don't ask."
-- Branches and workflow: "Follow CLAUDE.md, and the rest of the repo instructions."
+- On the estimate ("bar A, then bar B") and the recommendation to deploy a beta now and switch planu.mn to v2 at bar A, verbatim: "Yes I agree with A, then B. And Yes, for the "beta now, switch at A" call."
+- On stale course data, verbatim: "If the issue lies in that the sqlite database has stale data. You can access https://github.com/samyok/gophergrades to get the new SQLITE .db file. I have permission from Social Coding UMN to do this. Just give them credit in the footer and info pages. In the original v1, we used python to extract and match data to the db file. If you feel that was done in a broken way, you may redo that."
+- Asked whether to run Next.js's `next upgrade --agent=security`, verbatim: "No. And default to no in the future. Still mention it, but don't ask." Later the same day, verbatim: "go ahead with the next.js security upgrade then, and forget the previous autoignore command". The first answer is withdrawn.
+- Asked whether to follow the cloud session's branch name or `CLAUDE.md`'s `v2/hadi/<slug>` branches, verbatim: "Follow CLAUDE.md, and the rest of the repo instructions."
