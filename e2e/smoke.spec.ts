@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { AUTOSAVE_KEY } from "../src/features/plans/localRepository";
 import { card, COURSES, expect, freshTerms, label, openSeeded, PROGRAM, seededPlan, semester, test } from "./fixtures";
 
 /**
@@ -108,11 +109,42 @@ test("clicking a course opens its preview card", async ({ stubbed: page }) => {
 
 test("share link opens a read-only /share# view", async ({ stubbed: page }) => {
   await openSeeded(page, seededPlan({ [fall]: [COURSES.csci2041.id], [spring]: [COURSES.csci1933.id] }));
+  // Controls only the editor has, all visible without hover. Checked here first, so their absence on
+  // /share below can't pass just because the locator never matches anything (L13).
+  const editorOnly = [
+    page.getByRole("combobox", { name: "Search courses" }),
+    page.getByRole("textbox", { name: "Plan title" }),
+    page.getByRole("button", { name: `Select ${label(fall)}: + and Enter add courses here` }),
+    card(page, fall, COURSES.csci2041),
+  ];
+  for (const control of editorOnly) await expect(control).toBeVisible();
+
   await page.getByRole("button", { name: "Share snapshot" }).click();
   const link = page.getByRole("textbox", { name: "Read-only snapshot link" });
   await expect(link).toHaveValue(/\/share#v1\./);
   const url = await link.inputValue();
+  await page.keyboard.press("Escape");
 
+  // Edit after sharing, so the browser autosave differs from the snapshot.
+  await page.getByRole("textbox", { name: "Plan title" }).fill("Local edits");
+  await page.getByRole("textbox", { name: "Plan title" }).press("Enter");
+  await expect(page.getByText(/^Saved in this browser/)).toBeVisible();
+  const autosave = () => page.evaluate((key) => localStorage.getItem(key), AUTOSAVE_KEY);
+  const before = await autosave();
+  expect(JSON.parse(before ?? "{}")).toMatchObject({ title: "Local edits" });
+
+  // Record every write to the autosave key in the /share document. Autosave is debounced (~600 ms,
+  // autosaveController.ts), so a single read right after render would miss a delayed write (#121 review G2).
+  await page.addInitScript((key) => {
+    const writes: string[] = [];
+    (window as unknown as { autosaveWrites: string[] }).autosaveWrites = writes;
+    const setItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (k: string, v: string) {
+      if (k === key) writes.push(v);
+      return setItem.call(this, k, v);
+    };
+  }, AUTOSAVE_KEY);
+  const writesToAutosave = () => page.evaluate(() => (window as unknown as { autosaveWrites: string[] }).autosaveWrites.length);
   await page.goto(url);
   await expect(page.getByText("Read-only plan snapshot")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Smoke test plan", level: 1 })).toBeVisible();
@@ -120,10 +152,31 @@ test("share link opens a read-only /share# view", async ({ stubbed: page }) => {
   const fallSection = page.locator("section").filter({ has: page.getByRole("heading", { name: label(fall), exact: true }) });
   await expect(fallSection.getByText(COURSES.csci2041.code, { exact: true })).toBeVisible();
   await expect(fallSection.getByText(new RegExp(`^${COURSES.csci2041.title} · 4 cr$`))).toBeVisible();
-  await expect(page.getByRole("button", { name: "Copy to browser autosave" })).toBeEnabled();
-  // Read-only: no editor (search, drag cards, remove buttons).
-  await expect(page.getByRole("combobox", { name: "Search courses" })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Remove course" })).toHaveCount(0);
+  // Read-only: none of the editor's controls.
+  for (const control of editorOnly) await expect(control).toHaveCount(0);
+  // Viewing never saves: the autosave is byte-for-byte what the editor left.
+  expect(await autosave()).toBe(before);
+  await page.waitForTimeout(1500); // longer than the autosave debounce
+  expect(await writesToAutosave(), "writes to the autosave while viewing").toBe(0);
+  expect(await autosave()).toBe(before);
+
+  // Copying over an existing autosave asks first, and nothing is written until it's confirmed.
+  const copy = page.getByRole("button", { name: "Copy to browser autosave" });
+  await copy.click();
+  const replace = page.getByRole("checkbox", { name: /Replace this browser’s existing autosave/ });
+  await expect(replace).toBeVisible();
+  await expect(copy).toBeDisabled();
+  expect(await autosave()).toBe(before);
+  await page.waitForTimeout(1500);
+  expect(await writesToAutosave(), "writes to the autosave before the copy is confirmed").toBe(0);
+  expect(await autosave()).toBe(before);
+  await replace.check();
+  await copy.click();
+  await expect(page).toHaveURL(/\/plan\/autosave$/);
+  // The copy is titled "<title> (copy)" (copySnapshot) and replaced the local edits.
+  await expect(page.getByRole("textbox", { name: "Plan title" })).toHaveValue("Smoke test plan (copy)");
+  await expect(card(page, spring, COURSES.csci1933)).toBeVisible();
+  expect(JSON.parse((await autosave()) ?? "{}")).toMatchObject({ title: "Smoke test plan (copy)" });
 });
 
 test("Export PDF starts a download", async ({ stubbed: page }) => {
