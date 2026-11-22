@@ -4,7 +4,7 @@ import { useState } from "react";
 import { doubleDipCandidates, findDoubleDips, type DipTarget } from "@/domain/doubleDip";
 import { libEdCoverage } from "@/domain/libed";
 import { plannedCourseIds, type Plan } from "@/domain/plan";
-import type { ProgramResult } from "@/domain/requirements";
+import { optionsOf, type CourseOption, type ProgramResult } from "@/domain/requirements";
 import { cn } from "@/components/ui/cn";
 import { useCourseCache } from "@/features/catalog/courseCache";
 import { useLibEd } from "@/features/libed/useLibEd";
@@ -45,6 +45,10 @@ export function DoubleDipFinder({ plan, results }: { plan: Plan; results: Progra
   const { dips, pending } = findDoubleDips({ results, planned, libEd: codes, coveredLibEd: covered });
 
   if (results.length === 0) return null;
+  // L11: the listed option a dip suggests, so its chip carries every row of the course (the "also counts" tooltip).
+  const listed = new Map<number, CourseOption>();
+  for (const o of optionsOf(results.flatMap((p) => p.requirements.flatMap((r) => r.requirement.rules))))
+    if (o.courseId != null && !listed.has(o.courseId)) listed.set(o.courseId, o);
   const showProgram = results.length > 1;
   const visible = showAll ? dips : dips.slice(0, SHOWN);
 
@@ -75,7 +79,7 @@ export function DoubleDipFinder({ plan, results }: { plan: Plan; results: Progra
           <ul className="flex flex-col gap-2">
             {visible.map((d) => {
               const c = courses[d.courseId] ?? summaries[d.courseId];
-              const option = {
+              const option = listed.get(d.courseId) ?? {
                 groupId: String(d.courseId),
                 courseId: d.courseId,
                 code: c ? `${c.dept} ${c.number}` : null,
