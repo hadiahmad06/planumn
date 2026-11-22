@@ -22,3 +22,15 @@ test("mobile: the rail section and the schedule render", async ({ stubbed: page 
   await expect(semester(page, spring).getByText("Add from search or Requirements")).toBeVisible();
   await expect(page.getByRole("button", { name: `Select ${label(spring)}: + and Enter add courses here` })).toBeVisible();
 });
+
+test("mobile: the error page fits the screen and keeps its actions", async ({ stubbed: page }) => {
+  // L6 (Hadi's Claude, 2026-11-22).
+  await page.goto("/info/error-check");
+  await page.getByRole("button", { name: "Throw a test error" }).click();
+  const alert = page.getByRole("alert", { name: "This page hit a snag" });
+  await expect(alert.getByRole("heading", { name: "This page hit a snag" })).toBeVisible();
+  await expect(alert.getByRole("button", { name: "Try again" })).toBeInViewport();
+  await expect(alert.getByRole("link", { name: "Go to the home page" })).toBeInViewport();
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+  expect(overflow).toBeLessThanOrEqual(0);
+});

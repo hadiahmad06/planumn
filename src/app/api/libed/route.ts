@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { getCourses, MAX_IDS_PER_REQUEST } from "@/server/catalog/courses";
 import { fetchLibEdCodes } from "@/server/libed/libEdSource";
+import { logServerError } from "@/server/errors/errorLog";
 
 /**
  * GET /api/libed?ids=297,1473 → { [courseId]: string[] | null } (B3). Written by Ishaan's Claude.
@@ -24,7 +25,8 @@ export async function GET(request: NextRequest) {
         return [id, g && codes[g] ? codes[g] : null];
       })),
     );
-  } catch {
+  } catch (error) {
+    logServerError("/api/libed", error);
     return Response.json({ error: "The UMN catalog didn't respond. Try again in a minute." }, { status: 502 });
   }
 }

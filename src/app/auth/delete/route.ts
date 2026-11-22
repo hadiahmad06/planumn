@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { authConfig } from "@/features/auth/config";
 import { serverSupabase } from "@/server/supabase/server";
+import { logServerError } from "@/server/errors/errorLog";
 /** Written by Michael's Codex. No schema/RLS changes; admin credentials stay server-only. */
 export async function POST(request: Request) {
   const origin = request.headers.get("origin");
@@ -50,7 +51,8 @@ export async function POST(request: Request) {
       auth: { persistSession: false, autoRefreshToken: false },
     });
     const plans = await admin.from("plans").delete().eq("user_id", user.id);
-    if (plans.error)
+    if (plans.error) {
+      logServerError("/auth/delete", plans.error);
       return Response.json(
         {
           error:
@@ -58,8 +60,10 @@ export async function POST(request: Request) {
         },
         { status: 500 },
       );
+    }
     const deleted = await admin.auth.admin.deleteUser(user.id);
-    if (deleted.error)
+    if (deleted.error) {
+      logServerError("/auth/delete", deleted.error);
       return Response.json(
         {
           error:
@@ -67,9 +71,11 @@ export async function POST(request: Request) {
         },
         { status: 500 },
       );
+    }
     await client.auth.signOut({ scope: "global" });
     return Response.json({ success: true });
-  } catch {
+  } catch (error) {
+    logServerError("/auth/delete", error);
     return Response.json(
       { error: "Account deletion failed. Please try again." },
       { status: 500 },

@@ -3,6 +3,7 @@ import { rankMinors } from "@/domain/minors";
 import programOptions from "@/features/requirements/programOptions.json";
 import { getCourses, MAX_IDS_PER_REQUEST } from "@/server/catalog/courses";
 import { fetchMinorPrograms } from "@/server/minors/minorIndex";
+import { logServerError } from "@/server/errors/errorLog";
 
 /** Undergraduate minors from the program list (no certificates are listed there yet). */
 const MINOR_IDS = (programOptions as { id: string; name: string }[]).filter((o) => /\bMinor\b/.test(o.name)).map((o) => o.id);
@@ -24,7 +25,8 @@ export async function GET(request: NextRequest) {
   let programs;
   try {
     programs = await fetchMinorPrograms(MINOR_IDS);
-  } catch {
+  } catch (error) {
+    logServerError("/api/minors", error);
     return Response.json({ error: "The UMN catalog didn't respond. Try again in a minute." }, { status: 502 });
   }
   const courses = await getCourses(ids);
