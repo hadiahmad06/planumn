@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { Modal } from "@/components/ui/Modal";
+import { ApasImportLink } from "@/features/apas/ApasImportLink";
+import { apasImportEnabled } from "@/features/apas/flag";
 import { plannedCourseIds } from "@/domain/plan";
 import { usePlanStore } from "@/features/plan-editor/store";
 import {
@@ -125,18 +127,19 @@ export function CatalogUpdates() {
         title="Catalog updates & APAS"
         description="Compare public catalog data with your last remembered check in this browser. Verify differences against APAS for your catalog year; public responses may be cached."
       >
-        <p className="mb-4 text-sm">
-          Re-sync your APAS each term, especially after changing programs or
-          courses.
-        </p>
-        {/* Full navigation loads the APAS extension bridge on /plan/* (the existing APAS integration contract). */}
-        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- the extension requires a document load */}
-        <a
-          href="/plan/apas"
-          className="mb-5 inline-block text-sm text-accent underline"
-        >
-          Open APAS import
-        </a>
+        {/* A2 (#100), Hadi's Claude: the B21 APAS reminder and its link only show while the APAS import
+            flag is on. `ApasImportLink` is a full navigation, so the extension bridge loads on /plan/*. */}
+        {apasImportEnabled() && (
+          <>
+            <p className="mb-4 text-sm">
+              Re-sync your APAS each term, especially after changing programs or
+              courses.
+            </p>
+            <ApasImportLink className="mb-5 inline-block text-sm text-accent underline">
+              Open APAS import
+            </ApasImportLink>
+          </>
+        )}
         {pending && (
           <p role="status" className="text-sm">
             Checking public course and program data…

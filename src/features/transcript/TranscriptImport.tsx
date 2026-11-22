@@ -3,6 +3,8 @@ import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
 import { LocalPlanRepository } from "@/features/plans/localRepository";
 import { PlanEditor } from "@/features/plan-editor/PlanEditor";
+import { ApasImportLink } from "@/features/apas/ApasImportLink";
+import { apasImportEnabled } from "@/features/apas/flag";
 import type { TranscriptResult } from "./parse";
 /** Written by Michael's Codex. Review matches before any autosave replacement. */
 export function TranscriptImport() {
@@ -59,15 +61,17 @@ export function TranscriptImport() {
         Upload your UMN unofficial transcript PDF. We’ll match courses to the
         Twin Cities catalog and lock the imported courses in place.
       </p>
-      {/* Ishaan's Claude (#36 follow-up): full navigation so the APAS extension's bridge loads. */}
-      <p className="mt-3 text-sm text-text-secondary">
-        Using the planu.mn browser extension?{" "}
-        {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- full navigation on purpose (see above) */}
-        <a href="/plan/apas" className="text-accent underline">
-          Import from APAS instead
-        </a>
-        .
-      </p>
+      {/* Ishaan's Claude (#36 follow-up): full navigation so the APAS extension's bridge loads.
+          A2 (#100), Hadi's Claude: the whole line is hidden while the APAS import flag is off. */}
+      {apasImportEnabled() && (
+        <p className="mt-3 text-sm text-text-secondary">
+          Using the planu.mn browser extension?{" "}
+          <ApasImportLink className="text-accent underline">
+            Import from APAS instead
+          </ApasImportLink>
+          .
+        </p>
+      )}
       <p className="mt-3 text-sm text-text-secondary">
         The PDF is processed on our server in memory and discarded. Names,
         student IDs, grades and GPA are not included in the plan. Use a PDF with
