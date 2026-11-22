@@ -1,6 +1,6 @@
 import type { CourseId } from "./course";
 import type { Plan } from "./plan";
-import { compareTerms, type TermCode } from "./terms";
+import { compareTerms, type TermCode } from "./terms.ts";
 
 /**
  * Twin Cities Liberal Education coverage (Phase B: B3). Written by Ishaan's Claude.

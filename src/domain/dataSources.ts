@@ -10,7 +10,7 @@
  * The last term with grade records in `data/catalog.db`. Every "data through …" sentence in the UI
  * reads this, so a catalog refresh (ticket D1) changes this one line.
  */
-export const CATALOG_DATA_THROUGH = "Fall 2024";
+export const CATALOG_DATA_THROUGH = "Summer 2026";
 
 /** The course and grade data source, for credit lines and links. */
 export const GOPHERGRADES = {

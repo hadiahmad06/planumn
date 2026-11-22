@@ -15,6 +15,19 @@ interface DetailsRow extends CourseRow {
 
 export const MAX_IDS_PER_REQUEST = 200;
 
+/**
+ * SRT means per metric. GopherGrades stores flat means (out of 6) plus one `RESP` total,
+ * `{ DEEP_UND: 5.03, …, RESP: 1989 }` (D1; the 2025 build had `{ val, respondents }` per metric).
+ * Every metric gets the `RESP` total, since per-metric counts aren't kept.
+ */
+export function parseSrt(raw: string | null): Record<string, SrtMetric> {
+  const vals = parseJson<Record<string, unknown>>(raw, {}) ?? {};
+  const total = typeof vals.RESP === "number" ? vals.RESP : 0;
+  const srt: Record<string, SrtMetric> = {};
+  for (const [k, v] of Object.entries(vals)) if (k !== "RESP" && typeof v === "number") srt[k] = { value: v, respondents: total };
+  return srt;
+}
+
 function placeholders(n: number) {
   return Array.from({ length: n }, () => "?").join(",");
 }
@@ -58,9 +71,7 @@ export function getCourses(ids: CourseId[]): CourseDetails[] {
   return unique.flatMap((id) => {
     const r = byId.get(id);
     if (!r) return [];
-    const srtRaw = parseJson<Record<string, { val: number; respondents: number }>>(r.srt_vals, {});
-    const srt: Record<string, SrtMetric> = {};
-    for (const [k, v] of Object.entries(srtRaw)) srt[k] = { value: v.val, respondents: v.respondents };
+    const srt = parseSrt(r.srt_vals);
     return [
       {
         ...toSummary(r),

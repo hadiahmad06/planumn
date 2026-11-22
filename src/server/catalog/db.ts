@@ -3,7 +3,7 @@ import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 
 /**
- * Read-only course catalog (GopherGrades-derived, built in 2025; see docs/agent/architecture.md).
+ * Read-only course catalog, built from GopherGrades by `scripts/build-catalog.ts` (D1; see docs/agent/architecture.md).
  * Tables used: classdistribution, distribution, termdistribution, libed, libedAssociationTable.
  */
 let db: DatabaseSync | null = null;
