@@ -133,6 +133,18 @@ test("share link opens a read-only /share# view", async ({ stubbed: page }) => {
   const before = await autosave();
   expect(JSON.parse(before ?? "{}")).toMatchObject({ title: "Local edits" });
 
+  // Record every write to the autosave key in the /share document. Autosave is debounced (~600 ms,
+  // autosaveController.ts), so a single read right after render would miss a delayed write (#121 review G2).
+  await page.addInitScript((key) => {
+    const writes: string[] = [];
+    (window as unknown as { autosaveWrites: string[] }).autosaveWrites = writes;
+    const setItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (k: string, v: string) {
+      if (k === key) writes.push(v);
+      return setItem.call(this, k, v);
+    };
+  }, AUTOSAVE_KEY);
+  const writesToAutosave = () => page.evaluate(() => (window as unknown as { autosaveWrites: string[] }).autosaveWrites.length);
   await page.goto(url);
   await expect(page.getByText("Read-only plan snapshot")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Smoke test plan", level: 1 })).toBeVisible();
@@ -144,6 +156,9 @@ test("share link opens a read-only /share# view", async ({ stubbed: page }) => {
   for (const control of editorOnly) await expect(control).toHaveCount(0);
   // Viewing never saves: the autosave is byte-for-byte what the editor left.
   expect(await autosave()).toBe(before);
+  await page.waitForTimeout(1500); // longer than the autosave debounce
+  expect(await writesToAutosave(), "writes to the autosave while viewing").toBe(0);
+  expect(await autosave()).toBe(before);
 
   // Copying over an existing autosave asks first, and nothing is written until it's confirmed.
   const copy = page.getByRole("button", { name: "Copy to browser autosave" });
@@ -151,6 +166,9 @@ test("share link opens a read-only /share# view", async ({ stubbed: page }) => {
   const replace = page.getByRole("checkbox", { name: /Replace this browser’s existing autosave/ });
   await expect(replace).toBeVisible();
   await expect(copy).toBeDisabled();
+  expect(await autosave()).toBe(before);
+  await page.waitForTimeout(1500);
+  expect(await writesToAutosave(), "writes to the autosave before the copy is confirmed").toBe(0);
   expect(await autosave()).toBe(before);
   await replace.check();
   await copy.click();

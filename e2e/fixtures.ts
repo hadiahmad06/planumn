@@ -1,4 +1,4 @@
-import { test as base, expect, type Browser, type Page } from "@playwright/test";
+import { test as base, expect, type Browser, type Locator, type Page } from "@playwright/test";
 import { createEmptyPlan, type Plan } from "../src/domain/plan";
 import type { Program } from "../src/domain/requirements";
 import { termLabel, type TermCode } from "../src/domain/terms";
@@ -141,6 +141,8 @@ export async function expectNoSupabaseProject(browser: Browser, baseURL: string)
       "the served browser bundle has a Supabase URL and key (built with NEXT_PUBLIC_SUPABASE_* set?)",
     ).toBeVisible();
     expect(scripts.size, "scripts served for /plans").toBeGreaterThan(0);
+    // One request at a time (#121 review H2): every worker runs this while the other workers' first
+    // tests are loading, and a burst of parallel script fetches slowed their hydration on `wrangler dev`.
     for (const url of scripts) {
       const host = (await (await context.request.get(url)).text()).match(SUPABASE_IN_SCRIPT)?.[0];
       expect(host, `${url} names a Supabase host`).toBeUndefined();
@@ -149,6 +151,20 @@ export async function expectNoSupabaseProject(browser: Browser, baseURL: string)
   } finally {
     await context.close();
   }
+}
+
+/**
+ * Press "Throw a test error" on an error-check page and wait for `alert` (#121 review H2, Hadi's Claude).
+ * The button is server-rendered, so a click that lands before hydration does nothing (no crash, no
+ * report). The app has no hydration marker, so click again until the boundary shows. A retried click
+ * never adds a crash: the first one did nothing, and once the page has crashed the button is gone.
+ */
+export async function throwTestError(page: Page, alert: Locator) {
+  const button = page.getByRole("button", { name: "Throw a test error" });
+  await expect(async () => {
+    if (await button.isVisible()) await button.click({ timeout: 2_000 });
+    await expect(alert).toBeVisible({ timeout: 2_000 });
+  }).toPass({ timeout: 30_000 });
 }
 
 /** Terms of a fresh plan made today: Fall of this year, then 4 years of Fall/Spring/Summer. */

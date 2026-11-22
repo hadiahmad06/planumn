@@ -1,4 +1,4 @@
-import { expect, test } from "./fixtures";
+import { expect, test, throwTestError } from "./fixtures";
 import { type Page } from "@playwright/test";
 import { ERROR_CHECK_MESSAGE, SERVER_ERROR_CHECK_MESSAGE } from "../src/features/errors/checks";
 import { THEME_KEY } from "../src/features/theme/preferences";
@@ -32,9 +32,9 @@ test("a client component throws → friendly error page, report sent, Try again 
 
   const reported = page.waitForRequest((r) => r.url().endsWith("/api/client-error") && r.method() === "POST");
   const answered = page.waitForResponse((r) => r.url().endsWith("/api/client-error"));
-  await page.getByRole("button", { name: "Throw a test error" }).click();
-
   const alert = page.getByRole("alert", { name: "This page hit a snag" });
+  await throwTestError(page, alert);
+
   await expect(alert.getByRole("heading", { name: "This page hit a snag" })).toBeVisible();
   await expect(alert.getByRole("button", { name: "Try again" })).toBeVisible();
   await expect(alert.getByRole("link", { name: "Go to the home page" })).toHaveAttribute("href", "/");
@@ -61,11 +61,12 @@ test("M3: one report per crash, and the same reference after Try again", async (
   const reports = countReports(page);
   await page.goto("/info/error-check");
   const alert = page.getByRole("alert", { name: "This page hit a snag" });
-  await page.getByRole("button", { name: "Throw a test error" }).click();
+  await throwTestError(page, alert);
   const first = await alert.locator(".font-mono").textContent();
   await expect.poll(() => reports.length).toBe(1);
   await alert.getByRole("button", { name: "Try again" }).click();
-  await page.getByRole("button", { name: "Throw a test error" }).click();
+  await expect(alert).toBeHidden(); // else the stale alert would satisfy the helper without a second crash
+  await throwTestError(page, alert);
   await expect(alert.locator(".font-mono")).toHaveText(first!);
   await page.waitForTimeout(1000);
   expect(reports).toHaveLength(1);
@@ -81,8 +82,8 @@ test("two crashes on two routes in one document (client-side navigation): each i
   await page.goto("/info/error-check");
   await page.evaluate(() => ((window as unknown as { sameDocument: boolean }).sameDocument = true));
 
-  await page.getByRole("button", { name: "Throw a test error" }).click();
   const info = page.getByRole("alert", { name: "This page hit a snag" });
+  await throwTestError(page, info);
   const first = (await info.locator(".font-mono").textContent())!;
   expect(first).toMatch(/^c-[0-9a-f]{8}$/);
   await expect.poll(() => reports.length).toBe(1);
@@ -90,8 +91,8 @@ test("two crashes on two routes in one document (client-side navigation): each i
   await info.getByRole("button", { name: "Try again" }).click();
   await page.getByRole("link", { name: /Open the other error check/ }).click();
   await expect(page).toHaveURL(/\/plan\/error-check$/);
-  await page.getByRole("button", { name: "Throw a test error" }).click();
   const plan = page.getByRole("alert", { name: "The plan could not be displayed" });
+  await throwTestError(page, plan);
   const second = (await plan.locator(".font-mono").textContent())!;
   expect(second).toMatch(/^c-[0-9a-f]{8}$/);
   expect(second).not.toBe(first);
@@ -109,9 +110,8 @@ test("two crashes on two routes in one document (client-side navigation): each i
 test("M1: a crash under /plan uses the plan boundary and is reported", async ({ stubbed: page }) => {
   const reports = countReports(page);
   await page.goto("/plan/error-check");
-  await page.getByRole("button", { name: "Throw a test error" }).click();
   const alert = page.getByRole("alert", { name: "The plan could not be displayed" });
-  await expect(alert).toBeVisible();
+  await throwTestError(page, alert);
   await expect(alert.getByRole("link", { name: "Go to the home page" })).toBeVisible();
   await expect(page.getByText(ERROR_CHECK_MESSAGE)).toHaveCount(0);
   await expect.poll(() => reports.length).toBe(1);
@@ -137,9 +137,8 @@ test("N2: a Server Component error shows its digest and is not reported again fr
 test("the error page follows the dark theme and links home", async ({ stubbed: page }) => {
   await page.addInitScript((key) => localStorage.setItem(key, "dark"), THEME_KEY);
   await page.goto("/info/error-check");
-  await page.getByRole("button", { name: "Throw a test error" }).click();
   const alert = page.getByRole("alert", { name: "This page hit a snag" });
-  await expect(alert).toBeVisible();
+  await throwTestError(page, alert);
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
   // --bg-surface in dark mode (#211b1e).
   await expect(alert).toHaveCSS("background-color", "rgb(33, 27, 30)");
