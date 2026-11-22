@@ -1,4 +1,5 @@
 import { catalogCheck } from "@/server/catalog-changes/snapshot";
+import { logServerError } from "@/server/errors/errorLog";
 /** Written by Michael's Codex. Body contains public identifiers only, never a plan or APAS record. */
 export async function POST(request: Request) {
   const headers = { "Cache-Control": "private, no-store" };
@@ -57,7 +58,8 @@ export async function POST(request: Request) {
       await catalogCheck([...new Set(courses)], [...new Set(programs)]),
       { headers },
     );
-  } catch {
+  } catch (error) {
+    logServerError("/api/catalog-check", error);
     return Response.json(
       { error: "Catalog data could not be checked. Try again." },
       { status: 503, headers },

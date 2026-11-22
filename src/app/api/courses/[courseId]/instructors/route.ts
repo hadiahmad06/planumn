@@ -1,4 +1,5 @@
 import { getInstructorInsights } from "@/server/catalog/instructors";
+import { logServerError } from "@/server/errors/errorLog";
 /** Written by Michael's Codex. Public historical aggregates only. */
 export async function GET(
   _request: Request,
@@ -13,7 +14,8 @@ export async function GET(
     );
   try {
     return Response.json(getInstructorInsights(id));
-  } catch {
+  } catch (error) {
+    logServerError("/api/courses/[courseId]/instructors", error);
     return Response.json(
       { error: "Instructor history could not be loaded. Please try again." },
       { status: 503 },
