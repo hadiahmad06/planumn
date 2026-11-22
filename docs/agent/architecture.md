@@ -9,6 +9,12 @@
 
 `/plans/compare` loads only the signed-in user's active plans through the existing owner-scoped repository. Comparing never mounts the editor, changes the plan store or saves either source. `comparePlans(left, right)` in `src/features/plans/compare.ts` pairs repeated course entries by term and lock, preserving old repeated-term rows, and distinguishes matching entries, changed locks, another-term appearances and unmatched counts. `duplicatePlan(source, now?)` returns a deep copy with new identity/lifecycle fields and an empty access list; explicit Duplicate saves it as a new row. UserMenu links to the workspace. No PlanRepository, API or persisted row contract changes. `ComparedTerm.key` identifies comparison rows (`prior` for the logical prior-credit bucket; otherwise the term code). Rows also expose `leftKind`/`rightKind` and `leftSlots`/`rightSlots`. Slots pair unchanged shared keys first, then equal label/credit/Lib Ed contents, then a remaining shared key marks edited contents. Prior-credit buckets align across different stored dates. The view shows slot counts/content differences and semester types.
 
+## 2025 plan rows (A1) — Hadi's Claude
+
+> Written by **Hadi's Claude**, 2026-11-22 (#99).
+
+The `plans` row shape is unchanged. `normalizePlan` (run by `SupabasePlanRepository.get`/`list`, and now by `LocalPlanRepository.get`) also fills a null `title` (`""`), a null `last_updated` (`created_at`) and a missing or unknown course `lock` (`"unlocked"`, 2025's own rule); extra fields 2025 stored on courses (`dept_abbr`, `course_num`, `priority`, June 2025's full course details) and extra columns (`major`) are kept untouched. `planProblems(value)` lists why a value isn't a storable plan; `isPlan` is now `planProblems(value).length === 0` and additionally requires `Semester.index` to be a string (a number used to pass the regex and then crash `parseTerm`). `checkPlanRow` / `checkExport` in `src/features/plans/check2025.ts` back `scripts/check-2025-plans.ts`. Every 2025 shape found, with evidence, is a fixture in `src/features/plans/__fixtures__/plans2025.ts`; rules in `heuristics.md` §9.
+
 ## Stack
 
 | Concern | Choice | Why |

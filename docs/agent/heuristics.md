@@ -123,6 +123,18 @@ Columns: **Rule** (what the code assumes) · **Why** · **How it fails** · **Sh
 | The new audit is the first row on *View Previous APAS* whose id **wasn't there before** we clicked Run Declared Programs (ids noted first, so no clock comparison). Among several, a **degree program** is sent first (APAS code `1 PPPP SS DDD` with a non-zero degree part), so honors or lower-division audits aren't picked over the major. Only one audit is sent per import for now. | Declared programs produce several audits at once; the major is what a plan needs. | A student with two majors gets the first one listed. If another audit finishes in the same moment (e.g. run from a second tab), it could be picked. | Yes: the bar says each step, and the planu.mn page shows which program the report is for. | `pickNewAudit`, `isDegreeProgram` in `extension/src/automation.js` |
 | The extension waits at most **4 minutes** for the audit, then falls back to the manual Send. It reloads the list every 15 s in case APAS stopped refreshing. | APAS usually finishes within a minute. | A slow APAS day times out early. | Yes: "APAS is taking longer than usual…". | `WAIT_MS`, `RELOAD_MS` |
 
+## 9. 2025 plan rows (A1)
+
+> Added by **Hadi's Claude**, 2026-11-22 (#99). Rules `normalizePlan` (`src/features/plans/validation.ts`) applies when a stored row or a 2025 browser autosave is read. Each one only fills a missing value; nothing a row holds is dropped. `node scripts/check-2025-plans.ts <export.json>` reports which real rows each rule touches. Fixtures: `src/features/plans/__fixtures__/plans2025.ts`.
+
+| Rule | Why | How it fails | Shown? | Where |
+|---|---|---|---|---|
+| A course whose `lock` is missing or isn't locked/unlocked/autofilled loads as **"unlocked"**, and the next save writes that. | Every 2025 loader did the same (`app/plan/[planId]/page.tsx`, e0ec876 → main). Without it v2 can't save the plan at all. | If a hand-made row meant a course to be fixed in place, it can now be dragged. | No (2025 didn't show it either). | `normalizePlan` |
+| A null `title` loads as `""`. | **Guess:** `title` arrived on 2025-06-07 (49f54ce); the table migration isn't in the repo, so rows older than that may hold null. Without it v2 can't save the plan. | None known: 2025 showed `""` as "Unnamed Plan". | Yes: "Untitled plan". | `normalizePlan` |
+| A null `last_updated` loads as `created_at`. | **Guess**, same as `title` (column also from 49f54ce). | My Plans shows the creation date as "Updated" until the next save. Server ordering (`order by last_updated desc`) still puts nulls first. | Yes, as that date. | `normalizePlan` |
+| A browser autosave (`planumn:autosave:v1` or 2025's `plan` key) gets the same rules, and its ownership fields are reset **before** it's checked. | 2025 autosaves written 2025-06-10 → 06-17 have no `deletion_scheduled_at` (added in d4bcf97). | Autosaves from before 2025-06-07 (`createdAt`, `major`, no title) still don't open: "could not be read", and the stored copy is kept. | Error text only. | `LocalPlanRepository.get` |
+| Existing (not new here): semesters are **sorted by term** and repeated term codes **merged** when the editor loads a plan, so the first save writes them sorted. | 2025's `generateCurrentYear` (`lib/ManipulateYear.tsx`) wrote Fall, Summer, Spring. | Order only; `check-2025-plans` reports "loses data" if a merge would drop a repeated term's fields. | No. | `normalizeSemesters` in `src/domain/plan.ts`, `usePlanStore.loadPlan` |
+
 ## Open gaps to close
 
 1. ~~Autofill must list its rules in the dialog.~~ Done in #62.

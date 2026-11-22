@@ -1,6 +1,6 @@
 import type { Plan } from "@/domain/plan";
 import type { PlanRepository } from "@/contracts/plan-repository";
-import { isPlan } from "./validation";
+import { isPlan, normalizePlan } from "./validation";
 export const AUTOSAVE_KEY = "planumn:autosave:v1";
 /** Written by Michael's Codex. Storage failures propagate; never claim a failed save succeeded. */
 export class LocalPlanRepository implements PlanRepository {
@@ -15,17 +15,24 @@ export class LocalPlanRepository implements PlanRepository {
       this.storage.getItem(AUTOSAVE_KEY) ?? this.storage.getItem("plan");
     if (!raw) return null;
     const parsed: unknown = JSON.parse(raw);
-    if (!isPlan(parsed))
+    // A1 (Hadi's Claude): 2025's "plan" key gets the same row rules as the cloud, and the
+    // ownership fields are set before checking, so a 2025 autosave written before
+    // `deletion_scheduled_at` existed (June 2025) still opens. Storage is untouched until a save.
+    const plan =
+      parsed && typeof parsed === "object"
+        ? {
+            ...normalizePlan(parsed as Plan),
+            id: null,
+            user_id: null,
+            can_view: [],
+            deletion_scheduled_at: null,
+          }
+        : parsed;
+    if (!isPlan(plan))
       throw new Error(
         "This browser's autosave could not be read. Your stored copy has been kept.",
       );
-    return {
-      ...parsed,
-      id: null,
-      user_id: null,
-      can_view: [],
-      deletion_scheduled_at: null,
-    };
+    return plan;
   }
   async save(plan: Plan): Promise<Plan> {
     const local = {
