@@ -52,3 +52,32 @@ jobs:
             playwright-report/
             test-results/
           retention-days: 7
+
+  # The same smoke suite against the Cloudflare Worker build (Hadi's Claude, #118): vinext build,
+  # catalog loaded into a local D1, served by `wrangler dev`. Local only; no Cloudflare account or token.
+  e2e-worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      WRANGLER_SEND_METRICS: "false"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build:vinext
+      - run: npm run export:d1
+      - run: npx wrangler d1 execute planumn-catalog --local --persist-to .wrangler/state --file .wrangler/catalog-d1.sql -y
+      - name: Start the Worker
+        run: |
+          npx wrangler dev --config dist/server/wrangler.json --persist-to .wrangler/state --port 8788 --ip 127.0.0.1 > wrangler-dev.log 2>&1 &
+          for i in $(seq 1 90); do curl -sf -o /dev/null http://127.0.0.1:8788/api/departments && exit 0; sleep 2; done
+          cat wrangler-dev.log; exit 1
+      - run: npm run e2e -- --trace off
+        env:
+          E2E_BASE_URL: http://127.0.0.1:8788
+      - if: failure()
+        run: cat wrangler-dev.log

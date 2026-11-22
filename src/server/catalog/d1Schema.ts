@@ -20,13 +20,17 @@ export const CATALOG_TABLES = [
  * secondary indexes, so without these every join would scan whole tables (and count against D1's
  * daily rows-read allowance). Run by the D1 export and, against an in-memory copy, by the Node path.
  */
-export const DERIVED_SQL = [
+export const COURSE_TERMS_SQL = [
   `CREATE TABLE course_terms (class_id INTEGER PRIMARY KEY, terms TEXT NOT NULL)`,
   `INSERT INTO course_terms (class_id, terms)
      SELECT class_id, group_concat(term, ',') FROM (
        SELECT DISTINCT d.class_id AS class_id, t.term AS term FROM distribution d
        JOIN termdistribution t ON t.dist_id = d.id ORDER BY d.class_id, t.term)
      GROUP BY class_id`,
+] as const;
+
+export const DERIVED_SQL = [
+  ...COURSE_TERMS_SQL,
   `CREATE INDEX idx_class_code ON classdistribution (campus, dept_abbr, course_num)`,
   `CREATE INDEX idx_class_group ON classdistribution (courseGroupId)`,
   `CREATE INDEX idx_dist_class ON distribution (class_id)`,

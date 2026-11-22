@@ -21,8 +21,8 @@ export function parseQuery(raw: string): ParsedQuery {
   if (code) return { dept: code[1], number: code[2], words: [] };
   if (/^\d{1,4}[A-Z]?$/.test(q)) return { dept: null, number: q, words: [] };
   if (/^[A-Z]{2,4}$/.test(q)) return { dept: q, number: null, words: [q] };
-  // Capped so a query never nears D1's 100-bound-parameter limit.
-  return { dept: null, number: null, words: q.split(" ").filter(Boolean).slice(0, 12) };
+  // Capped so a query stays under D1's 100-bound-parameter limit (search binds about 8 more).
+  return { dept: null, number: null, words: q.split(" ").filter(Boolean).slice(0, 80) };
 }
 
 /**

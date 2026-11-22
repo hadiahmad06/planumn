@@ -17,8 +17,9 @@
   - `npx wrangler d1 execute planumn-catalog --local --file .wrangler/catalog-d1.sql`
   - `--remote` instead of `--local` for production.
 
-  The file drops and recreates its tables, so after a catalog rebuild you just export and load again. No redeploy is needed.
+  The file drops and recreates its tables, so after a catalog rebuild you just export and load again. No redeploy is needed. A remote load is **not atomic**: while it runs (minutes), the live site can see missing or partial tables. Reload at a quiet time.
 - **Caching:** `"use cache"` (CourseDog programs, Lib Ed, minors) uses vinext's in-memory cache, one per Worker isolate. There is no KV and no shared cache (`vinext init --cdn-cache=none --data-cache=none --image-optimization=none`). That keeps the free plan simple, but a fresh isolate fetches CourseDog again.
+- **pdf2json on Workers:** pdf2json bundles an old pdf.js whose own Promise flushes callbacks with `setTimeout(…, 0)` behind a global `running` flag. Workers cancel a request's pending timers once its response is sent, so a flush scheduled then left the flag stuck, and every later transcript upload in that isolate hung (#118 review). `vite.config.ts` rewrites that one call to `queueMicrotask` in the Workers build only. The build fails if pdf2json changes the line. The e2e test "transcript import works on repeated uploads" covers it, and CI's `e2e-worker` job runs the whole smoke suite against `wrangler dev`.
 - **Secrets:** `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are build variables, and also runtime text variables, in Cloudflare. `SUPABASE_SERVICE_ROLE_KEY` is a runtime secret, set by Hadi in the dashboard. Agents never handle it.
 - **Hadi's rule:** no Cloudflare tokens, MCP config or account-specific setup in this repo. API access for agents is a network secret on Hadi's own cloud environment (host `api.cloudflare.com`).
 
@@ -27,17 +28,25 @@
 `wrangler dev` on the vinext build, with the catalog loaded into a local Cloudflare D1:
 
 - **Course API:** search, course details, by-code lookup, departments and instructors return the same data as before.
-- **Transcript import:** behaves the same as under `next start`.
-- **Browser tests:** all 8 smoke tests pass (`E2E_BASE_URL=http://localhost:8787`).
+- **Transcript import:** repeated and concurrent uploads return 200, as under `next start`. The first version only handled the first upload per isolate; see pdf2json above.
+- **Browser tests:** the smoke suite passes (`E2E_BASE_URL=http://localhost:8787`). CI runs it against the Worker too (`e2e-worker`).
 - **Home page:** renders the same as under Next.js.
 - **Size:** about 1.1 MB gzipped, under the free plan's 3 MB Worker limit.
 - **Unit tests:** all pass on the `node:sqlite` path.
 
-Not yet run on Cloudflare itself: signed-in Supabase flows, and the latency and rows read in production.
+Not yet run on Cloudflare itself:
+- Signed-in Supabase flows.
+- Latency and rows read in production.
+- **CPU time:** the free plan allows 10 ms of CPU per request, and `wrangler dev` doesn't enforce it. Server rendering, building the minors and Lib Ed indexes in a fresh isolate, and PDF parsing could go over and return error 1102. Check CPU time in Workers observability right after the first deploy.
 
 ## Known gaps
 
-- **Search scans titles:** each title search still reads every Twin Cities course (about 11,000 rows), which is about 450 searches a day per 5 million rows. Course-code searches use the index. If usage gets near the limit, move title search to FTS5 or an in-memory index per isolate.
+- **Rows read (free plan: 5 million a day):** course-code searches and course lookups use indexes and read a handful of rows. These read every Twin Cities course (about 11,000 rows) each time:
+  - every title search;
+  - every filtered search with an empty query (it has no `LIMIT`);
+  - `courseFacts`, once per new isolate.
+
+  That's roughly 450 such reads a day. If usage gets near the limit, move title search to FTS5 or an in-memory index per isolate.
 - **Experimental vinext feature:** vinext reports `cacheComponents` as experimental. `partialPrefetching` is a Next.js-only setting.
 - **Vercel Analytics:** it only collects data on Vercel. Remove it at cutover, or replace it with Cloudflare Web Analytics.
 

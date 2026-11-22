@@ -1,5 +1,5 @@
 import "server-only";
-import { DERIVED_SQL } from "./d1Schema.ts";
+import { COURSE_TERMS_SQL } from "./d1Schema.ts";
 
 /**
  * Read-only course catalog (GopherGrades-derived; see docs/agent/architecture.md and
@@ -66,9 +66,10 @@ async function openSqliteFile(): Promise<CatalogDb> {
   // An in-memory main database with the catalog attached read-only, so DERIVED_SQL's course_terms
   // can be built without writing to data/catalog.db. (Indexes only matter for D1's read cost.)
   const db = new DatabaseSync(":memory:");
-  db.prepare("ATTACH DATABASE ? AS cat").run(`file:${file}?mode=ro`);
+  // URI form for mode=ro; escape the characters a SQLite URI path treats specially.
+  const uriPath = file.replace(/[%?#]/g, (c) => `%${c.charCodeAt(0).toString(16).padStart(2, "0")}`);
+  db.prepare("ATTACH DATABASE ? AS cat").run(`file:${uriPath}?mode=ro`);
   // Unqualified names resolve to main first, then the attached catalog.
-  db.exec(DERIVED_SQL[0]);
-  db.exec(DERIVED_SQL[1]);
+  for (const sql of COURSE_TERMS_SQL) db.exec(sql);
   return { all: async (sql, ...params) => db.prepare(sql).all(...params) as never };
 }

@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { card, COURSES, expect, freshTerms, label, openSeeded, PROGRAM, seededPlan, semester, test } from "./fixtures";
 
 /**
@@ -135,4 +136,18 @@ test("Export PDF starts a download", async ({ stubbed: page }) => {
   const bytes = await (await file.createReadStream()).toArray();
   expect(Buffer.concat(bytes).subarray(0, 5).toString()).toBe("%PDF-");
   await expect(page.getByText(/^PDF exported/)).toBeVisible();
+});
+
+// #118 review (Hadi's Claude): on Workers, pdf2json's bundled pdf.js once hung every upload after the
+// first one in an isolate. Upload the synthetic transcript several times in a row.
+test("transcript import works on repeated uploads", async ({ request, baseURL }) => {
+  const pdf = readFileSync("src/features/transcript/fixtures/synthetic-transcript.pdf");
+  for (let i = 0; i < 3; i++) {
+    const res = await request.post("/api/transcript", {
+      headers: { Origin: new URL(baseURL!).origin },
+      multipart: { file: { name: "transcript.pdf", mimeType: "application/pdf", buffer: pdf } },
+      timeout: 10_000,
+    });
+    expect(res.status(), `upload ${i + 1}`).toBe(200);
+  }
 });
