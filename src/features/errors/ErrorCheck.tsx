@@ -1,10 +1,14 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { ERROR_CHECK_MESSAGE } from "./checks";
 
-/** L6 (Hadi's Claude, 2026-11-22): see `src/app/info/error-check/page.tsx`. */
-export function ErrorCheck() {
+/**
+ * L6 (Hadi's Claude, 2026-11-22): see `src/app/info/error-check/page.tsx`. `other` links to the other
+ * check page with a client-side navigation (same document), so two crashes in one tab can be checked.
+ */
+export function ErrorCheck({ other }: { other: "/info/error-check" | "/plan/error-check" }) {
   const [broken, setBroken] = useState(false);
   if (broken) throw new Error(ERROR_CHECK_MESSAGE);
   return (
@@ -20,6 +24,11 @@ export function ErrorCheck() {
       >
         Throw a test error
       </button>
+      <p className="mt-6">
+        <Link href={other} className="text-text-secondary underline hover:text-text-primary">
+          Open the other error check ({other})
+        </Link>
+      </p>
     </main>
   );
 }

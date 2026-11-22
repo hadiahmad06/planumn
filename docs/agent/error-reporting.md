@@ -1,6 +1,6 @@
 # Error reporting (L6): where to look in Vercel
 
-> Written by **Hadi's Claude**, 2026-11-22 (L6, #114). Default from #16: Vercel's built-in logs plus a React error boundary, no new vendor. Updated the same day for the review on #115.
+> Written by **Hadi's Claude**, 2026-11-22 (L6, #114). Default from #16: Vercel's built-in logs plus a React error boundary, no new vendor. Updated the same day for the review on #115 and its replacement PR (per-crash reporting).
 
 ## What gets logged
 
@@ -21,9 +21,9 @@ Never logged: request headers, cookies, bodies, plans, course lists, names, emai
 ## One crash, one line, one reference
 
 - **Server Component, action, route handler or proxy error:** one `render`/`api` line from `onRequestError`. The error page shows Next's digest and does **not** report again from the browser.
-- **Client component crash:** one `client` line, sent by the error page, under the `c-…` reference the page shows. At most one report per page load; a second crash after "Try again" shows the same reference.
+- **Client component crash:** one `client` line, sent by the error page, under the `c-…` reference the page shows. The reference and the "already reported" state are keyed on the pathname and the message, because a client-side navigation keeps the same document: the same crash after "Try again" (or re-rendering) shows the same reference and isn't sent again, while a different crash, including one on another route reached by client-side navigation, gets its own reference and its own line. At most 5 reports per document; a crash past that still shows a reference, but no line has it. (Fixed in #115's replacement; before, one crash per tab was reported and later crashes showed its reference.)
 - **Client component that also throws while the server renders its HTML** (`renderSource: "server-rendering"`): the server copy is **not** logged (`shouldLogRequestError`), because the browser throws again and reports it under the reference the student sees (N1 on #115). Trade-off: a client component that fails only on the server and recovers in the browser leaves no line. The student sees nothing wrong in that case.
-- Every boundary reports: `src/app/error.tsx`, `src/app/plan/error.tsx` (plan copy, same `ErrorScreen`) and `src/app/global-error.tsx`.
+- Every boundary reports: `src/app/error.tsx`, `src/app/plan/error.tsx` (plan copy, same `ErrorScreen`) and `src/app/global-error.tsx`. "Try again" calls Next.js's `retry`, or `reset` in the Workers build (vinext passes only `reset`).
 
 ## Where to look
 
@@ -41,7 +41,7 @@ The endpoint has to be open (any visitor's browser sends to it), so it limits wh
 
 **Kill switch:** set `CLIENT_ERROR_REPORTS=off` in the Vercel project's environment variables and redeploy (env changes apply to new deployments). The endpoint then answers 204 and logs nothing, and `/info/error-check/server` returns 404.
 
-**For Hadi: a Vercel Firewall rate limit (no code).** An in-memory limit in a serverless function doesn't hold, so the per-IP limit belongs in the firewall. In the Vercel dashboard → planumn → **Firewall** → add a custom rule (names as of writing; check Vercel's Firewall docs if the UI differs):
+**For Hadi: a firewall rate limit (no code).** An in-memory limit in a serverless function or Worker isolate doesn't hold, so the per-IP limit belongs in the firewall. On Cloudflare (hosting is moving there, `docs/agent/cloudflare.md`) that is a WAF rate-limiting rule on `POST /api/client-error`, 10 requests per 60 s per IP. Until the cutover, on Vercel: dashboard → planumn → **Firewall** → add a custom rule (names as of writing; check Vercel's Firewall docs if the UI differs):
 - **If** Request Path *equals* `/api/client-error` **and** Method *equals* `POST`
 - **Then** Rate Limit: fixed window, **60 s**, **10 requests**, keyed on **IP**, action **429 / deny**
 - A second rule for Request Path *starts with* `/info/error-check/server`, 5 requests per 60 s per IP, keeps the server check from being used to flood the log.

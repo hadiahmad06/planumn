@@ -2,7 +2,7 @@
 
 import { useLayoutEffect } from "react";
 import "./globals.css";
-import { ErrorScreen } from "@/features/errors/ErrorScreen";
+import { ErrorScreen, tryAgain, type ErrorPageProps } from "@/features/errors/ErrorScreen";
 import { THEME_KEY, themePreference } from "@/features/theme/preferences";
 
 /**
@@ -10,7 +10,7 @@ import { THEME_KEY, themePreference } from "@/features/theme/preferences";
  * document. The root layout's theme bootstrap doesn't run here, so the saved theme is applied again
  * (without one, `globals.css` follows the OS through prefers-color-scheme).
  */
-export default function GlobalError({ error, retry }: { error: unknown; retry: () => void }) {
+export default function GlobalError(props: ErrorPageProps) {
   useLayoutEffect(() => {
     try {
       document.documentElement.dataset.theme = themePreference(localStorage.getItem(THEME_KEY));
@@ -22,7 +22,7 @@ export default function GlobalError({ error, retry }: { error: unknown; retry: (
   return (
     <html lang="en" suppressHydrationWarning className="h-full antialiased">
       <body className="min-h-full">
-        <ErrorScreen error={error} retry={retry} fullReloadHome />
+        <ErrorScreen error={props.error} retry={tryAgain(props)} fullReloadHome />
       </body>
     </html>
   );

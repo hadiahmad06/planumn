@@ -2,10 +2,17 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
-import { clientErrorReport, pageReference, sendClientErrorReport, serverDigest } from "./report";
+import { clientErrorReport, crashReference, sendClientErrorReport, serverDigest } from "./report";
 
 const secondary =
   "rounded-row border border-border-strong px-4 py-2.5 text-center font-medium text-text-primary hover:bg-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
+
+/**
+ * What an `error.tsx`/`global-error.tsx` receives. Next.js 16 passes `retry` (refetch and re-render)
+ * and `reset`; vinext (the Workers build) passes only `reset`. `tryAgain` picks the best one.
+ */
+export type ErrorPageProps = { error: unknown; reset: () => void; retry?: () => void };
+export const tryAgain = ({ retry, reset }: ErrorPageProps) => retry ?? reset;
 
 /**
  * L6 (Hadi's Claude, 2026-11-22): the friendly page `error.tsx` and `global-error.tsx` show. It never
@@ -13,8 +20,10 @@ const secondary =
  * a `c-…` reference for a client-side crash, which is reported to the server logs here).
  *
  * Reporting rule (N1 on #115): an error that carries a Next.js digest was logged on the server by
- * `onRequestError` and is **not** reported again. A client crash is reported **once per page load**
- * under one `c-…` reference; later crashes in the same page load show that same reference.
+ * `onRequestError` and is **not** reported again. A client crash is reported **once** under one `c-…`
+ * reference, keyed on the pathname and the message (blocking finding on #115): the same crash after
+ * "Try again" shows the same reference, and a different crash, including one on another route reached
+ * by client-side navigation, gets its own reference and report (at most 5 per document).
  */
 export function ErrorScreen({
   error,
@@ -31,12 +40,13 @@ export function ErrorScreen({
   fullReloadHome?: boolean;
 }) {
   const digest = serverDigest(error);
-  const reference = digest ?? pageReference();
+  const pathname = typeof window === "undefined" ? "/" : window.location.pathname;
+  const reference = digest ?? crashReference(error, pathname);
 
   useEffect(() => {
     if (digest) return; // Already logged on the server by onRequestError.
-    sendClientErrorReport(clientErrorReport(error, window.location.pathname, reference));
-  }, [error, digest, reference]);
+    sendClientErrorReport(clientErrorReport(error, pathname, reference));
+  }, [error, digest, pathname, reference]);
 
   return (
     <main className="flex min-h-dvh items-center justify-center bg-canvas px-4 py-10 text-text-primary">

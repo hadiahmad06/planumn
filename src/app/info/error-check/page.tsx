@@ -9,5 +9,5 @@ import { ErrorCheck } from "@/features/errors/ErrorCheck";
 export const metadata: Metadata = { title: "Error check | planu.mn", robots: { index: false, follow: false } };
 
 export default function Page() {
-  return <ErrorCheck />;
+  return <ErrorCheck other="/plan/error-check" />;
 }

@@ -7,7 +7,7 @@ import { THEME_KEY } from "../src/features/theme/preferences";
  * L6 error reporting (Hadi's Claude, 2026-11-22): a client component throws, the app's error boundary
  * shows the friendly page (no message, no stack), the crash is reported to `/api/client-error` with
  * only the route, a reference, the message and the stack, and "Try again" recovers.
- * Review fixes on #115: `/plan`'s own boundary reports too (M1), one report per page load (M3), the root
+ * Review fixes on #115: `/plan`'s own boundary reports too (M1), one report per crash (M3; two crashes on two routes in one document each report), the root
  * layout survives a page crash (N2: fails if `src/app/error.tsx` is gone and `global-error` takes over),
  * and server errors are not reported again from the browser (N2: the digest skip in `ErrorScreen`).
  */
@@ -57,7 +57,7 @@ test("a client component throws → friendly error page, report sent, Try again 
   await expect(page.getByRole("heading", { name: "Error check" })).toBeVisible();
 });
 
-test("M3: one report per page load, and the same reference after Try again", async ({ stubbed: page }) => {
+test("M3: one report per crash, and the same reference after Try again", async ({ stubbed: page }) => {
   const reports = countReports(page);
   await page.goto("/info/error-check");
   const alert = page.getByRole("alert", { name: "This page hit a snag" });
@@ -69,6 +69,41 @@ test("M3: one report per page load, and the same reference after Try again", asy
   await expect(alert.locator(".font-mono")).toHaveText(first!);
   await page.waitForTimeout(1000);
   expect(reports).toHaveLength(1);
+});
+
+test("two crashes on two routes in one document (client-side navigation): each its own reference and report", async ({ stubbed: page }) => {
+  // Blocking finding on #115 at 2366ac0: the second crash showed the first reference and sent nothing.
+  const reports = countReports(page);
+  const answers: number[] = [];
+  page.on("response", (r) => {
+    if (r.url().endsWith("/api/client-error")) answers.push(r.status());
+  });
+  await page.goto("/info/error-check");
+  await page.evaluate(() => ((window as unknown as { sameDocument: boolean }).sameDocument = true));
+
+  await page.getByRole("button", { name: "Throw a test error" }).click();
+  const info = page.getByRole("alert", { name: "This page hit a snag" });
+  const first = (await info.locator(".font-mono").textContent())!;
+  expect(first).toMatch(/^c-[0-9a-f]{8}$/);
+  await expect.poll(() => reports.length).toBe(1);
+
+  await info.getByRole("button", { name: "Try again" }).click();
+  await page.getByRole("link", { name: /Open the other error check/ }).click();
+  await expect(page).toHaveURL(/\/plan\/error-check$/);
+  await page.getByRole("button", { name: "Throw a test error" }).click();
+  const plan = page.getByRole("alert", { name: "The plan could not be displayed" });
+  const second = (await plan.locator(".font-mono").textContent())!;
+  expect(second).toMatch(/^c-[0-9a-f]{8}$/);
+  expect(second).not.toBe(first);
+  // Still the same document: a client-side navigation, not a page load.
+  expect(await page.evaluate(() => (window as unknown as { sameDocument?: boolean }).sameDocument)).toBe(true);
+
+  await expect.poll(() => reports.length).toBe(2);
+  expect(reports[0]).toMatchObject({ route: "/info/error-check", digest: first, message: ERROR_CHECK_MESSAGE });
+  expect(reports[1]).toMatchObject({ route: "/plan/error-check", digest: second, message: ERROR_CHECK_MESSAGE });
+  await expect.poll(() => answers).toEqual([204, 204]);
+  await page.waitForTimeout(1000);
+  expect(reports).toHaveLength(2);
 });
 
 test("M1: a crash under /plan uses the plan boundary and is reported", async ({ stubbed: page }) => {
@@ -119,7 +154,11 @@ test("an unknown URL shows the 404 page with a link home", async ({ stubbed: pag
   expect(response?.status()).toBe(404);
   await expect(page.getByRole("heading", { name: "We couldn't find that page" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
-  await page.getByRole("link", { name: "Go to the home page" }).click();
+  // N nit on #115: the home link is the primary (accent) action and comes first; "Try again" is secondary.
+  const home = page.getByRole("link", { name: "Go to the home page" });
+  await expect(home).toHaveClass(/bg-accent/);
+  await expect(page.getByRole("button", { name: "Try again" })).not.toHaveClass(/bg-accent/);
+  await home.click();
   await expect(page).toHaveURL(/\/$/);
 });
 
