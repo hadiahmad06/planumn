@@ -20,13 +20,13 @@ export default function NotFound() {
           The link may be old or mistyped. You can start or reopen a plan from the home page.
         </p>
         <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+          <ReloadButton className="rounded-row bg-accent px-4 py-2.5 text-center font-medium text-surface hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" />
           <Link
             href="/"
-            className="rounded-row bg-accent px-4 py-2.5 text-center font-medium text-surface hover:bg-accent-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            className="rounded-row border border-border-strong px-4 py-2.5 text-center font-medium text-text-primary hover:bg-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             Go to the home page
           </Link>
-          <ReloadButton className="rounded-row border border-border-strong px-4 py-2.5 text-center font-medium text-text-primary hover:bg-sunken focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" />
         </div>
       </section>
     </main>

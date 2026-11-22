@@ -8,6 +8,9 @@ import {
   MAX_MESSAGE,
   MAX_STACK_LINES,
   routeOnly,
+  routePattern,
+  scrubQuoted,
+  shouldLogRequestError,
 } from "./errorLog";
 import { clientErrorReport, serverDigest } from "@/features/errors/report";
 
@@ -63,6 +66,34 @@ describe("error log lines", () => {
       route: "/api/programs/[id]",
       message: "CourseDog programs 1: 500",
     });
+  });
+});
+
+describe("review fixes (#115)", () => {
+  it("escapes U+2028 and U+2029 in the log line", () => {
+    const line = errorLogLine(errorLogEntry({ source: "client", route: "/", message: "a\u2028b\u2029c" }));
+    expect(line).not.toMatch(/[\u2028\u2029]/);
+    expect(line).toContain("a\\u2028b\\u2029c");
+    expect(JSON.parse(line.slice("[planumn:error] ".length)).message).toBe("a\u2028b\u2029c");
+  });
+
+  it("logs client routes as patterns", () => {
+    expect(routePattern("/plan/0b9c3e7a-1111-4222-8333-944445555666?x=1")).toBe("/plan/[planId]");
+    expect(routePattern("/plans/compare")).toBe("/plans/compare");
+    expect(routePattern("/x/123456/0B9C3E7A-1111-4222-8333-944445555666")).toBe("/x/[id]/[id]");
+  });
+
+  it("scrubs quoted text", () => {
+    expect(scrubQuoted(`Unexpected token 'x', "{"title":"My plan"}" is not valid JSON`)).not.toContain("My plan");
+    expect(scrubQuoted("no quotes")).toBe("no quotes");
+  });
+
+  it("skips only client components failing in the HTML render (N1)", () => {
+    expect(shouldLogRequestError({ routeType: "render", renderSource: "server-rendering" })).toBe(false);
+    expect(shouldLogRequestError({ routeType: "render", renderSource: "react-server-components" })).toBe(true);
+    expect(shouldLogRequestError({ routeType: "render", renderSource: "react-server-components-payload" })).toBe(true);
+    expect(shouldLogRequestError({ routeType: "route" })).toBe(true);
+    expect(shouldLogRequestError({ routeType: "action" })).toBe(true);
   });
 });
 

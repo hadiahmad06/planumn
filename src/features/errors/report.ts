@@ -17,10 +17,22 @@ export function serverDigest(error: unknown): string | undefined {
   return undefined;
 }
 
+/** The shape `/api/client-error` accepts for `digest`. */
+export const CLIENT_REFERENCE = /^c-[0-9a-f]{8}$/;
+
 export function clientReference(): string {
   const bytes = new Uint8Array(4);
   crypto.getRandomValues(bytes);
   return `c-${[...bytes].map((b) => b.toString(16).padStart(2, "0")).join("")}`;
+}
+
+let reference: string | undefined;
+let reported = false;
+
+/** One `c-…` reference per page load, so the reference shown always matches the one logged report. */
+export function pageReference(): string {
+  reference ??= clientReference();
+  return reference;
 }
 
 /** The report for a client-side crash. Pure, for tests. */
@@ -32,8 +44,13 @@ export function clientErrorReport(error: unknown, pathname: string, reference: s
   return report;
 }
 
-/** Fire and forget: reporting must never throw or block the error page. */
+/**
+ * Fire and forget: reporting must never throw or block the error page. At most one report per page
+ * load (M3 on #115): a boundary can re-render or fail again after "Try again".
+ */
 export function sendClientErrorReport(report: ClientErrorReport): void {
+  if (reported) return;
+  reported = true;
   try {
     void fetch("/api/client-error", {
       method: "POST",
