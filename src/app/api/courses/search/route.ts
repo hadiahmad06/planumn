@@ -3,6 +3,7 @@ import { parseFilters } from "@/domain/searchFilters";
 import { searchCourses } from "@/server/catalog/search";
 import { fetchLibEdIndex } from "@/server/libed/libEdIndex";
 import { parseLimit } from "./limit";
+import { logServerError } from "@/server/errors/errorLog";
 
 /**
  * GET /api/courses/search?q=csci%202041&limit=50 → CourseSummary[]. 400 if limit isn't a whole number.
@@ -22,7 +23,8 @@ export async function GET(request: NextRequest) {
   if (filters.libEd) {
     try {
       libEdGroups = new Set((await fetchLibEdIndex())[filters.libEd] ?? []);
-    } catch {
+    } catch (error) {
+      logServerError("/api/courses/search", error);
       return Response.json({ error: "The UMN catalog didn't respond. Try again in a minute." }, { status: 502 });
     }
   }

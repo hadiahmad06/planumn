@@ -1,4 +1,5 @@
 import { getProgram } from "@/server/programs/getProgram";
+import { logServerError } from "@/server/errors/errorLog";
 
 /** GET /api/programs/019627107 → Program (requirements with courses resolved). */
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -8,7 +9,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     const program = await getProgram(id);
     if (!program) return Response.json({ error: "Program not found" }, { status: 404 });
     return Response.json(program);
-  } catch {
+  } catch (error) {
+    logServerError("/api/programs/[id]", error);
     return Response.json({ error: "The UMN catalog didn't respond. Try again in a minute." }, { status: 502 });
   }
 }
