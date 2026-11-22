@@ -7,7 +7,7 @@
 ## How it works
 
 - **Build:** [vinext](https://github.com/cloudflare/vinext) rebuilds the unchanged `src/app` on Vite and runs it in a Worker. `npm run build:vinext` writes `dist/` (gitignored), including `dist/server/wrangler.json`, which is the config that actually deploys. `next build` still works and CI runs both builds, so Vercel keeps serving until the DNS cutover.
-- **Config:** `vite.config.ts`, `wrangler.jsonc` (Worker `planumn`, `nodejs_compat`, `keep_vars`, the Cloudflare D1 binding) and `postcss.config.mjs` (Tailwind for Vite, because vinext ignores `turbopack.rules`). They hold **no** tokens or account ids. `database_id` is filled in once the database exists.
+- **Config:** `vite.config.ts`, `wrangler.jsonc` (Worker `planumn`, `nodejs_compat`, `keep_vars`, the Cloudflare D1 binding) and `postcss.config.mjs` (Tailwind for Vite, because vinext ignores `turbopack.rules`). They hold **no** tokens or account ids.
 - **Course catalog:** in a Worker it reads the Cloudflare D1 database `planumn-catalog` (binding `CATALOG_DB`). Everywhere else (Vitest, `next dev`/`next start`) it reads `data/catalog.db` with `node:sqlite`. `src/server/catalog/db.ts` picks one and exposes the same async `all()`.
   - Every query must run on both. That means at most 100 bound parameters (Cloudflare D1's limit), so lists go in as one JSON string through `json_each(?)`, and each statement stays under 100 KB.
   - `src/server/catalog/d1Schema.ts` defines the tables the app reads (`CATALOG_TABLES`) and the derived data (`DERIVED_SQL`):

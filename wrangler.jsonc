@@ -15,7 +15,7 @@
       // Read-only course catalog, loaded from data/catalog.db by scripts/export-d1.ts.
       "binding": "CATALOG_DB",
       "database_name": "planumn-catalog",
-      "database_id": "00000000-0000-0000-0000-000000000000"
+      "database_id": "73f616c6-52d4-4cf9-85af-ed7f29fef8e8"
     }
   ],
   "assets": {
