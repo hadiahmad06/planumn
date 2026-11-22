@@ -20,3 +20,33 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+
+  # A3 smoke suite (Hadi's Claude, 2026-11-22): Playwright against `next start`, signed out, with
+  # CourseDog-backed routes stubbed (e2e/fixtures.ts). No secrets or network services needed.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: npm run e2e -- --trace off
+        env:
+          E2E_SKIP_BUILD: "1"
+      - if: failure()
+        run: npx playwright test --trace on --last-failed
+        env:
+          E2E_SKIP_BUILD: "1"
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
