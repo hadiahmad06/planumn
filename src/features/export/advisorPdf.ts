@@ -15,6 +15,7 @@ import {
   type PlannedCourse,
 } from "@/domain/plan";
 import { groupByYear } from "@/domain/planOps";
+import { CATALOG_DATA_THROUGH } from "@/domain/dataSources";
 import {
   academicYearLabel,
   seasonOf,
@@ -358,7 +359,7 @@ export async function createAdvisorPdf(
   pages.forEach((current, index) => {
     page = current;
     text(
-      "Planning aid, not an official degree audit. Confirm requirements and offerings with your advisor. Catalog data through Fall 2024.",
+      `Planning aid, not an official degree audit. Confirm requirements and offerings with your advisor. Catalog data through ${CATALOG_DATA_THROUGH}.`,
       MARGIN,
       39,
       7.5,

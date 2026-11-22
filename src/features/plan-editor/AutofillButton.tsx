@@ -5,6 +5,7 @@ import { pickCourses, placeCourses, type AutofillCourse } from "@/domain/autofil
 import { courseCode, type CourseId } from "@/domain/course";
 import { plannedCourseIds, type Plan } from "@/domain/plan";
 import { compareTerms, termLabel } from "@/domain/terms";
+import { CATALOG_DATA_THROUGH } from "@/domain/dataSources";
 import { cn } from "@/components/ui/cn";
 import { Modal } from "@/components/ui/Modal";
 import { fetchCourses, useCourseCache } from "@/features/catalog/courseCache";
@@ -136,7 +137,7 @@ function AutofillReview({ plan, onDone }: { plan: Plan; onDone: () => void }) {
           <li>Courses come from what your programs list for requirements you haven&apos;t met; a course that counts twice is preferred. &ldquo;Choose one of&rdquo; groups take the first option that works.</li>
           <li>Requirements that count 0 toward progress (e.g. optional elective credits) are left out.</li>
           <li>Terms: only after the current one, at most the credit limit above, no leave semesters, summers only if ticked.</li>
-          <li>Seasons come from past grade records through Fall 2024 (3+ terms needed); a course may run differently now.</li>
+          <li>Seasons come from past grade records through {CATALOG_DATA_THROUGH} (3+ terms needed); a course may run differently now.</li>
           <li>Prerequisites are read from catalog text, which can be incomplete. Ones in your plan are placed first; ones outside it don&apos;t block and are noted.</li>
           <li>Placement is greedy: the earliest term that fits, so later terms may come out lighter.</li>
         </ul>

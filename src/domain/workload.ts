@@ -2,7 +2,7 @@ import type { CourseId, GradeCounts } from "./course";
 
 /**
  * Semester workload meter (Phase B: B7). A rough signal from historical grades (GopherGrades, through
- * Fall 2024) and credits, not a measure of difficulty. Grades don't capture effort; the UI says so.
+ * CATALOG_DATA_THROUGH in ./dataSources) and credits, not a measure of difficulty. Grades don't capture effort; the UI says so.
  */
 const POINTS: Record<string, number> = {
   A: 4, "A-": 3.667, "B+": 3.333, B: 3, "B-": 2.667, "C+": 2.333, C: 2, "C-": 1.667, "D+": 1.333, D: 1, F: 0,

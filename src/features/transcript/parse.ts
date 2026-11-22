@@ -1,5 +1,6 @@
 import { createEmptyPlan, normalizeSemesters, type Plan } from "@/domain/plan";
 import { academicYear, nextTerm, toTermCode } from "@/domain/terms";
+import { CATALOG_DATA_THROUGH } from "@/domain/dataSources";
 /** Written by Michael's Codex. Never retains names, identifiers, grades or raw text. */
 export function transcriptCourses(text: string) {
   if (!/university\s+of\s+minnesota/i.test(text))
@@ -57,7 +58,7 @@ export function transcriptPlan(
   });
   if (!matched)
     throw new Error(
-      "No transcript courses matched the Twin Cities catalog. The catalog currently ends at Fall 2024.",
+      `No transcript courses matched the Twin Cities catalog. The catalog currently ends at ${CATALOG_DATA_THROUGH}.`,
     );
   const ordered = normalizeSemesters(imported);
   const endYear = Math.max(

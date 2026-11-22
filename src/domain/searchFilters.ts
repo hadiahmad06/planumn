@@ -6,7 +6,7 @@ import type { Season } from "./terms";
  * Smart search filters (Phase B: B8). Written by Hadi's Claude.
  *
  * Every filter is optional; a search needs a query or at least one filter. Offering seasons and average
- * GPA come from historical grades (GopherGrades, through Fall 2024), so they are hints, not schedules.
+ * GPA come from historical grades (GopherGrades, through CATALOG_DATA_THROUGH), so they are hints, not schedules.
  * Lib Ed designations come from the UMN catalog (CourseDog), not the bundled catalog's tags (see B3).
  */
 export interface SearchFilters {

@@ -41,7 +41,7 @@ export async function fetchProgramVersions(programGroupId: string): Promise<Reco
   return (await res.json()) as Record<string, RawProgram>;
 }
 
-/** Names and credits for courses that aren't in data/catalog.db (e.g. new since Fall 2024). */
+/** Names and credits for courses that aren't in data/catalog.db (e.g. new since CATALOG_DATA_THROUGH). */
 export async function fetchCourseDogCourses(groupIds: string[]): Promise<CourseDogCourse[]> {
   "use cache";
   cacheLife("days");

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { plannedCourseIds, semesterKindLabel, type Plan } from "@/domain/plan";
 import { termLabel } from "@/domain/terms";
+import { CATALOG_DATA_THROUGH } from "@/domain/dataSources";
 import { courseCode, formatCredits } from "@/domain/course";
 import { useAuth } from "@/features/auth/useAuth";
 import { fetchCourses, useCourseCache } from "@/features/catalog/courseCache";
@@ -255,7 +256,8 @@ export function SharedPlan() {
           </div>
           <p className="mt-8 text-sm text-text-secondary">
             Planning aid, not an official degree audit. Confirm requirements and
-            offerings with your advisor. Catalog data through Fall 2024.
+            offerings with your advisor. Catalog data through{" "}
+            {CATALOG_DATA_THROUGH}.
           </p>
         </>
       )}

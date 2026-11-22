@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useState, type FormEvent } from "react";
 import { LocalPlanRepository } from "@/features/plans/localRepository";
 import { PlanEditor } from "@/features/plan-editor/PlanEditor";
+import { CATALOG_DATA_THROUGH } from "@/domain/dataSources";
 import type { TranscriptResult } from "./parse";
 /** Written by Michael's Codex. Review matches before any autosave replacement. */
 export function TranscriptImport() {
@@ -114,7 +115,8 @@ export function TranscriptImport() {
           </h2>
           <p>
             Review your imported courses in the plan before relying on it. The
-            catalog covers courses through Fall 2024; transfer credit and
+            catalog covers courses through {CATALOG_DATA_THROUGH}; transfer
+            credit and
             unmatched courses require manual review.
           </p>
           {result.unmatched.length > 0 && (

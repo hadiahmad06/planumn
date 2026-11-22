@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { SiteHeader, SiteFooter } from "@/features/marketing/SiteChrome";
+import { DataCredit } from "@/features/marketing/DataCredit";
 export const metadata = { title: "Contact | planu.mn" };
-/** Written by Michael's Codex. Contact details carried from the 2025 app. */
+/** Written by Michael's Codex. Contact details carried from the 2025 app. Credits section: Hadi's Claude (D2, #98). */
 export default function Page() {
   const people = [
     {
@@ -59,7 +60,14 @@ export default function Page() {
             </section>
           ))}
         </div>
-        <p className="mt-12 text-sm text-text-secondary">
+        <section className="mt-12">
+          <h2 className="text-xl font-semibold">Credits</h2>
+          <p className="mt-2 leading-relaxed text-text-secondary">
+            <DataCredit linkClassName="text-accent underline" /> planu.mn uses
+            this data with their permission. Thank you!
+          </p>
+        </section>
+        <p className="mt-8 text-sm text-text-secondary">
           For details on saved plans, transcript uploads, and deletion, read our{" "}
           <Link href="/info/privacy" className="text-accent underline">
             privacy notice

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { termLabel } from "@/domain/terms";
+import { CATALOG_DATA_THROUGH } from "@/domain/dataSources";
 import { instructorGradeSummary, type InstructorInsight } from "./instructor";
 
 const cache = new Map<number, Promise<InstructorInsight[]>>();
@@ -54,7 +55,7 @@ export function InstructorInsights({ courseId }: { courseId: number }) {
     <section aria-label="Historical grades by instructor">
       <h4 className="font-semibold">Grades by instructor</h4>
       <p className="mt-1 text-xs text-text-secondary">
-        Historical records through Fall 2024. Students, sections and terms
+        Historical records through {CATALOG_DATA_THROUGH}. Students, sections and terms
         differ; these figures do not measure teaching quality or guarantee
         future results.
       </p>
