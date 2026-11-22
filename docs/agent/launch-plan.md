@@ -35,7 +35,7 @@ Launch tickets are numbered **L1–L10** (not D/A/B, which already name Hadi's d
 |---|---|---|---|---|---|---|
 | L1 | #97 | B (pulled forward) | Catalog refresh from GopherGrades: ids kept, `courseGroupId` rebuilt by script, Lib Ed source decided | Requirements | Editor & UI | **L2** (rebases onto it for the "data through" constant) |
 | L2 | #98 | A | Credit GopherGrades / Social Coding UMN in the footer and info pages; one "data through" constant replacing every hard-coded "Fall 2024" | Editor & UI | Plans & accounts (`src/features/export/` uses the string) | — |
-| L3 | #99 | A | 2025 plans load in v2: fixture tests from 2025's plan shape, plus a read-only check script for a real export | Plans & accounts | Editor & UI | — |
+| ~~L3~~ | #99 | — | **Dropped** (Hadi, 2026-11-22: "backwards compatibility does not matter"). #106 closed unmerged; its branch keeps the 2025 variant catalogue | — | — | — |
 | L4 | #100 | A | Production gate: hide APAS import until the extension is published and the UMN policy check is done | APAS | Requirements ("APAS says" in the rail) | — |
 | L5 | #101 | A | End-to-end smoke tests (Playwright) of the main flows, in CI | Editor & UI | Plans & accounts | — |
 | L6 | — | A | Error reporting | Plans & accounts | Editor & UI | Hadi: which service (default on #16: Vercel logs + a React error boundary, no new vendor) |
@@ -44,8 +44,17 @@ Launch tickets are numbered **L1–L10** (not D/A/B, which already name Hadi's d
 | L9 | — | B | APAS-check the 10–20 most common majors. Student APAS reports follow C4's rule: run locally, never committed (they hold names, IDs, GPAs) | Requirements | APAS | Student APAS reports |
 | L10 | — | B | Publish the extension (store accounts, listings, review) | APAS | Plans & accounts | UMN policy check (Phase Y) |
 
-**Merge order:** #102 (Next.js) and #96 first; then L2 → L1; L3, L4, L5 in any order (L5 last if `package.json` conflicts).
+**Merge order:** #102 (Next.js) and #96 first; then L2 → L1; L4, L5 in any order (L5 last if `package.json` conflicts).
 
 ## Next.js advisory
 
-Next.js 16.4.3 has a published security advisory. When a coding agent runs `next build`, 16.4.3 stops once with `SecurityFatalError` and continues on a retry within 5 minutes (`node_modules/next/dist/lib/upgrade/nudge.js`); CI and Vercel aren't affected (CI on this PR passed). Hadi asked for the upgrade on 2026-11-22: #102 moves to 16.4.6.
+Next.js 16.4.3 has a published security advisory. When a coding agent runs `next build`, 16.4.3 stops once with `SecurityFatalError` and continues on a retry within 5 minutes (`node_modules/next/dist/lib/upgrade/nudge.js`); CI and Vercel aren't affected (CI on this PR passed). Hadi asked for the upgrade on 2026-11-22. **Fixed by #102** (16.4.6, merged 2026-11-22): `npm audit --omit=dev` reports no Next.js advisory.
+
+## Breaking changes allowed (2026-11-22)
+
+> Hadi's Claude, 2026-11-22.
+
+Hadi: "backwards compatibility does not matter. Breaking changes are fully permitted." (`docs/human/roadmap.md`, "Launch"). So:
+- v2 doesn't have to open plans saved by the 2025 app, and the `plans` row shape, course ids and `data/catalog.db` tables may change. Changes still go under **Contract change** in the PR.
+- L1 no longer has to keep every old course id; it reports id changes (the L5 suite pins three).
+- At the bar A switch, 2025 rows that v2 can't read stay in the table and show "could not be read". Whether to clear them, or start v2 on a fresh table, is part of L7 (default: leave them).
