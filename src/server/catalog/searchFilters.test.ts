@@ -29,6 +29,24 @@ describe("filtered catalog search (B8)", () => {
     expect((await searchCourses("csci 2021", 10, { noPrereqs: true })).some((c) => c.id === 1004)).toBe(false);
   });
 
+  it("L12: includes courses with a limited history in the season filter, labelled", async () => {
+    const facts = await courseFacts();
+    // CSCI 4115 (10501): Fall 2025 and Spring 2026 only. CHEM 1072 (10007): three terms, Spring and Fall.
+    expect(facts.get(10501)).toMatchObject({ seasons: ["fall", "spring"], limitedTerms: 2 });
+    expect(facts.get(10007)).toMatchObject({ seasons: ["fall", "spring"], limitedTerms: null });
+    const fall = await searchCourses("csci 4115", 10, { season: "fall" });
+    expect(fall.find((c) => c.id === 10501)).toMatchObject({ limitedHistory: 2 });
+    expect(await searchCourses("csci 4115", 10, { season: "summer" })).toEqual([]);
+    const chem = await searchCourses("chem 1072", 10, { season: "spring" });
+    expect(chem.find((c) => c.id === 10007)).toBeDefined();
+    expect(chem.find((c) => c.id === 10007)?.limitedHistory).toBeUndefined();
+    // Without a season filter there is no label.
+    expect((await searchCourses("csci 4115", 10, { level: 4000 })).find((c) => c.id === 10501)?.limitedHistory).toBeUndefined();
+    // 1-term courses are in too.
+    const oneTerm = [...facts.entries()].find(([, f]) => f.limitedTerms === 1)!;
+    expect(oneTerm[1].seasons).toHaveLength(1);
+  });
+
   it("restricts to the given course ids (satisfies requirement X)", async () => {
     expect((await searchCourses("", 50, { courseIds: [77, 1473, 1004] })).map((c) => c.id).sort((a, b) => a - b)).toEqual([77, 1004, 1473]);
     expect((await searchCourses("discrete", 50, { courseIds: [77, 1473] })).map((c) => c.id)).toEqual([77]);

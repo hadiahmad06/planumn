@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CourseDetails } from "./course";
-import { currentTerm, healthCheck, offeredInSeason, offeringHistory, pacing } from "./health";
+import { currentTerm, healthCheck, limitedHistoryLabel, offeredInSeason, offeringHistory, offeringNote, pacing, seenSeasons } from "./health";
 import { createEmptyPlan, type Plan } from "./plan";
 import { addCourse, addSemester, setLock } from "./planOps";
 
@@ -33,6 +33,47 @@ describe("offering history (B4)", () => {
     const fallOnly = offeringHistory(["1219", "1229", "1239", "1249"]);
     expect(offeredInSeason(fallOnly, "1279")).toBe(true);
     expect(offeredInSeason(fallOnly, "1273")).toBe(false);
+  });
+});
+
+describe("short offering histories (L12)", () => {
+  it("1 term: limited, shows the season seen, never rules a season out", () => {
+    const o = offeringHistory(["1259"]);
+    expect(o).toEqual({ known: false, limited: true, seasons: ["fall"], lastTerm: "1259", termCount: 1 });
+    expect(seenSeasons(o)).toEqual(["fall"]);
+    expect(limitedHistoryLabel(o)).toBe("limited history (1 term)");
+    expect(offeredInSeason(o, "1273")).toBe(true);
+    expect(offeringNote(o)).toMatch(/^Seen in Fall: a guess from a limited history \(1 term\), through Fall 2025\./);
+  });
+
+  it("2 terms: limited, both seasons seen, label says 2 terms", () => {
+    const o = offeringHistory(["1263", "1259"]); // CSCI 4115: Fall 2025, Spring 2026
+    expect(o).toMatchObject({ known: false, limited: true, seasons: ["fall", "spring"], lastTerm: "1263", termCount: 2 });
+    expect(limitedHistoryLabel(o)).toBe("limited history (2 terms)");
+    expect(offeredInSeason(o, "1275")).toBe(true);
+    // A repeated term code is one term.
+    expect(offeringHistory(["1259", "1259"])).toMatchObject({ limited: true, termCount: 1 });
+  });
+
+  it("3 terms: known, as before (B4)", () => {
+    const o = offeringHistory(["1253", "1259", "1263"]); // CHEM 1072
+    expect(o).toMatchObject({ known: true, limited: false, seasons: ["fall", "spring"], termCount: 3 });
+    expect(limitedHistoryLabel(o)).toBeNull();
+    expect(offeredInSeason(offeringHistory(["1259", "1269", "1279"]), "1283")).toBe(false);
+  });
+
+  it("no terms: nothing to show", () => {
+    expect(offeringHistory([])).toEqual({ known: false, limited: false });
+    expect(seenSeasons(offeringHistory([]))).toEqual([]);
+  });
+
+  it("gives no 'hasn't run' warning for a 1- or 2-term course, but does for a 3-term one", () => {
+    const courses = { 1: course(1, 4, ["1259"]), 2: course(2, 4, ["1259", "1269"]), 3: course(3, 4, ["1259", "1269", "1279"]) };
+    let p = addCourse(plan(), "1283", 1); // all fall-seen, planned in Spring 2028
+    p = addCourse(p, "1283", 2);
+    p = addCourse(p, "1283", 3);
+    const offering = healthCheck({ plan: p, courses, prereqs: new Map(), now }).filter((i) => i.kind === "offering");
+    expect(offering.map((i) => i.courseId)).toEqual([3]);
   });
 });
 

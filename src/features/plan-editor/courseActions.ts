@@ -4,13 +4,15 @@ import { courseCode, type CourseDetails, type CourseId, type CourseSummary } fro
 import type { Plan, PlannedCourse } from "@/domain/plan";
 import { academicYear, seasonOf, termLabel, toTermCode, type Season, type TermCode } from "@/domain/terms";
 import { usePreviewStore } from "@/features/preview/store";
-import { moveLabel, moveTargets, moveTo } from "./moveCourse";
+import { moveFullLabel, moveLabel, moveTargets, moveTo } from "./moveCourse";
 import { planActions } from "./store";
 
 export interface CourseAction {
   label: string;
   run: () => void;
   danger?: boolean;
+  /** Accessible name when it should say more than the visible label. */
+  ariaLabel?: string;
   /** Draw a separator before this item. */
   separated?: boolean;
 }
@@ -37,14 +39,14 @@ export function courseActions(
     const code = course ? courseCode(course) : "Course";
     const snaps = (["earlier", "later"] as const).flatMap((dir) => {
       const target = targets[dir];
-      return target ? [{ term: target.term, label: moveLabel(dir, target), run: () => moveTo(term, id, target, code) }] : [];
+      return target ? [{ term: target.term, label: moveLabel(dir, target), ariaLabel: moveFullLabel(dir, target), run: () => moveTo(term, id, target, code) }] : [];
     });
     // Then the fixed moves (other seasons this year, same season a year earlier / later), minus repeats.
     // Hidden seasons are skipped: moving there would make the course vanish from view (review of #22).
     const fixed = [...SEASONS.filter((s) => s !== season && !hiddenSeasons.includes(s)).map((s) => termFor(s)), termFor(season, year - 1), termFor(season, year + 1)]
       .filter((t) => !snaps.some((m) => m.term === t))
       .map((t) => ({ label: `Move to ${termLabel(t)}`, run: () => planActions.moveCourseToTerm(term, id, t) }));
-    [...snaps.map(({ label, run }) => ({ label, run })), ...fixed].forEach((a, i) => actions.push({ ...a, separated: i === 0 }));
+    [...snaps.map(({ label, ariaLabel, run }) => ({ label, ariaLabel, run })), ...fixed].forEach((a, i) => actions.push({ ...a, separated: i === 0 }));
   }
   actions.push({
     label: locked ? "Unlock" : "Lock (already taken)",

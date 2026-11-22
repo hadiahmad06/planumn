@@ -9,6 +9,7 @@ export interface MenuAction {
   run: () => void;
   danger?: boolean;
   separated?: boolean;
+  ariaLabel?: string;
 }
 
 /** Right-click menu around `children`. */
@@ -17,14 +18,15 @@ export function ContextMenu({ actions, children }: { actions: MenuAction[]; chil
     <RCM.Root modal={false}>
       <RCM.Trigger asChild>{children}</RCM.Trigger>
       <RCM.Portal>
-        <RCM.Content className="z-50 min-w-48 rounded-card border border-border bg-surface p-1 shadow-overlay">
+        <RCM.Content className="z-50 min-w-48 max-w-[calc(100vw-2rem)] rounded-card border border-border bg-surface p-1 shadow-overlay">
           {actions.map((a) => (
             <div key={a.label}>
               {a.separated && <RCM.Separator className="my-1 h-px bg-border" />}
               <RCM.Item
                 onSelect={a.run}
+                aria-label={a.ariaLabel}
                 className={cn(
-                  "cursor-default rounded-row px-2 py-1.5 text-body outline-none select-none data-[highlighted]:bg-sunken",
+                  "cursor-default break-words rounded-row px-2 py-1.5 text-body outline-none select-none data-[highlighted]:bg-sunken",
                   a.danger ? "text-danger" : "text-text-primary",
                 )}
               >

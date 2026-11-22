@@ -19,7 +19,7 @@ import { stripeColor } from "./courseColor";
 import { plannedId, type DragData } from "./dnd";
 import { useDisplaySettings } from "./displaySettings";
 import { hoverCourse, planActions, usePlanStore } from "./store";
-import { moveLabel, moveTargets, moveTo } from "./moveCourse";
+import { moveFullLabel, moveTargets, moveTo } from "./moveCourse";
 
 /** Card height grows with credits so a semester's load is visible at a glance (2026 redesign). */
 export function cardHeight(course: CourseSummary | undefined) {
@@ -165,8 +165,8 @@ export function CourseCard({ term, index, planned, issues }: { term: TermCode; i
                   disabled={!target}
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={() => target && moveTo(term, planned.id, target, code)}
-                  aria-label={`${code}: ${moveLabel(dir, target)}`}
-                  title={moveLabel(dir, target)}
+                  aria-label={`${code}: ${moveFullLabel(dir, target)}`}
+                  title={moveFullLabel(dir, target)}
                   className="px-1.5 text-micro leading-5 text-text-secondary hover:bg-accent-soft hover:text-accent focus-visible:outline-2 focus-visible:outline-accent disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-text-secondary"
                 >
                   {dir === "earlier" ? "‹" : "›"}

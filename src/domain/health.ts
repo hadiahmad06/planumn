@@ -18,25 +18,59 @@ export const FULL_TIME = 12;
 // ---------------------------------------------------------------------------
 // B4: offering terms
 
-export type Offering = { known: false } | { known: true; seasons: Season[]; lastTerm: TermCode };
+/** Recorded terms needed before a course's seasons count as its offering pattern. */
+export const KNOWN_OFFERING_TERMS = 3;
+
+/**
+ * - `known`: 3+ recorded terms. The seasons seen are treated as the course's pattern (B4).
+ * - `limited` (L12, Hadi's Claude): 1–2 recorded terms, mostly new courses. The seasons seen are shown
+ *   and searchable, labelled "limited history (N terms)", but they never produce a "hasn't run in this
+ *   season" warning and never rule a season out (‹ › snap, registration), since one or two terms say
+ *   little about the seasons a course skips. Autofill only *prefers* them (see `placeCourses`).
+ * - neither: no recorded terms.
+ */
+export type Offering =
+  | { known: false; limited: false }
+  | { known: false; limited: true; seasons: Season[]; lastTerm: TermCode; termCount: number }
+  | { known: true; limited: false; seasons: Season[]; lastTerm: TermCode; termCount: number };
 
 /** Seasons a course has historically run in, from its recorded grade terms. Needs 3+ terms to judge. */
 export function offeringHistory(termsOffered: string[]): Offering {
-  const terms = termsOffered.filter((t) => /^1\d{2}[359]$/.test(t));
-  if (terms.length < 3) return { known: false };
-  const seasons = [...new Set(terms.map(seasonOf))];
-  return { known: true, seasons, lastTerm: [...terms].sort(compareTerms).at(-1)! };
+  const terms = [...new Set(termsOffered.filter((t) => /^1\d{2}[359]$/.test(t)))];
+  if (terms.length === 0) return { known: false, limited: false };
+  const order: Season[] = ["fall", "spring", "summer"];
+  const seen = new Set(terms.map(seasonOf));
+  const seasons = order.filter((s) => seen.has(s));
+  const lastTerm = [...terms].sort(compareTerms).at(-1)!;
+  const termCount = terms.length;
+  return termCount < KNOWN_OFFERING_TERMS
+    ? { known: false, limited: true, seasons, lastTerm, termCount }
+    : { known: true, limited: false, seasons, lastTerm, termCount };
+}
+
+/** Seasons with recorded grades, for a known or a limited history; empty with no history. */
+export function seenSeasons(o: Offering): Season[] {
+  return o.known || o.limited ? o.seasons : [];
+}
+
+/** "limited history (2 terms)" for a short history, else null. */
+export function limitedHistoryLabel(o: Offering): string | null {
+  return o.limited ? `limited history (${o.termCount} term${o.termCount === 1 ? "" : "s"})` : null;
 }
 
 const SEASON_NAME: Record<Season, string> = { fall: "Fall", spring: "Spring", summer: "Summer" };
 
 export function offeringNote(o: Offering): string {
+  if (o.limited)
+    return `Seen in ${o.seasons.map((s) => SEASON_NAME[s]).join(", ")}: a guess from a ${limitedHistoryLabel(o)}, through ${termLabel(o.lastTerm)}. It may run in other seasons too, so check Class Search.`;
   if (!o.known) return "Not enough history to tell when this course is offered.";
-  const order: Season[] = ["fall", "spring", "summer"];
-  return `Historically offered: ${order.filter((s) => o.seasons.includes(s)).map((s) => SEASON_NAME[s]).join(", ")} (through ${termLabel(o.lastTerm)}).`;
+  return `Historically offered: ${o.seasons.map((s) => SEASON_NAME[s]).join(", ")} (through ${termLabel(o.lastTerm)}).`;
 }
 
-/** True when the course has never run in the planned season (and we have enough history to say so). */
+/**
+ * True unless the course has never run in the planned season and its history is long enough to say so.
+ * A limited history never counts against a season.
+ */
 export function offeredInSeason(o: Offering, term: TermCode): boolean {
   return !o.known || o.seasons.includes(seasonOf(term));
 }

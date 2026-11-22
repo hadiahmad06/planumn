@@ -1,9 +1,9 @@
 import { courseLevel, equivalentCodes, type CourseId } from "./course";
-import { currentTerm, offeringHistory } from "./health";
+import { currentTerm, limitedHistoryLabel, offeringHistory } from "./health";
 import type { Plan } from "./plan";
 import { checkPrereqs, parsePrereqs, type PrereqNode } from "./prereqs";
 import { suggestedCourseId, type ProgramResult, type RuleResult } from "./requirements";
-import { academicYear, compareTerms, seasonOf, type Season, type TermCode } from "./terms";
+import { academicYear, compareTerms, seasonOf, termLabel, type Season, type TermCode } from "./terms";
 
 /**
  * Autofill the remaining semesters (Phase B: B24). Written by Hadi's Claude.
@@ -18,6 +18,13 @@ import { academicYear, compareTerms, seasonOf, type Season, type TermCode } from
  *    Hidden seasons and non-regular semesters (leave, prior credit) are skipped. Prerequisites outside
  *    the plan don't block; they're noted. Upper-division (3xxx+) courses aren't suggested for the plan's
  *    first academic year, since many list "upper division standing" as text the parser can't check.
+ *    L12: a course with a limited history (1–2 recorded terms) tries the terms in the seasons it was
+ *    seen in first, then any other term, so it is never dropped for its season alone. Either way the
+ *    placement carries a "limited history" note (`offeringNote`), since the season is a guess.
+ *    Dependents (L12 review B1): a pick always goes strictly before the earliest upcoming planned course,
+ *    or course placed earlier in this run, that *needs* it: that course's prerequisites (pruned as for
+ *    the pick's own) are met with the pick and not without it. If no term before it fits, the pick is
+ *    left unplaced with that reason instead of being placed out of prerequisite order.
  */
 export interface Pick {
   courseId: CourseId;
@@ -109,6 +116,8 @@ export interface Placement {
   note?: string;
   /** The year-one rule moved it later than it could otherwise go. */
   heldUpperDivision?: boolean;
+  /** L12: the season is a guess from a limited history, e.g. "limited history (1 term): seen in Fall". */
+  offeringNote?: string;
 }
 
 export interface PlaceResult {
@@ -140,6 +149,8 @@ function prune(n: PrereqNode, relevant: (code: string) => boolean): PrereqNode {
   if (n.kind === "or" && children.some(has)) return { kind: "or", children: children.filter(has) };
   return { kind: n.kind, children };
 }
+
+const SEASON_LABEL: Record<Season, string> = { fall: "Fall", spring: "Spring", summer: "Summer" };
 
 export function placeCourses({ plan, picks, course, hiddenSeasons = [], maxCredits = 15, useSummer = false, holdUpperDivision = true, now = new Date() }: PlaceInput): PlaceResult {
   const from = currentTerm(now);
@@ -176,6 +187,33 @@ export function placeCourses({ plan, picks, course, hiddenSeasons = [], maxCredi
     (a, b) => depthOf(a.courseId) - depthOf(b.courseId) || (course(a.courseId)?.code ?? "").localeCompare(course(b.courseId)?.code ?? ""),
   );
 
+  // Courses that may need a pick: upcoming planned ones now, placements as they're made.
+  const dependents: { code: string; term: TermCode; node: PrereqNode }[] = [];
+  const addDependent = (c: AutofillCourse | undefined, term: TermCode) => {
+    const node = c?.prereqText ? parsePrereqs(c.prereqText, c.dept) : null;
+    if (c && node) dependents.push({ code: c.code, term, node });
+  };
+  for (const s of semesters) if (compareTerms(s.index, from) > 0) for (const pc of s.courses) addDependent(course(pc.id), s.index);
+  const inPlanOrPicked = (code: string) => codeTerm.has(code) || pickedCodes.has(code);
+  /** The earliest dependent that needs this course (met with it, not without it), or null. */
+  const neededBy = (c: AutofillCourse) => {
+    const mine = new Set(equivalentCodes(c.code));
+    let first: (typeof dependents)[number] | null = null;
+    for (const d of dependents) {
+      if (mine.has(d.code) || (first && compareTerms(d.term, first.term) >= 0)) continue;
+      const node = prune(d.node, inPlanOrPicked);
+      // Other codes: planned before the dependent, or picked / outside the plan (as for a pick's own check).
+      const met = (withPick: boolean) =>
+        checkPrereqs(node, (code) => {
+          if (mine.has(code)) return withPick;
+          const at = codeTerm.get(code);
+          return at !== undefined ? compareTerms(at, d.term) < 0 : true;
+        }).met;
+      if (met(true) && !met(false)) first = d;
+    }
+    return first;
+  };
+
   const placements: Placement[] = [];
   const unplaced: PlaceResult["unplaced"] = [];
   for (const pick of ordered) {
@@ -187,11 +225,17 @@ export function placeCourses({ plan, picks, course, hiddenSeasons = [], maxCredi
     const offering = offeringHistory(c.termsOffered);
     const parsed = c.prereqText ? parsePrereqs(c.prereqText, c.dept) : null;
     const node = parsed && prune(parsed, (code) => codeTerm.has(code) || pickedCodes.has(code));
+    const bound = neededBy(c);
     let blocked = "No room under the credit limit in the remaining terms";
     let placed = false;
     const upper = holdUpperDivision && courseLevel(c.code.split(" ")[1] ?? "") >= 3000;
     let held = false;
-    for (const t of terms) {
+    // L12: a limited history prefers the seasons seen, then falls back to the rest (in term order).
+    // Every term tried is before the earliest dependent that needs it (B1).
+    const allowed = bound ? terms.filter((t) => compareTerms(t, bound.term) < 0) : terms;
+    const seen = offering.limited ? offering.seasons : null;
+    const tryTerms = seen ? [...allowed.filter((t) => seen.includes(seasonOf(t))), ...allowed.filter((t) => !seen.includes(seasonOf(t)))] : allowed;
+    for (const t of tryTerms) {
       if (upper && semesters.length && academicYear(t) === academicYear(semesters[0].index)) {
         held = true;
         continue;
@@ -218,11 +262,16 @@ export function placeCourses({ plan, picks, course, hiddenSeasons = [], maxCredi
         term: t,
         ...(strict && !strict.met && !strict.hasOtherPaths ? { note: `Needs ${strict.missing}` } : {}),
         ...(held ? { heldUpperDivision: true } : {}),
+        ...(offering.limited
+          ? { offeringNote: `${limitedHistoryLabel(offering)}: ${offering.seasons.includes(seasonOf(t)) ? "seen" : "not seen"} in ${SEASON_LABEL[seasonOf(t)]}, a guess` }
+          : {}),
       });
+      addDependent(c, t);
       placed = true;
       break;
     }
-    if (!placed) unplaced.push({ ...pick, why: blocked });
+    // With a dependent bound, that's the reason to show: the student can move the dependent later.
+    if (!placed) unplaced.push({ ...pick, why: bound ? `Can't fit before ${bound.code} (${termLabel(bound.term)}), which needs it` : blocked });
   }
   return { placements, unplaced };
 }

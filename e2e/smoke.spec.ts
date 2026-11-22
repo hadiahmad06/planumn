@@ -204,3 +204,27 @@ test("transcript import works on repeated uploads", async ({ request, baseURL })
     expect(res.status(), `upload ${i + 1}`).toBe(200);
   }
 });
+
+test("L12: short-history courses show their seasons in the season filter and the preview, as a guess", async ({ stubbed: page }) => {
+  // Real catalog data: CSCI 4115 has 2 recorded terms (Fall 2025, Spring 2026), CHEM 1072 has 3.
+  await page.goto("/plan/new");
+  const search = page.getByRole("combobox", { name: "Search courses" });
+  await search.fill("csci 4115");
+  await page.getByRole("button", { name: "Search filters" }).click();
+  await page.getByRole("combobox", { name: "Offered in" }).selectOption("fall");
+  const csci = page.getByRole("option", { name: /^CSCI 4115 / });
+  await expect(csci).toBeVisible();
+  await expect(csci.getByText("limited history (2 terms)")).toBeVisible();
+  await csci.click();
+  const preview = page.getByRole("dialog", { name: "CSCI 4115 preview" });
+  await expect(preview.getByRole("list", { name: "Course facts" }).getByText("Offered Fall · Spring · limited history (2 terms), a guess")).toBeVisible();
+
+  await search.fill("chem 1072");
+  await page.getByRole("combobox", { name: "Offered in" }).selectOption("spring");
+  const chem = page.getByRole("option", { name: /^CHEM 1072 General Chemistry/ });
+  await expect(chem).toBeVisible();
+  await expect(chem.getByText(/limited history/)).toHaveCount(0);
+  await chem.click();
+  const chemPreview = page.getByRole("dialog", { name: "CHEM 1072 preview" });
+  await expect(chemPreview.getByRole("list", { name: "Course facts" }).getByText("Offered Fall · Spring", { exact: true })).toBeVisible();
+});

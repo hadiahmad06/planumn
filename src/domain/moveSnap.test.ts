@@ -20,8 +20,24 @@ describe("snapMove (‹ › arrows)", () => {
   });
 
   it("uses any season when the offering history is too short", () => {
-    expect(snapMove(base(), "1279", 7, "later", ["1179"])).toEqual({ term: "1283", offeringKnown: false });
+    expect(snapMove(base(), "1279", 7, "later", [])).toEqual({ term: "1283", offeringKnown: false });
     expect(snapMove(base(), "1279", 7, "later", undefined)?.term).toBe("1283");
+  });
+
+  it("L12: a 1- or 2-term history allows any season and names what was seen; 3 terms snap", () => {
+    expect(snapMove(base(), "1279", 7, "later", ["1259"])).toEqual({
+      term: "1283",
+      offeringKnown: false,
+      limitedNote: "limited history (1 term): seen in Fall",
+      limitedShort: "seen Fall (1 term, a guess)",
+    });
+    expect(snapMove(base(), "1279", 7, "later", ["1259", "1269"])).toEqual({
+      term: "1283",
+      offeringKnown: false,
+      limitedNote: "limited history (2 terms): seen in Fall",
+      limitedShort: "seen Fall (2 terms, a guess)",
+    });
+    expect(snapMove(base(), "1279", 7, "later", ["1259", "1269", "1279"])).toEqual({ term: "1289", offeringKnown: true });
   });
 
   it("skips hidden seasons, leave semesters and terms already holding the course", () => {

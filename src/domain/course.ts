@@ -13,6 +13,11 @@ export interface CourseSummary {
   number: string;
   title: string;
   credits: CreditRange;
+  /**
+   * L12: set only on a search filtered by season, when this course matched on a limited history
+   * (the number of recorded terms, 1 or 2). The result is labelled "limited history (N terms)".
+   */
+  limitedHistory?: number;
 }
 
 export type GradeCounts = Record<string, number>;

@@ -119,6 +119,80 @@ describe("autofill (B24)", () => {
     expect(placeCourses({ plan, picks: [{ courseId: 5, reasons: [] }], course, now: NOW, holdUpperDivision: false }).placements[0].term).toBe("1269");
   });
 
+  it("L12: a 1- or 2-term course prefers the seasons seen, falls back to any term, and says so", () => {
+    const cat: Record<number, AutofillCourse> = {
+      11: { id: 11, code: "CSCI 1115", dept: "CSCI", credits: 4, termsOffered: ["1263"], prereqText: null }, // Spring only, 1 term
+      12: { id: 12, code: "CSCI 1116", dept: "CSCI", credits: 4, termsOffered: ["1263", "1273"], prereqText: null }, // Spring, 2 terms
+      13: { id: 13, code: "CSCI 1117", dept: "CSCI", credits: 4, termsOffered: ["1253", "1263", "1273"], prereqText: null }, // Spring, 3 terms
+    };
+    const plan = createEmptyPlan(NOW);
+    const place = (id: number, maxCredits = 15) =>
+      placeCourses({ plan, picks: [{ courseId: id, reasons: [] }], course: (x) => cat[x], now: NOW, maxCredits });
+    // Fall 2026 is the first open term, but Spring 2027 is the season seen.
+    expect(place(11).placements[0]).toMatchObject({ term: "1273", offeringNote: "limited history (1 term): seen in Spring, a guess" });
+    expect(place(12).placements[0]).toMatchObject({ term: "1273", offeringNote: "limited history (2 terms): seen in Spring, a guess" });
+    expect(place(13).placements[0]).toEqual({ courseId: 13, reasons: [], term: "1273" });
+    // No room in any spring: a limited course still goes in (the earliest fall), a known one is not placed.
+    const springsFull = { ...plan, semesters: plan.semesters.map((s) => (s.index.endsWith("3") ? { ...s, placeholders: [{ key: `p${s.index}`, label: "Full", credits: 15 }] } : s)) };
+    const full = (id: number) => placeCourses({ plan: springsFull, picks: [{ courseId: id, reasons: [] }], course: (x) => cat[x], now: NOW });
+    expect(full(11).placements[0]).toMatchObject({ term: "1269", offeringNote: "limited history (1 term): not seen in Fall, a guess" });
+    expect(full(13).placements).toEqual([]);
+  });
+
+  describe("dependents that need a pick (L12 review B1)", () => {
+    const SEPT = new Date(2026, 8, 15); // Fall 2026 in progress: the first open term is Spring 2027
+    const cat: Record<number, AutofillCourse> = {
+      21: { id: 21, code: "CSCI 1001", dept: "CSCI", credits: 4, termsOffered: ["1259"], prereqText: null }, // 1 term, Fall
+      22: { id: 22, code: "CSCI 2002", dept: "CSCI", credits: 4, termsOffered: ["1253", "1263", "1273"], prereqText: "CSCI 1001" },
+      23: { id: 23, code: "CSCI 2003", dept: "CSCI", credits: 4, termsOffered: ["1253", "1263", "1273"], prereqText: "CSCI 1001 or CSCI 1002" },
+      24: { id: 24, code: "CSCI 1002", dept: "CSCI", credits: 4, termsOffered: FALL_SPRING, prereqText: null },
+      25: { id: 25, code: "CSCI 1005", dept: "CSCI", credits: 4, termsOffered: ["1179", "1189", "1199"], prereqText: null }, // known, Fall only
+      26: { id: 26, code: "CSCI 2006", dept: "CSCI", credits: 4, termsOffered: FALL_SPRING, prereqText: "CSCI 1005" },
+    };
+    const lookup = (id: number) => cat[id];
+    const pick = (id: number) => ({ courseId: id, reasons: [] });
+
+    it("reviewer's repro: a 1-term Fall course goes before the planned course that needs it, not into its term", () => {
+      const plan = addCourse(createEmptyPlan(NOW), "1279", 22); // CSCI 2002 in Fall 2027
+      const r = placeCourses({ plan, picks: [pick(21)], course: lookup, now: SEPT });
+      expect(r.placements).toEqual([
+        { courseId: 21, reasons: [], term: "1273", offeringNote: "limited history (1 term): not seen in Spring, a guess" },
+      ]);
+    });
+
+    it("still prefers a seen season when it is before the dependent", () => {
+      const plan = addCourse(createEmptyPlan(NOW), "1283", 22); // CSCI 2002 in Spring 2028
+      const r = placeCourses({ plan, picks: [pick(21)], course: lookup, now: SEPT });
+      expect(r.placements[0]).toMatchObject({ term: "1279", offeringNote: "limited history (1 term): seen in Fall, a guess" });
+    });
+
+    it("ignores a dependent that has another planned way through an 'or'", () => {
+      let plan = addCourse(createEmptyPlan(NOW), "1273", 24); // CSCI 1002 in Spring 2027
+      plan = addCourse(plan, "1279", 23); // CSCI 2003: CSCI 1001 or CSCI 1002
+      const r = placeCourses({ plan, picks: [pick(21)], course: lookup, now: SEPT });
+      expect(r.placements[0].term).toBe("1279"); // the seen season; CSCI 2003 doesn't need it
+    });
+
+    it("leaves a pick unplaced rather than after its dependent (also for a known history, which v2/main placed late)", () => {
+      // CSCI 1005 is fall-only (known). Fall 2027 is full, CSCI 2006 needs it in Spring 2028; v2/main gave Fall 2028.
+      let plan = addCourse(createEmptyPlan(NOW), "1283", 26);
+      plan = { ...plan, semesters: plan.semesters.map((s) => (s.index === "1279" ? { ...s, placeholders: [{ key: "full", label: "Full", credits: 15 }] } : s)) };
+      const r = placeCourses({ plan, picks: [pick(25)], course: lookup, now: SEPT });
+      expect(r.placements).toEqual([]);
+      expect(r.unplaced).toEqual([{ courseId: 25, reasons: [], why: "Can't fit before CSCI 2006 (Spring 2028), which needs it" }]);
+      // With room, it goes in the only fall before the dependent.
+      const roomy = placeCourses({ plan: addCourse(createEmptyPlan(NOW), "1283", 26), picks: [pick(25)], course: lookup, now: SEPT });
+      expect(roomy.placements[0].term).toBe("1279");
+    });
+
+    it("keeps picks that depend on each other in order", () => {
+      const r = placeCourses({ plan: createEmptyPlan(NOW), picks: [pick(22), pick(21)], course: lookup, now: SEPT });
+      const at = Object.fromEntries(r.placements.map((p) => [p.courseId, p.term]));
+      expect(at[21]).toBe("1279"); // seen in Fall
+      expect(at[22]).toBe("1283"); // after it, in Spring
+    });
+  });
+
   it("reports courses with no offered term left", () => {
     const plan = createEmptyPlan(NOW);
     // In Fall 2029 that term is in progress, and no later fall is left in the plan.

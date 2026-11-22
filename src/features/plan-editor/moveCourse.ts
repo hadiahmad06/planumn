@@ -32,9 +32,17 @@ export function moveTargets(term: TermCode, id: CourseId, hiddenSeasons: readonl
   };
 }
 
+/** Short enough for a menu item at phone width; `moveFullLabel` keeps the whole note. */
 export function moveLabel(direction: "earlier" | "later", target: SnapTarget | null): string {
   if (!target) return direction === "earlier" ? "No earlier offered term in your plan" : "No later offered term in your plan";
-  return `Move ${direction} to ${termLabel(target.term)}${target.offeringKnown ? "" : " (offering pattern unknown)"}`;
+  const note = target.offeringKnown ? "" : target.limitedShort ? ` · ${target.limitedShort}` : target.limitedNote ? ` · ${target.limitedNote}, a guess` : " (offering pattern unknown)";
+  return `Move ${direction} to ${termLabel(target.term)}${note}`;
+}
+
+/** For `aria-label`: the same move with the full limited-history note. */
+export function moveFullLabel(direction: "earlier" | "later", target: SnapTarget | null): string {
+  if (!target?.limitedNote) return moveLabel(direction, target);
+  return `Move ${direction} to ${termLabel(target.term)} (${target.limitedNote}, a guess)`;
 }
 
 /** Move, announce, and keep keyboard focus on the moved card in its new semester. */

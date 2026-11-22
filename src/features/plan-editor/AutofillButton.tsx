@@ -77,7 +77,7 @@ function AutofillReview({ plan, onDone }: { plan: Plan; onDone: () => void }) {
         Keep 3xxx+ courses out of the first year (many list upper-division standing, which planu.mn can&apos;t check)
       </label>
 
-      {placements.length === 0 && <p className="text-text-secondary">Nothing to add: every requirement autofill can work with is already planned.</p>}
+      {placements.length === 0 && unplaced.length === 0 && <p className="text-text-secondary">Nothing to add: every requirement autofill can work with is already planned.</p>}
       {terms.map((t) => (
         <section key={t} aria-label={termLabel(t)}>
           <h3 className="mb-1 text-micro font-semibold tracking-wide text-text-secondary uppercase">{termLabel(t)}</h3>
@@ -106,6 +106,7 @@ function AutofillReview({ plan, onDone }: { plan: Plan; onDone: () => void }) {
                         For {p.reasons.join(", ")}
                         {p.note && <span className="text-warning"> · {p.note}</span>}
                         {p.heldUpperDivision && <span> · Held to year two: upper-division</span>}
+                        {p.offeringNote && <span className="text-text-secondary"> · {p.offeringNote}</span>}
                       </span>
                     </span>
                   </label>
@@ -121,7 +122,7 @@ function AutofillReview({ plan, onDone }: { plan: Plan; onDone: () => void }) {
           <ul className="flex flex-col gap-0.5">
             {unplaced.map((u) => (
               <li key={u.courseId}>
-                {name(u.courseId)}: {u.why.toLowerCase()}
+                {name(u.courseId)}: {u.why[0].toLowerCase() + u.why.slice(1)}
               </li>
             ))}
             {skipped.map((s) => (
@@ -137,9 +138,10 @@ function AutofillReview({ plan, onDone }: { plan: Plan; onDone: () => void }) {
           <li>Courses come from what your programs list for requirements you haven&apos;t met; a course that counts twice is preferred. &ldquo;Choose one of&rdquo; groups take the first option that works.</li>
           <li>Requirements that count 0 toward progress (e.g. optional elective credits) are left out.</li>
           <li>Terms: only after the current one, at most the credit limit above, no leave semesters, summers only if ticked.</li>
-          <li>Seasons come from past grade records through {CATALOG_DATA_THROUGH} (3+ terms needed); a course may run differently now.</li>
+          <li>Seasons come from past grade records through {CATALOG_DATA_THROUGH} (3+ terms needed); a course may run differently now. A course with only 1–2 recorded terms (&ldquo;limited history&rdquo;) goes in a season it was seen in when one fits, otherwise in any term, and says so.</li>
           <li>Prerequisites are read from catalog text, which can be incomplete. Ones in your plan are placed first; ones outside it don&apos;t block and are noted.</li>
-          <li>Placement is greedy: the earliest term that fits, so later terms may come out lighter.</li>
+          <li>Placement is greedy: the earliest term that fits, so later terms may come out lighter. The exception is a course with limited history, which goes in a season it was seen in first when one fits in time.</li>
+          <li>A course goes before any course in your plan that needs it as a prerequisite, unless that course can&apos;t be satisfied anyway. If no term before that one fits, it&apos;s listed under &ldquo;Couldn&apos;t place&rdquo;.</li>
         </ul>
         <p className="mt-1">It&apos;s a starting point: check it with your advisor and APAS.</p>
       </details>

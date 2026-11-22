@@ -12,7 +12,7 @@ import type { Season } from "./terms";
 export interface SearchFilters {
   /** Twin Cities CLE code, e.g. "GP". */
   libEd?: string;
-  /** Historically offered in this season. */
+  /** Historically offered in this season (including courses with a limited history, labelled). */
   season?: Season;
   /** Course level: 1000–4000, or 5000 for 5000 and above. */
   level?: number;
@@ -43,8 +43,13 @@ const LIBED_CODES = new Set(TWIN_CITIES_LIBED.map((d) => d.code));
 export interface CourseFacts {
   number: string;
   credits: CreditRange;
-  /** Seasons with recorded grades; null when there's too little history to judge. */
+  /** Seasons with recorded grades; null when there are none. */
   seasons: Season[] | null;
+  /**
+   * L12: the number of recorded terms when there are only 1–2 ("limited history"), else null. Such a
+   * course still matches a season filter on the seasons seen; the result is labelled as a guess.
+   */
+  limitedTerms: number | null;
   gpa: number | null;
   hasPrereqs: boolean;
 }
