@@ -12,6 +12,7 @@ import { plannedCourseIds } from "@/domain/plan";
 import { useCourses } from "@/features/catalog/courseCache";
 import { useAuth, useAuthStore } from "@/features/auth/useAuth";
 import { UserMenu } from "@/features/auth/UserMenu";
+import { ApasImportLink } from "@/features/apas/ApasImportLink";
 import { Modal } from "@/components/ui/Modal";
 import { SharePlanButton } from "@/features/sharing/SharePlanButton";
 import { planListSummary } from "./summary";
@@ -242,12 +243,10 @@ export function MyPlans() {
           <Link href="/plan/import" className="text-accent underline">
             Import transcript
           </Link>
-          {/* Ishaan's Claude (#36 follow-up): a plain <a>, not <Link>. The APAS extension's bridge
-              only loads on a full page load of /plan/*, which a client-side navigation skips. */}
-          {/* eslint-disable-next-line @next/next/no-html-link-for-pages -- full navigation on purpose (see above) */}
-          <a href="/plan/apas" className="text-accent underline">
+          {/* A2 (#100): hidden while the APAS import flag is off. A full page load, so the extension's bridge runs. */}
+          <ApasImportLink className="text-accent underline">
             Import from APAS
-          </a>
+          </ApasImportLink>
           <Link
             href="/plan/new"
             className="rounded-row bg-accent px-4 py-2 text-surface"

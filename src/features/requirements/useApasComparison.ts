@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import type { ApasAudit } from "@/domain/apas";
 import { compareApasProgram, type ApasComparison } from "@/domain/apasCompare";
 import type { PlannedForAudit, ProgramResult } from "@/domain/requirements";
+import { apasImportEnabled } from "@/features/apas/flag";
 import { importedAuditFor, useImportedAudit, type ImportedAudit } from "@/features/apas/importedAudit";
 
 export interface ProgramApasComparison {
@@ -29,7 +30,19 @@ export function apasComparisons(
   return out;
 }
 
+const NONE: Map<string, ProgramApasComparison> = new Map();
+
+/**
+ * The rail's "APAS says" data. A2 (#100), Hadi's Claude: empty while the APAS import flag is off
+ * (`features/apas/flag.ts`), so no "APAS says" renders even if an audit were somehow held. Progress
+ * never reads this.
+ */
 export function useApasComparisons(results: ProgramResult[], planned: PlannedForAudit[]): Map<string, ProgramApasComparison> {
   const audits = useImportedAudit((s) => s.audits);
-  return useMemo(() => apasComparisons(audits, results, planned), [audits, results, planned]);
+  return useMemo(
+    () => (apasImportEnabled() ? apasComparisons(audits, results, planned) : NONE),
+    // The flag isn't a dep on purpose: `NEXT_PUBLIC_APAS_IMPORT` is inlined at build time, so it can't
+    // change while the app runs.
+    [audits, results, planned],
+  );
 }

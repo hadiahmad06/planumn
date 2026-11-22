@@ -36,6 +36,7 @@ Output goes to `extension/dist/chrome` and `extension/dist/firefox` (gitignored)
 - **Chrome:** `chrome://extensions` → Developer mode → Load unpacked → `extension/dist/chrome`.
 - **Firefox:** `about:debugging#/runtime/this-firefox` → Load Temporary Add-on → `extension/dist/firefox/manifest.json`. Then click the toolbar icon → **Allow access**, because Firefox MV3 host access is opt-in.
 - Run planu.mn (`npm run dev`), open `http://localhost:3000/plan/apas` and click **Import from APAS**.
+- **The site needs the APAS import flag** (Hadi's Claude, A2 #100): `next dev` has it on by default; any other build (`next build`, Vercel) shows no APAS import (`/plan/apas` is a 404) unless built with `NEXT_PUBLIC_APAS_IMPORT=1`. See `src/features/apas/flag.ts`.
 
 ## Firefox smoke test
 

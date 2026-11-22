@@ -1,9 +1,11 @@
 // @vitest-environment happy-dom
-import { describe, expect, it } from "vitest";
+import { act, createElement } from "react";
+import { createRoot } from "react-dom/client";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import type { ApasAudit, ApasRequirement } from "@/domain/apas";
 import { evaluateProgram, type CoursesRule, type PlannedForAudit, type Program } from "@/domain/requirements";
-import { importedAuditKey } from "@/features/apas/importedAudit";
-import { apasComparisons } from "./useApasComparison";
+import { importedAuditKey, useImportedAudit } from "@/features/apas/importedAudit";
+import { apasComparisons, useApasComparisons } from "./useApasComparison";
 
 // Synthetic audits and programs (B1 multi-audit, C4 per program); never a real report.
 const requirement = (id: string, title: string, status: ApasRequirement["status"]): ApasRequirement => ({
@@ -92,5 +94,54 @@ describe("APAS says, per program (C4 with several audits)", () => {
   it("never pairs a report whose program maps to nothing", () => {
     const unmapped = importedAuditKey(audit("1230100000", "University Honors Program", [requirement("CALC", "Calculus", "complete")]));
     expect(apasComparisons([unmapped], results, planned).size).toBe(0);
+  });
+});
+
+// A2 (#100), Hadi's Claude: the APAS import flag hides "APAS says" and never touches progress.
+describe("useApasComparisons and the APAS import flag", () => {
+  (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    useImportedAudit.setState({ audits: [] });
+  });
+  const run = (value: string) => {
+    vi.stubEnv("NEXT_PUBLIC_APAS_IMPORT", value);
+    useImportedAudit.setState({ audits: held });
+    let out: Map<string, unknown> | null = null;
+    const Probe = () => {
+      out = useApasComparisons(results, planned);
+      return null;
+    };
+    // A client render: on the server, zustand reads the store's initial (empty) state.
+    const root = createRoot(document.createElement("div"));
+    act(() => root.render(createElement(Probe)));
+    act(() => root.unmount());
+    return out!;
+  };
+
+  it("compares only while the flag is on", () => {
+    expect([...run("1").keys()]).toEqual(["019627107", "0004MIN02"]);
+    expect(run("0").size).toBe(0);
+  });
+
+  // Reviewer C on #103: evaluate progress under each flag value, in freshly imported modules (so a flag read at
+  // module load counts too), and compare. Checked by adding the flag to `evaluateProgram`'s `filled`: this fails.
+  it("leaves requirement progress the same either way", async () => {
+    const evaluateWith = async (value: string) => {
+      vi.stubEnv("NEXT_PUBLIC_APAS_IMPORT", value);
+      vi.resetModules();
+      const fresh = await import("@/domain/requirements");
+      return [cs, acct, other].map((p) => fresh.evaluateProgram(p, planned));
+    };
+    const on = await evaluateWith("1");
+    const off = await evaluateWith("0");
+    expect(on).toEqual(off);
+    expect(on.map((r) => r.filled)).toEqual(results.map((r) => r.filled));
+
+    // Rendering "APAS says" with the flag on, then off, leaves the results it was given untouched.
+    const before = structuredClone(results);
+    run("1");
+    run("0");
+    expect(results).toEqual(before);
   });
 });
