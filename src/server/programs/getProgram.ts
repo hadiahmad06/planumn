@@ -1,6 +1,6 @@
 import "server-only";
 import type { Program } from "@/domain/requirements";
-import { findCoursesByGroupIds, listDepartments } from "@/server/catalog/courses";
+import { catalogOption, findCourseRowsByGroupIds, listDepartments } from "@/server/catalog/courses";
 import { fetchCourseDogCourses, fetchProgramVersions, type CourseDogCourse } from "./coursedog";
 import { coursesByRequestedId, isCourseDogId } from "./deprecatedIds";
 import { collectGroupIds, normalizeProgram, pickCurrentVersion, samplePlanUrl, type ResolveOption } from "./normalize";
@@ -11,7 +11,7 @@ export async function getProgram(programGroupId: string): Promise<Program | null
   if (!raw) return null;
 
   const groupIds = collectGroupIds(raw);
-  const inCatalog = await findCoursesByGroupIds(groupIds);
+  const inCatalog = await findCourseRowsByGroupIds(groupIds);
   // 7-digit CourseDog ids, and the older 20-character ids some programs still use (C1c).
   const missing = groupIds.filter((id) => !inCatalog.has(id) && isCourseDogId(id));
   let byRequested = new Map<string, CourseDogCourse>();
@@ -21,13 +21,13 @@ export async function getProgram(programGroupId: string): Promise<Program | null
     // Names for not-in-catalog courses are a nicety; the rail still works without them.
   }
   // Old ids resolve to the course's current group id, which may be in the catalog.
-  const renamed = await findCoursesByGroupIds([...byRequested.values()].map((c) => c.courseGroupId));
+  const renamed = await findCourseRowsByGroupIds([...byRequested.values()].map((c) => c.courseGroupId));
 
   const resolve: ResolveOption = (groupId) => {
     const c = inCatalog.get(groupId) ?? renamed.get(byRequested.get(groupId)?.courseGroupId ?? "");
-    if (c) return { groupId, courseId: c.id, code: `${c.dept} ${c.number}`, title: c.title, credits: c.credits };
+    if (c?.length) return catalogOption(groupId, c);
     const d = byRequested.get(groupId);
-    if (!d) return { groupId, courseId: null, code: null, title: null, credits: null };
+    if (!d) return { groupId, courseId: null, code: null, title: null, credits: null, rows: [] };
     const hours = d.credits?.creditHours;
     return {
       groupId,
@@ -35,6 +35,7 @@ export async function getProgram(programGroupId: string): Promise<Program | null
       code: `${d.subjectCode} ${d.courseNumber}`,
       title: d.name,
       credits: hours?.min != null ? { min: hours.min, max: hours.max ?? hours.min } : null,
+      rows: [],
     };
   };
   // C3: only the catalog's own subject codes are read from pattern text ("4xxx/5xxx EE").

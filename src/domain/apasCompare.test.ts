@@ -26,7 +26,7 @@ const courses = (id: string, name: string, ids: number[], minCourses = ids.lengt
   id,
   name,
   notes: null,
-  choices: ids.map((i) => ({ options: [{ groupId: String(i), courseId: i, code: null, title: null, credits: null }] })),
+  choices: ids.map((i) => ({ options: [{ groupId: String(i), courseId: i, code: null, title: null, credits: null, rows: [] }] })),
   minCourses,
   minCredits: 0,
 });

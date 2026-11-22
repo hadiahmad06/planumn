@@ -12,14 +12,73 @@ import { constraintProgress, findPart, type ConstraintCap, type ConstraintPart, 
  * **options** (e.g. "CSCI 1933 or CSCI 1933H").
  */
 
+/** One data/catalog.db row of a CourseDog course group (L11). */
+export interface CatalogRow {
+  courseId: CourseId;
+  /** "ENGW 1102W" */
+  code: string;
+  title: string;
+  credits: CreditRange;
+}
+
 export interface CourseOption {
   /** CourseDog course group id, e.g. "0036721". */
   groupId: string;
-  /** Catalog id when the course is in data/catalog.db; null = can't be planned yet. */
+  /**
+   * The suggested catalog row (L11: the group's row with the newest offering, `rows[0]`); null = not in
+   * data/catalog.db, so it can't be planned yet. `code`, `title` and `credits` describe this row, or
+   * CourseDog's course when it isn't in the catalog.
+   */
   courseId: CourseId | null;
   code: string | null;
   title: string | null;
   credits: CreditRange | null;
+  /**
+   * L11: **every** catalog row with this `groupId`, suggested row first. A renumbered course keeps its
+   * CourseDog id (ENGW 1102 → 1102W, CHIC 1112 → CHLS 1112), and planning **any** of these rows satisfies
+   * the option. Empty when `courseId` is null; a hand-built option (tests, the double-dip chip) may leave it
+   * empty, and `optionCourseIds` then falls back to `courseId`.
+   */
+  rows: CatalogRow[];
+}
+
+/** L11: every catalog id that satisfies the option (all rows of its CourseDog group). */
+export function optionCourseIds(o: CourseOption): CourseId[] {
+  if (o.rows.length) return o.rows.map((r) => r.courseId);
+  return o.courseId == null ? [] : [o.courseId];
+}
+
+/**
+ * L11: build an option from a CourseDog group's catalog rows. The suggested row is the one offered most
+ * recently (`lastTerm`, a term code), then the highest catalog id (the newer row); rows never offered sort last.
+ */
+export function optionFromRows(groupId: string, rows: (CatalogRow & { lastTerm: string | null })[]): CourseOption {
+  const sorted = [...rows].sort((a, b) => (b.lastTerm ?? "").localeCompare(a.lastTerm ?? "") || b.courseId - a.courseId);
+  const first = sorted[0];
+  if (!first) return { groupId, courseId: null, code: null, title: null, credits: null, rows: [] };
+  return {
+    groupId,
+    courseId: first.courseId,
+    code: first.code,
+    title: first.title,
+    credits: first.credits,
+    rows: sorted.map(({ courseId, code, title, credits }) => ({ courseId, code, title, credits })),
+  };
+}
+
+/** L11: the option as shown for one of its rows (the rail shows the row the student planned). */
+export function optionAsRow(o: CourseOption, courseId: CourseId): CourseOption {
+  const row = o.rows.find((r) => r.courseId === courseId);
+  return row && row.courseId !== o.courseId ? { ...o, courseId: row.courseId, code: row.code, title: row.title, credits: row.credits } : o;
+}
+
+/**
+ * L11: the course to suggest for each option no planned course already satisfies (its newest row), for
+ * autofill and the double-dip finder. An option with any of its rows planned suggests nothing.
+ */
+export function suggestedCourseId(o: CourseOption, planned: ReadonlySet<CourseId>): CourseId | null {
+  if (o.courseId == null || optionCourseIds(o).some((id) => planned.has(id))) return null;
+  return o.courseId;
 }
 
 export interface CourseChoice {
@@ -163,10 +222,9 @@ export interface RequirementResult {
 function matchChoices(choices: CourseChoice[], planned: PlannedForAudit[]): (CourseId | null)[] {
   const choicesOf = new Map<CourseId, number[]>();
   choices.forEach((choice, i) => {
-    for (const o of choice.options) {
-      if (o.courseId == null) continue;
-      const list = choicesOf.get(o.courseId) ?? [];
-      if (!list.includes(i)) choicesOf.set(o.courseId, [...list, i]);
+    for (const id of choice.options.flatMap(optionCourseIds)) {
+      const list = choicesOf.get(id) ?? [];
+      if (!list.includes(i)) choicesOf.set(id, [...list, i]);
     }
   });
   const holder: (CourseId | null)[] = choices.map(() => null); // choice → course
@@ -206,7 +264,45 @@ function evaluateCourses(rule: CoursesRule, planned: PlannedForAudit[]): RuleRes
   };
 }
 
+/** Every course option under these rules (L11). */
+export function optionsOf(rules: Rule[]): CourseOption[] {
+  return rules.flatMap((r) =>
+    r.kind === "courses" ? r.choices.flatMap((c) => c.options) : r.kind === "text" ? [] : optionsOf(r.children),
+  );
+}
+
+/**
+ * L11 review fix (#116): one course, counted once. When a student plans two catalog rows of one CourseDog
+ * group (ENGW 3102 and ENGW 3102W), only one of them is evaluated, everywhere: choices, `numberOf` areas
+ * and course counts, C2 credit sums and caps, C3 pattern matches. The one kept is the planned row with the
+ * most credits, then the one earlier in the option's `rows` (newest offering first). It keeps its own code,
+ * so dept readings use its subject. Every planned entry of the kept row stays (a repeated course is
+ * unchanged); planned courses outside shared groups pass through untouched.
+ */
+export function collapseSharedGroups(options: Iterable<CourseOption>, planned: PlannedForAudit[]): PlannedForAudit[] {
+  const group = new Map<CourseId, { key: CourseId; rank: number }>();
+  for (const o of options)
+    if (o.rows.length > 1) o.rows.forEach((row, rank) => group.has(row.courseId) || group.set(row.courseId, { key: o.rows[0].courseId, rank }));
+  if (group.size === 0) return planned;
+  const kept = new Map<CourseId, PlannedForAudit>();
+  for (const p of planned) {
+    const g = group.get(p.courseId);
+    if (!g) continue;
+    const cur = kept.get(g.key);
+    if (!cur || p.credits > cur.credits || (p.credits === cur.credits && g.rank < group.get(cur.courseId)!.rank)) kept.set(g.key, p);
+  }
+  return planned.filter((p) => {
+    const g = group.get(p.courseId);
+    return !g || kept.get(g.key)!.courseId === p.courseId;
+  });
+}
+
+/** Evaluate one rule. L11: planned rows of one CourseDog group count once (`collapseSharedGroups`). */
 export function evaluateRule(rule: Rule, planned: PlannedForAudit[], count = false): RuleResult {
+  return evalRule(rule, collapseSharedGroups(optionsOf([rule]), planned), count);
+}
+
+function evalRule(rule: Rule, planned: PlannedForAudit[], count: boolean): RuleResult {
   const result = evaluateRuleKind(rule, planned, count);
   if (rule.pattern) result.patternMatches = patternMatches(rule.pattern, planned);
   if (count && (rule.pattern || rule.constraints?.length)) result.catalogTextCounted = true;
@@ -285,10 +381,14 @@ function progressOf(
   return constraintProgress(self.constraints ?? [], rules.flatMap((r) => listedCourses(r, planned, count)), parts, planned, caps, freeIn(rules));
 }
 
+/** L11: every row of the option, each with its own code (CHIC 1112 and CHLS 1112 differ in subject). */
+const listedRows = (o: CourseOption): ListedCourse[] =>
+  o.rows.length ? o.rows.map((r) => ({ courseId: r.courseId, code: r.code })) : o.courseId == null ? [] : [{ courseId: o.courseId, code: o.code }];
+
 function listedCourses(rule: Rule, planned: PlannedForAudit[], count: boolean): ListedCourse[] {
   const matched = count && rule.pattern ? patternMatches(rule.pattern, planned).map((m) => ({ courseId: m.courseId, code: m.code })) : [];
   if (rule.kind === "courses") {
-    return [...rule.choices.flatMap((c) => c.options).flatMap((o) => (o.courseId == null ? [] : [{ courseId: o.courseId, code: o.code }])), ...matched];
+    return [...rule.choices.flatMap((c) => c.options).flatMap(listedRows), ...matched];
   }
   if (rule.kind === "text") return matched;
   return rule.children.flatMap((c) => listedCourses(c, planned, count));
@@ -301,7 +401,7 @@ function evaluateRuleKind(rule: Rule, planned: PlannedForAudit[], count: boolean
     case "text":
       return { rule, satisfied: false, units: 0, filled: 0 };
     case "allOf": {
-      const children = rule.children.map((c) => evaluateRule(c, planned, count));
+      const children = rule.children.map((c) => evalRule(c, planned, count));
       const units = children.reduce((n, c) => n + c.units, 0);
       const satisfied = children.every((c) => c.satisfied || c.units === 0);
       return { rule, satisfied, units, filled: children.reduce((n, c) => n + c.filled, 0), children };
@@ -309,7 +409,7 @@ function evaluateRuleKind(rule: Rule, planned: PlannedForAudit[], count: boolean
     case "numberOf":
       return evaluateNumberOf(rule, planned, count);
     case "anyOf": {
-      const children = rule.children.map((c) => evaluateRule(c, planned, count));
+      const children = rule.children.map((c) => evalRule(c, planned, count));
       const required = children.some((c) => c.units > 0);
       const satisfied = children.some((c) => c.satisfied && c.units > 0) || !required;
       return { rule, satisfied, units: required ? 1 : 0, filled: required && satisfied ? 1 : 0, children };
@@ -324,7 +424,7 @@ function evaluateRuleKind(rule: Rule, planned: PlannedForAudit[], count: boolean
  * Children that aren't course lists count when satisfied on their own.
  */
 function evaluateNumberOf(rule: GroupRule, planned: PlannedForAudit[], count: boolean): RuleResult {
-  const children = rule.children.map((c) => evaluateRule(c, planned, count));
+  const children = rule.children.map((c) => evalRule(c, planned, count));
   const lists = rule.children.filter((c): c is CoursesRule => c.kind === "courses");
   const asChoices = lists.map((c) => ({ options: c.choices.flatMap((ch) => ch.options) }));
   const areas =
@@ -344,7 +444,11 @@ function collectCourseIds(r: RuleResult, out: Set<CourseId>) {
 }
 
 export function evaluateRequirement(requirement: Requirement, planned: PlannedForAudit[], count = false): RequirementResult {
-  const rules = requirement.rules.map((r) => evaluateRule(r, planned, count));
+  return evalRequirement(requirement, collapseSharedGroups(optionsOf(requirement.rules), planned), count);
+}
+
+function evalRequirement(requirement: Requirement, planned: PlannedForAudit[], count: boolean): RequirementResult {
+  const rules = requirement.rules.map((r) => evalRule(r, planned, count));
   const units = rules.reduce((n, r) => n + r.units, 0);
   const ids = new Set<CourseId>();
   rules.forEach((r) => collectCourseIds(r, ids));
@@ -387,7 +491,9 @@ export interface EvaluateOptions {
  */
 export function evaluateProgram(program: Program, planned: PlannedForAudit[], options: EvaluateOptions = {}): ProgramResult {
   const count = options.catalogText ? options.catalogText === "count" : countsCatalogText(program.id);
-  const requirements = program.requirements.filter((r) => r.rules.length > 0).map((r) => evaluateRequirement(r, planned, count));
+  // L11: collapse once per program, so every requirement keeps the same row of a shared group.
+  const collapsed = collapseSharedGroups(optionsOf(program.requirements.flatMap((r) => r.rules)), planned);
+  const requirements = program.requirements.filter((r) => r.rules.length > 0).map((r) => evalRequirement(r, collapsed, count));
   return {
     program,
     requirements,
@@ -397,9 +503,12 @@ export function evaluateProgram(program: Program, planned: PlannedForAudit[], op
   };
 }
 
-/** Every catalog course id a requirement lists (for filtering and "is this course useful?"). */
+/**
+ * Every catalog course id a requirement lists (for filtering and "is this course useful?"). L11: every
+ * row of each option's CourseDog group, so a renumbered course's old and new codes are both listed.
+ */
 export function listedCourseIds(rule: Rule): CourseId[] {
-  if (rule.kind === "courses") return rule.choices.flatMap((c) => c.options.flatMap((o) => (o.courseId == null ? [] : [o.courseId])));
+  if (rule.kind === "courses") return rule.choices.flatMap((c) => c.options.flatMap(optionCourseIds));
   if (rule.kind === "text") return [];
   return rule.children.flatMap(listedCourseIds);
 }
@@ -413,11 +522,11 @@ export function programCourseIds(program: Program): Set<CourseId> {
   return new Set(program.requirements.flatMap((r) => r.rules.flatMap(listedCourseIds)));
 }
 
-/** Every course code a program lists, including options not in the catalog (B11 honors fix). */
+/** Every course code a program lists, including options not in the catalog (B11 honors fix) and, L11, every row's code. */
 export function programCourseCodes(program: Program): Set<string> {
   const codes = (rule: Rule): string[] =>
     rule.kind === "courses"
-      ? rule.choices.flatMap((c) => c.options.flatMap((o) => (o.code ? [o.code.toUpperCase()] : [])))
+      ? rule.choices.flatMap((c) => c.options.flatMap((o) => [...(o.code ? [o.code] : []), ...o.rows.map((r) => r.code)].map((x) => x.toUpperCase())))
       : rule.kind === "text"
         ? []
         : rule.children.flatMap(codes);

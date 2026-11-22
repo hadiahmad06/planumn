@@ -1,7 +1,7 @@
 import "server-only";
 import { cacheLife } from "next/cache";
 import type { Program } from "@/domain/requirements";
-import { findCoursesByGroupIds } from "@/server/catalog/courses";
+import { catalogOption, findCourseRowsByGroupIds } from "@/server/catalog/courses";
 import { fetchCourseDogCourses, type CourseDogCourse } from "@/server/programs/coursedog";
 import { coursesByRequestedId, isOldCourseDogId } from "@/server/programs/deprecatedIds";
 import { collectGroupIds, normalizeProgram, pickCurrentVersion, type RawProgram } from "@/server/programs/normalize";
@@ -57,7 +57,7 @@ export async function fetchMinorPrograms(minorIds: string[]): Promise<Program[]>
     for (const r of await Promise.all(batches.slice(i, i + PARALLEL).map((b) => fetchBatch(b, today)))) raws.push(...r);
 
   const groupIds = [...new Set(raws.flatMap(collectGroupIds))];
-  const inCatalog = await findCoursesByGroupIds(groupIds);
+  const inCatalog = await findCourseRowsByGroupIds(groupIds);
   // C1c (#80 follow-up, Hadi's Claude): some minors still list a course by its old 20-character id.
   // CourseDog's course search maps it to the current group id, which may be in the catalog.
   const old = groupIds.filter((id) => !inCatalog.has(id) && isOldCourseDogId(id));
@@ -70,13 +70,12 @@ export async function fetchMinorPrograms(minorIds: string[]): Promise<Program[]>
   } catch {
     // Without the lookup those options just stay unresolved, as before.
   }
-  const renamed = await findCoursesByGroupIds([...byRequested.values()].map((c) => c.courseGroupId));
+  const renamed = await findCourseRowsByGroupIds([...byRequested.values()].map((c) => c.courseGroupId));
   return raws.map((raw) =>
     normalizeProgram(raw, (groupId) => {
       const c = inCatalog.get(groupId) ?? renamed.get(byRequested.get(groupId)?.courseGroupId ?? "");
-      return c
-        ? { groupId, courseId: c.id, code: `${c.dept} ${c.number}`, title: c.title, credits: c.credits }
-        : { groupId, courseId: null, code: null, title: null, credits: null };
+      // L11: every catalog row of the group counts, so a minor listing ENGW 1102 matches a planned ENGW 1102W.
+      return c?.length ? catalogOption(groupId, c) : { groupId, courseId: null, code: null, title: null, credits: null, rows: [] };
     }),
   );
 }

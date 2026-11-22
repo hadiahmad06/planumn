@@ -146,7 +146,10 @@ const fingerprint = (rows: Pick<Row, "id" | "campus" | "dept_abbr" | "course_num
     .update(rows.map((r) => `${r.id}|${r.campus}|${r.dept_abbr}|${r.course_num}`).join("\n"))
     .digest("hex");
 
-/** Lowest Twin Cities row id per group id: the row `findCoursesByGroupIds` resolves a requirement to. */
+/**
+ * Lowest Twin Cities row id per group id. Before L11 this was the row requirements resolved a group to; since
+ * L11 every row of a group counts (`findCourseRowsByGroupIds`), and the check only keeps groups stable.
+ */
 function resolution(rows: { id: number; campus: string; g: string | null }[]): Map<string, number> {
   const out = new Map<string, number>();
   for (const r of [...rows].sort((a, b) => a.id - b.id)) if (r.campus === CAMPUS && r.g && !out.has(r.g)) out.set(r.g, r.id);

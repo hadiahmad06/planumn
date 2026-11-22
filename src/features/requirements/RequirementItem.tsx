@@ -6,7 +6,7 @@ import { describePattern, patternSearchLinks, type CoursePattern, type PatternMa
 import { describeConstraint, type ConstraintProgress } from "@/domain/creditConstraints";
 import type { ApasPair } from "@/domain/apasCompare";
 import { catalogTextReadings } from "@/domain/catalogTextReadings";
-import type { CourseChoice, CourseOption, RequirementResult, RuleResult } from "@/domain/requirements";
+import { optionAsRow, optionCourseIds, type CourseChoice, type CourseOption, type RequirementResult, type RuleResult } from "@/domain/requirements";
 import { cn } from "@/components/ui/cn";
 import { ProgressRing } from "@/components/ui/ProgressRing";
 import { externalId, type DragData } from "@/features/plan-editor/dnd";
@@ -39,6 +39,9 @@ export function OptionChip({ option, primary, planned }: { option: CourseOption;
     disabled: id == null || mobile,
   });
   const label = option.code ?? "Other approved course";
+  // L11: the same CourseDog course under other catalog codes (renumbered: ENGW 1102 → ENGW 1102W) also counts.
+  const others = option.rows.filter((r) => r.courseId !== id).map((r) => r.code);
+  const alsoCounts = others.length ? `${others.join(", ")} (listed by CourseDog as the same course) also counts` : undefined;
 
   if (id == null) {
     return (
@@ -68,7 +71,7 @@ export function OptionChip({ option, primary, planned }: { option: CourseOption;
       <ActionMenu
         actions={addCourseActions(id, plan, hidden)}
         trigger={
-          <button type="button" className={className}>
+          <button type="button" title={alsoCounts} className={className}>
             {content}
           </button>
         }
@@ -84,6 +87,7 @@ export function OptionChip({ option, primary, planned }: { option: CourseOption;
       onClick={() => openPreview(id)}
       onMouseEnter={() => hoverCourse(id)}
       onMouseLeave={() => hoverCourse(null)}
+      title={alsoCounts}
       className={className}
     >
       {content}
@@ -118,10 +122,11 @@ function Check({ on }: { on: boolean }) {
 }
 
 function ChoiceRow({ choice, match }: { choice: CourseChoice; match: number | null }) {
-  const planned = choice.options.find((o) => o.courseId != null && o.courseId === match);
-  const primary = planned ?? choice.options.find((o) => o.courseId != null) ?? choice.options[0];
+  // L11: an option counts for any row of its CourseDog group; show the row the student planned.
+  const planned = match == null ? undefined : choice.options.find((o) => optionCourseIds(o).includes(match));
+  const primary = (planned && optionAsRow(planned, match!)) ?? choice.options.find((o) => o.courseId != null) ?? choice.options[0];
   if (!primary) return null;
-  const alternatives = choice.options.filter((o) => o !== primary && (o.code || o.courseId != null));
+  const alternatives = choice.options.filter((o) => o !== planned && o !== primary && (o.code || o.courseId != null));
   return (
     <li className="flex items-start gap-2 py-0.5">
       <Check on={match != null} />

@@ -28,7 +28,7 @@ import { Window } from "happy-dom";
 import type { ApasAudit } from "../src/domain/apas.ts";
 import { compareApasProgram, apasRecordCodes, describeApasStatus, ownsCountedReading, uncheckedReadings, type ApasPair } from "../src/domain/apasCompare.ts";
 import { apasProgramId } from "../src/domain/apasPlan.ts";
-import type { PlannedForAudit, Program, Rule } from "../src/domain/requirements.ts";
+import { optionFromRows, type PlannedForAudit, type Program, type Rule } from "../src/domain/requirements.ts";
 import { parseApasReport } from "../src/features/apas/parseReport.ts";
 import programOptions from "../src/features/requirements/programOptions.json" with { type: "json" };
 import { collectGroupIds, normalizeProgram, pickCurrentVersion, type RawProgram, type ResolveOption } from "../src/server/programs/normalize.ts";
@@ -66,20 +66,22 @@ interface Row {
   cred_min: number | null;
   cred_max: number | null;
   courseGroupId: string;
+  lastTerm: number | null;
 }
-/** Same rows and credits as src/server/catalog/courses.ts (`findCoursesByGroupIds`, `toSummary`). */
-function coursesByGroupId(groupIds: string[]): Map<string, Row> {
-  const out = new Map<string, Row>();
+/** Same rows and credits as src/server/catalog/courses.ts (`findCourseRowsByGroupIds`, `toSummary`): every row of a group (L11). */
+function coursesByGroupId(groupIds: string[]): Map<string, Row[]> {
+  const out = new Map<string, Row[]>();
   const unique = [...new Set(groupIds)];
   for (let i = 0; i < unique.length; i += 500) {
     const chunk = unique.slice(i, i + 500);
     const rows = db
       .prepare(
-        `SELECT id, dept_abbr, course_num, class_desc, cred_min, cred_max, courseGroupId FROM classdistribution
-         WHERE campus = 'UMNTC' AND courseGroupId IN (${ph(chunk.length)}) ORDER BY id`,
+        `SELECT c.id, c.dept_abbr, c.course_num, c.class_desc, c.cred_min, c.cred_max, c.courseGroupId,
+                (SELECT MAX(t.term) FROM distribution d JOIN termdistribution t ON t.dist_id = d.id WHERE d.class_id = c.id) AS lastTerm
+         FROM classdistribution c WHERE c.campus = 'UMNTC' AND c.courseGroupId IN (${ph(chunk.length)}) ORDER BY c.id`,
       )
       .all(...chunk) as unknown as Row[];
-    for (const r of rows) if (!out.has(r.courseGroupId)) out.set(r.courseGroupId, r);
+    for (const r of rows) out.set(r.courseGroupId, [...(out.get(r.courseGroupId) ?? []), r]);
   }
   return out;
 }
@@ -101,9 +103,17 @@ function loadProgram(id: string): Program | null {
   const groupIds = collectGroupIds(raw);
   const inCatalog = coursesByGroupId([...groupIds, ...groupIds.flatMap((g) => renamedIds.get(g) ?? [])]);
   const resolve: ResolveOption = (groupId) => {
-    const c = inCatalog.get(groupId) ?? inCatalog.get(renamedIds.get(groupId) ?? "");
-    if (!c) return { groupId, courseId: null, code: null, title: null, credits: null };
-    return { groupId, courseId: c.id, code: `${c.dept_abbr} ${c.course_num}`, title: c.class_desc, credits: { min: minCredits(c), max: c.cred_max ?? minCredits(c) } };
+    const rows = inCatalog.get(groupId) ?? inCatalog.get(renamedIds.get(groupId) ?? "") ?? [];
+    return optionFromRows(
+      groupId,
+      rows.map((c) => ({
+        courseId: c.id,
+        code: `${c.dept_abbr} ${c.course_num}`,
+        title: c.class_desc,
+        credits: { min: minCredits(c), max: c.cred_max ?? minCredits(c) },
+        lastTerm: c.lastTerm == null ? null : String(c.lastTerm),
+      })),
+    );
   };
   return normalizeProgram(raw, resolve, undefined, subjects);
 }

@@ -2,7 +2,7 @@ import { courseLevel, equivalentCodes, type CourseId } from "./course";
 import { currentTerm, offeringHistory } from "./health";
 import type { Plan } from "./plan";
 import { checkPrereqs, parsePrereqs, type PrereqNode } from "./prereqs";
-import type { ProgramResult, RuleResult } from "./requirements";
+import { suggestedCourseId, type ProgramResult, type RuleResult } from "./requirements";
 import { academicYear, compareTerms, seasonOf, type Season, type TermCode } from "./terms";
 
 /**
@@ -62,7 +62,8 @@ function fillRule(r: RuleResult, reason: string, p: Picker): boolean {
   const open = rule.choices
     .map((choice, i) => ({ choice, matched: r.choiceMatches?.[i] != null }))
     .filter((c) => !c.matched)
-    .map(({ choice }) => choice.options.map((o) => o.courseId).filter((id): id is CourseId => id != null && !p.planned.has(id)))
+    // L11: each option suggests its newest catalog row, and nothing when any of its rows is planned.
+    .map(({ choice }) => choice.options.map((o) => suggestedCourseId(o, p.planned)).filter((id): id is CourseId => id != null))
     .filter((ids) => ids.length > 0)
     // Choices with an already-picked option first (double-dips), then catalog order.
     .sort((a, b) => Number(b.some((id) => p.picks.has(id))) - Number(a.some((id) => p.picks.has(id))));

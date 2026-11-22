@@ -5,7 +5,7 @@ import { evaluateRule, evaluateProgram, type CoursesRule, type GroupRule, type P
 
 // Phase C, C1: "complete N of these" rules (CourseDog numberOf) and rule descriptions. Shapes follow EE
 // B.E.E.'s "Breadth and Depth" (number 4 areas, restriction 5 courses); course ids are made up.
-const opt = (courseId: number) => ({ groupId: String(courseId), courseId, code: `EE ${courseId}`, title: null, credits: null });
+const opt = (courseId: number) => ({ groupId: String(courseId), courseId, code: `EE ${courseId}`, title: null, credits: null, rows: [] });
 const area = (id: string, ids: number[]): CoursesRule => ({
   kind: "courses",
   id,
@@ -78,7 +78,7 @@ describe("normalizeProgram reads numberOf and descriptions (C1)", () => {
       ],
     },
   };
-  const program = normalizeProgram(raw, (groupId) => ({ groupId, courseId: Number(groupId), code: null, title: null, credits: null }));
+  const program = normalizeProgram(raw, (groupId) => ({ groupId, courseId: Number(groupId), code: null, title: null, credits: null, rows: [] }));
   const top = program.requirements[0].rules[0] as GroupRule;
 
   it("keeps the description as text", () => {

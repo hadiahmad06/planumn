@@ -34,7 +34,7 @@ const rule = (id: string, ids: number[]): CoursesRule => ({
   id,
   name: id,
   notes: null,
-  choices: ids.map((i) => ({ options: [{ groupId: String(i), courseId: i, code: null, title: null, credits: null }] })),
+  choices: ids.map((i) => ({ options: [{ groupId: String(i), courseId: i, code: null, title: null, credits: null, rows: [] }] })),
   minCourses: ids.length,
   minCredits: 0,
 });

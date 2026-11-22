@@ -42,7 +42,7 @@ const raw = {
   },
 } as unknown as RawProgram;
 
-const resolve = (groupId: string) => ({ groupId, courseId: Number(groupId), code: groupId === "3" ? "MATH 4242" : `CSCI 40${groupId}1`, title: null, credits: null });
+const resolve = (groupId: string) => ({ groupId, courseId: Number(groupId), code: groupId === "3" ? "MATH 4242" : `CSCI 40${groupId}1`, title: null, credits: null, rows: [] });
 const program = normalizeProgram(raw, resolve);
 const rules = program.requirements[0].rules;
 const rule = (id: string) => rules.find((r) => r.id === id)!;

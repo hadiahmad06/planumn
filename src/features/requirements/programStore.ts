@@ -46,9 +46,10 @@ function listedSummaries(program: Program): CourseSummary[] {
     if (r.kind === "courses")
       for (const ch of r.choices)
         for (const o of ch.options)
-          if (o.courseId != null && o.code && o.credits) {
-            const [dept, number] = o.code.split(" ");
-            out.push({ id: o.courseId, dept, number, title: o.title ?? "", credits: o.credits });
+          // L11: every catalog row of the option's group, so a planned older code renders instantly too.
+          for (const row of o.rows) {
+            const [dept, number] = row.code.split(" ");
+            out.push({ id: row.courseId, dept, number, title: row.title, credits: row.credits });
           }
     if (r.kind === "anyOf" || r.kind === "allOf" || r.kind === "numberOf") r.children.forEach(visit);
   };
