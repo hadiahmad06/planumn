@@ -84,3 +84,12 @@ Hadi, 2026-11-03 (transcribed by Hadi's Claude):
 - "I want you to continue iteration even when you're waiting for my decision, and I want you to be able to respond to me without expecting an immediate decision."
 - Hadi answered the plan's open decisions D1–D4, verbatim: "D1, D2: yes. D3: yes, push v2/hadi/* and open PRs. D4: it was. but now its pushed to origin". The questions and what each answer changes are in `docs/agent/delegation-plan.md`.
 - Asked "should a second Claude reviewer count when Michael's Codex is away?", Hadi answered: "Yes."
+
+## Launch: beta now, switch at bar A
+
+Hadi, 2026-11-22 (transcribed by Hadi's Claude), answering Hadi's Claude's launch estimate (`docs/agent/launch-plan.md`):
+
+- "Yes I agree with A, then B. And Yes, for the "beta now, switch at A" call." Bar A: v2 replaces the live 2025 site once it is at least as good. Bar B: a product students can rely on (fresh course data, requirements checked against APAS on the most common majors, the extension published).
+- Course data, verbatim: "You can access https://github.com/samyok/gophergrades to get the new SQLITE .db file. I have permission from Social Coding UMN to do this. Just give them credit in the footer and info pages. In the original v1, we used python to extract and match data to the db file. If you feel that was done in a broken way, you may redo that."
+- On running Next.js's `next upgrade --agent=security`: "No. And default to no in the future. Still mention it, but don't ask."
+- Branches and workflow: "Follow CLAUDE.md, and the rest of the repo instructions."
