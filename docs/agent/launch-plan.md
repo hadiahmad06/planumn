@@ -44,7 +44,7 @@ Launch tickets are numbered **L1–L10** (not D/A/B, which already name Hadi's d
 | L9 | — | B | APAS-check the 10–20 most common majors. Student APAS reports follow C4's rule: run locally, never committed (they hold names, IDs, GPAs) | Requirements | APAS | Student APAS reports |
 | L10 | — | B | Publish the extension (store accounts, listings, review) | APAS | Plans & accounts | UMN policy check (Phase Y) |
 
-**Merge order:** #102 (Next.js) and #96 first; then L2 → L1; L4, L5 in any order (L5 last if `package.json` conflicts).
+**Merge order:** #102, #96 and L2 (#104) are merged. Next: L1 (after L2), then L4 and L5 in any order.
 
 ## Next.js advisory
 
@@ -56,5 +56,6 @@ Next.js 16.4.3 has a published security advisory. When a coding agent runs `next
 
 Hadi: "backwards compatibility does not matter. Breaking changes are fully permitted." (`docs/human/roadmap.md`, "Launch"). So:
 - v2 doesn't have to open plans saved by the 2025 app, and the `plans` row shape, course ids and `data/catalog.db` tables may change. Changes still go under **Contract change** in the PR.
-- L1 no longer has to keep every old course id; it reports id changes (the L5 suite pins three).
-- At the bar A switch, 2025 rows that v2 can't read stay in the table and show "could not be read". Whether to clear them, or start v2 on a fresh table, is part of L7 (default: leave them).
+- L1 no longer has to keep every old course id; it reports id changes (the L5 suite in #105 relies on CSCI 1933, 2011 and 2041 keeping ids 94, 77 and 1473).
+- **At the bar A switch, 2025 cloud plans are a hazard, not just unreadable.** `serverRepository.ts` doesn't validate rows on `list()`/`get()`, so a 2025 row with a null title or a course without `lock` opens in the editor and then every save fails ("The plan is invalid"), losing the student's edits (#107 review). Only the browser autosave shows "could not be read". **Proposed default (L7, posted on #16):** v2 uses a fresh plans table, and the 2025 `plans` table is left untouched and unused. Deleting the old rows is Hadi's call.
+- Contract changes to the plan row shape also change snapshot links (`src/features/sharing/`): the PR that changes the shape names it under **Contract change**, and the Plans & accounts reviewer checks the snapshot codec.
