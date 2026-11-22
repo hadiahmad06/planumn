@@ -11,7 +11,7 @@ describe("APAS conversions (B1 step 2)", () => {
   });
 
   it("reads term labels and uAchieve yyyyt codes", () => {
-    expect(parseApasTermLabel("Fall 2024")).toBe("1249");
+    expect(parseApasTermLabel("Fall 2023")).toBe("1239");
     expect(parseApasTermLabel("Spr 2028")).toBe("1283");
     expect(parseApasTermLabel("Summer 2025")).toBe("1255");
     expect(parseUachieveTerm("20249 ")).toBe("1249");

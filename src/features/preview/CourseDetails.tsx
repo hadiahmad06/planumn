@@ -6,6 +6,7 @@ import { courseCode, formatCredits } from "@/domain/course";
 import { offeringHistory, offeringNote } from "@/domain/health";
 import { TWIN_CITIES_LIBED } from "@/domain/libed";
 import { termLabel } from "@/domain/terms";
+import { CATALOG_DATA_THROUGH } from "@/domain/dataSources";
 import { cn } from "@/components/ui/cn";
 import { LockIcon } from "@/components/ui/icons";
 import { useLibEd } from "@/features/libed/useLibEd";
@@ -143,7 +144,7 @@ function More({ course }: { course: Details }) {
         <summary className={summary}>Terms recorded</summary>
         <p className="pb-2 text-micro leading-relaxed text-text-secondary">
           {course.termsOffered.length ? course.termsOffered.map((t) => (/^1\d{2}[359]$/.test(t) ? termLabel(t) : t)).join(", ") : "No offering history."}{" "}
-          Past offerings are a guide, not a guarantee. Grade data runs through Fall 2024.
+          Past offerings are a guide, not a guarantee. Grade data runs through {CATALOG_DATA_THROUGH}.
         </p>
       </details>
       {url && (

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { UserMenu } from "@/features/auth/UserMenu";
+import { DataCredit } from "./DataCredit";
 /** Written by Michael's Codex. */
 export function SiteHeader() {
   return (
@@ -22,24 +23,30 @@ export function SiteHeader() {
     </header>
   );
 }
+/** Data credit line: Hadi's Claude (D2, #98). */
 export function SiteFooter() {
   return (
-    <footer className="mx-auto mt-20 flex max-w-6xl flex-wrap justify-between gap-5 border-t border-border px-6 py-8 text-sm text-text-secondary">
-      <p>Built by UMN students. Independently run.</p>
-      <nav aria-label="Footer navigation" className="flex gap-6">
-        <Link href="/info/contact" className="hover:text-accent">
-          Contact
-        </Link>
-        <Link href="/info/privacy" className="hover:text-accent">
-          Privacy
-        </Link>
-        <a
-          href="https://github.com/hadiahmad06/planumn"
-          className="hover:text-accent"
-        >
-          GitHub
-        </a>
-      </nav>
+    <footer className="mx-auto mt-20 max-w-6xl border-t border-border px-6 py-8 text-sm text-text-secondary">
+      <div className="flex flex-wrap justify-between gap-5">
+        <p>Built by UMN students. Independently run.</p>
+        <nav aria-label="Footer navigation" className="flex gap-6">
+          <Link href="/info/contact" className="hover:text-accent">
+            Contact
+          </Link>
+          <Link href="/info/privacy" className="hover:text-accent">
+            Privacy
+          </Link>
+          <a
+            href="https://github.com/hadiahmad06/planumn"
+            className="hover:text-accent"
+          >
+            GitHub
+          </a>
+        </nav>
+      </div>
+      <p className="mt-4 text-xs leading-relaxed">
+        <DataCredit linkClassName="underline underline-offset-2 hover:text-accent" />
+      </p>
     </footer>
   );
 }

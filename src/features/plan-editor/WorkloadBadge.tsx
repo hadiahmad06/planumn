@@ -2,6 +2,7 @@
 
 import { semesterWorkloadStatus, type WorkloadLevel } from "@/domain/workload";
 import type { Semester } from "@/domain/plan";
+import { CATALOG_DATA_THROUGH } from "@/domain/dataSources";
 import { cn } from "@/components/ui/cn";
 import { useCourseCache } from "@/features/catalog/courseCache";
 
@@ -29,7 +30,7 @@ export function WorkloadBadge({ semester }: { semester: Semester }) {
   if (result.status === "empty" || result.status === "loading") return null;
 
   if (result.status === "incomplete") {
-    const title = `No workload rating: ${result.unavailable} course${result.unavailable === 1 ? " isn't" : "s aren't"} in the catalog (data through Fall 2024).`;
+    const title = `No workload rating: ${result.unavailable} course${result.unavailable === 1 ? " isn't" : "s aren't"} in the catalog (data through ${CATALOG_DATA_THROUGH}).`;
     return (
       <span title={title} className={cn(PILL, "bg-sunken text-text-tertiary")}>
         no rating
@@ -41,7 +42,7 @@ export function WorkloadBadge({ semester }: { semester: Semester }) {
   const w = result.workload;
   const title = `${w.level[0].toUpperCase()}${w.level.slice(1)} semester: ${w.credits} credits${
     w.gpa !== null ? `, average historical GPA ${w.gpa.toFixed(2)}` : ""
-  }. A rough signal from past grades (through Fall 2024), not a measure of effort. How: each course weighs its credits × (1 + how far its average GPA is below 3.3, ÷ 1.3); the total is heavy at 20+, light at 13 or less.`;
+  }. A rough signal from past grades (through ${CATALOG_DATA_THROUGH}), not a measure of effort. How: each course weighs its credits × (1 + how far its average GPA is below 3.3, ÷ 1.3); the total is heavy at 20+, light at 13 or less.`;
   return (
     <span title={title} className={cn(PILL, STYLE[w.level])}>
       {w.level}

@@ -38,7 +38,7 @@ function FilterSelect({
 
 /**
  * B8 smart search filters, shown at the top of the search dropdown. Offering season and average GPA
- * come from past grades (through Fall 2024); Lib Ed comes from the UMN catalog. "Requirement" lists the
+ * come from past grades (through CATALOG_DATA_THROUGH); Lib Ed comes from the UMN catalog. "Requirement" lists the
  * plan's program requirements and keeps only the courses that requirement lists.
  */
 export function SearchFilterBar({

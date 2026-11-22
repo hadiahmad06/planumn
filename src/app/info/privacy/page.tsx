@@ -1,7 +1,8 @@
 import Link from "next/link";
+import { CATALOG_DATA_THROUGH, GOPHERGRADES } from "@/domain/dataSources";
 import { SiteHeader, SiteFooter } from "@/features/marketing/SiteChrome";
 export const metadata = { title: "Privacy | planu.mn" };
-/** Written by Michael's Codex. Describes implemented behavior; not a human-authored specification. */
+/** Written by Michael's Codex. Describes implemented behavior; not a human-authored specification. Data credit: Hadi's Claude (D2, #98). */
 export default function Page() {
   return (
     <>
@@ -110,12 +111,16 @@ export default function Page() {
             <p>
               Historical catalog and grade data come from the 2025 dataset
               derived from{" "}
-              <a className="text-accent underline" href="https://umn.lol">
-                GopherGrades
+              <a className="text-accent underline" href={GOPHERGRADES.url}>
+                {GOPHERGRADES.name}
               </a>
-              . They currently cover data through Fall 2024 and may be
-              incomplete. Planumn is independently run and is not an official
-              University degree audit.
+              , which {GOPHERGRADES.maintainer} maintains (
+              <a className="text-accent underline" href={GOPHERGRADES.sourceUrl}>
+                source on GitHub
+              </a>
+              ), used with their permission. The data currently run through{" "}
+              {CATALOG_DATA_THROUGH} and may be incomplete. Planumn is
+              independently run and is not an official University degree audit.
             </p>
           </section>
           <section>

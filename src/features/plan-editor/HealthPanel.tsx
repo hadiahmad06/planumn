@@ -4,6 +4,7 @@ import * as Popover from "@radix-ui/react-popover";
 import { GRADUATION_CREDITS } from "@/domain/health";
 import type { Plan } from "@/domain/plan";
 import { termLabel } from "@/domain/terms";
+import { CATALOG_DATA_THROUGH } from "@/domain/dataSources";
 import { cn } from "@/components/ui/cn";
 import { AlertIcon } from "@/components/ui/icons";
 import { usePreviewStore } from "@/features/preview/store";
@@ -56,7 +57,7 @@ export function HealthPanel({ plan }: { plan: Plan }) {
               ))}
             </ul>
           )}
-          <p className="mt-3 text-micro text-text-tertiary">Offering history comes from grade records through Fall 2024. Check with your adviser.</p>
+          <p className="mt-3 text-micro text-text-tertiary">Offering history comes from grade records through {CATALOG_DATA_THROUGH}. Check with your adviser.</p>
         </Popover.Content>
       </Popover.Portal>
     </Popover.Root>

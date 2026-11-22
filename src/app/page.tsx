@@ -1,3 +1,4 @@
+import { CATALOG_DATA_THROUGH } from "@/domain/dataSources";
 import { SiteHeader, SiteFooter } from "@/features/marketing/SiteChrome";
 import { LandingActions } from "@/features/marketing/LandingActions";
 import { PlanIllustration } from "@/features/marketing/PlanIllustration";
@@ -54,7 +55,8 @@ export default function Home() {
         </section>
         <p className="mt-6 max-w-3xl text-sm leading-relaxed text-text-secondary">
           Planumn is an independent student project, not an official UMN degree
-          audit. Catalog and grade data currently run through Fall 2024. Confirm
+          audit. Catalog and grade data currently run through{" "}
+          {CATALOG_DATA_THROUGH}. Confirm
           requirements and future offerings with your advisor and the University
           catalog.
         </p>

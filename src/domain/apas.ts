@@ -94,7 +94,7 @@ export function parseApasTerm(raw: string): TermCode | null {
   return season ? toTermCode({ year: 2000 + Number(m[2]), season }) : null;
 }
 
-/** "Fall 2024", "Spr 2028", "Summer 2025" → term code. */
+/** "Fall 2025", "Spr 2028", "Summer 2025" → term code. */
 export function parseApasTermLabel(raw: string): TermCode | null {
   const m = raw.trim().toUpperCase().match(/^([A-Z]+)\.?\s+(\d{4})$/);
   if (!m) return null;
